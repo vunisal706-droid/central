@@ -2,7 +2,7 @@
 <html lang="es">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
     <meta name="theme-color" content="#1e88e5">
     <meta name="description" content="CEIP Capitulaciones - Hub de herramientas educativas">
     
@@ -23,14 +23,21 @@
             box-sizing: border-box;
         }
 
+        html, body {
+            width: 100%;
+            height: 100%;
+        }
+
         body {
             font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
             background: linear-gradient(135deg, #1e88e5 0%, #0d47a1 100%);
             min-height: 100vh;
+            width: 100%;
             display: flex;
             justify-content: center;
             align-items: center;
             padding: 20px;
+            overflow-x: hidden;
         }
 
         .container {
@@ -38,17 +45,19 @@
             border-radius: 20px;
             padding: 40px;
             box-shadow: 0 20px 60px rgba(0, 0, 0, 0.3);
-            max-width: 900px;
+            max-width: 1400px;
             width: 100%;
         }
 
         .header {
             text-align: center;
             margin-bottom: 40px;
+            overflow: hidden;
         }
 
         .logo {
-            width: 350px;
+            width: 250px;
+            max-width: 80%;
             height: auto;
             margin-bottom: 20px;
         }
@@ -198,11 +207,29 @@
             }
 
             .logo {
-                width: 280px;
+                width: 200px;
+                max-width: 70%;
             }
 
             .tools-grid {
                 grid-template-columns: 1fr;
+            }
+        }
+
+        /* Optimización para pantallas grandes en horizontal (pizarras digitales) */
+        @media (min-width: 1024px) and (orientation: landscape) {
+            .container {
+                max-width: 95vw;
+            }
+
+            .tools-grid {
+                grid-template-columns: repeat(3, 1fr);
+                gap: 30px;
+            }
+
+            .logo {
+                width: 220px;
+                max-width: 60%;
             }
         }
     </style>
