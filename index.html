@@ -391,7 +391,7 @@
             <a class="tool-card" style="--card-color:#ec407a; --card-color-dark:#ad1457; --card-glow:rgba(236,64,122,0.45);"
                href="https://vunisal706-droid.github.io/leoresuelvo/" target="_blank" rel="noopener">
                 <div class="tool-icon" aria-hidden="true">📖</div>
-                <h2>LeoResuelvo</h2>
+                <h2>Ágora Capitulaciones</h2>
                 <p>App del Plan de Lectura y del Plan de Resolución de Problemas del CEIP Capitulaciones</p>
                 <span class="abrir">Abrir →</span>
             </a>
@@ -408,8 +408,19 @@
         if ('serviceWorker' in navigator) {
             window.addEventListener('load', () => {
                 navigator.serviceWorker.register('sw.js')
-                    .then(reg => console.log('Service Worker registrado', reg))
+                    .then(reg => {
+                        console.log('Service Worker registrado', reg);
+                        reg.update();
+                    })
                     .catch(err => console.log('Error al registrar SW', err));
+
+                // Si entra un SW nuevo, recargar una sola vez
+                let recargado = false;
+                navigator.serviceWorker.addEventListener('controllerchange', () => {
+                    if (recargado) return;
+                    recargado = true;
+                    window.location.reload();
+                });
             });
         }
 
