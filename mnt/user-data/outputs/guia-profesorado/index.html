@@ -1,0 +1,1285 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<meta name="theme-color" content="#7c3aed">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="default">
+<meta name="description" content="CapiGuía: cómo se trabaja en el CEIP Capitulaciones. Lo esencial del Plan de Centro para el profesorado, en una sola página.">
+<title>CapiGuía · Cómo trabajamos en el CEIP Capitulaciones</title>
+<link rel="icon" href="favicon.png" type="image/png">
+<link rel="apple-touch-icon" href="icon-192.png">
+<link rel="manifest" href="manifest.json">
+<style>
+:root{
+  --rojo:#7c3aed; --rojo-claro:#ede9fe; --rojo-oscuro:#5b21b6;
+  --ambar:#f59e0b;
+  --bg:#ffffff; --surface:#f5f3ff; --border:#ddd6fe;
+  --text:#1c1917; --muted:#78716c;
+  --ok:#16a34a; --ok-bg:#dcfce7;
+  --info:#0891b2; --info-bg:#e0f2fe;
+  --warn:#d97706; --warn-bg:#fef3c7;
+  --err:#dc2626; --err-bg:#fee2e2;
+  --lectura:#2563eb; --lectura-bg:#dbeafe;
+  --mates:#7c3aed; --mates-bg:#ede9fe;
+  --conviv:#16a34a; --conviv-bg:#dcfce7;
+  --absent:#ea580c; --absent-bg:#ffedd5;
+  --r:16px; --sombra:0 2px 10px rgba(28,25,23,.06); --sombra-alta:0 10px 30px rgba(28,25,23,.12);
+  --fuente:system-ui,-apple-system,"Segoe UI",Roboto,"Helvetica Neue",Arial,sans-serif;
+}
+*{box-sizing:border-box}
+html{scroll-behavior:smooth; scroll-padding-top:120px}
+body{
+  margin:0; font-family:var(--fuente); color:var(--text); font-size:17px; line-height:1.6;
+  background:
+    radial-gradient(ellipse at 0% 0%, rgba(124,58,237,.07) 0%, transparent 55%),
+    radial-gradient(ellipse at 100% 10%, rgba(245,158,11,.08) 0%, transparent 55%),
+    #fff;
+  background-attachment:fixed;
+}
+.wrap{max-width:960px;margin:0 auto;padding:0 18px}
+
+/* ---------- cabecera ---------- */
+header{background:linear-gradient(135deg,var(--rojo) 0%,var(--rojo-oscuro) 100%);color:#fff;padding:34px 0 26px}
+header h1{margin:0 0 6px;font-size:clamp(1.5rem,4.4vw,2.3rem);line-height:1.15;font-weight:800;letter-spacing:-.01em}
+header p{margin:0;opacity:.94;font-size:16px;max-width:60ch}
+.sello{display:inline-block;background:rgba(255,255,255,.18);border:1px solid rgba(255,255,255,.35);
+  padding:5px 12px;border-radius:999px;font-size:13px;font-weight:600;margin-bottom:12px}
+
+/* ---------- barra de búsqueda + nav ---------- */
+.sticky{position:sticky;top:0;z-index:50;background:rgba(255,255,255,.94);
+  backdrop-filter:blur(10px);-webkit-backdrop-filter:blur(10px);border-bottom:1px solid var(--border)}
+.buscador{display:flex;gap:10px;align-items:center;padding:12px 0}
+.buscador label{position:absolute;left:-9999px}
+.buscador input{flex:1;min-height:48px;border:2px solid var(--border);border-radius:12px;
+  padding:10px 14px;font-size:16px;font-family:inherit;background:#fff;color:var(--text)}
+.buscador input:focus{outline:3px solid var(--rojo);outline-offset:2px;border-color:var(--rojo)}
+.btn-limpiar{min-height:48px;min-width:48px;border:2px solid var(--border);background:#fff;
+  border-radius:12px;cursor:pointer;font-size:15px;font-weight:600;color:var(--muted);padding:0 14px}
+.btn-limpiar:hover{background:var(--surface)}
+.btn-limpiar:active{transform:scale(.96)}
+nav.chips{display:flex;gap:8px;overflow-x:auto;padding:0 0 12px;-webkit-overflow-scrolling:touch}
+nav.chips a{white-space:nowrap;background:var(--surface);border:1px solid var(--border);
+  color:var(--rojo-oscuro);text-decoration:none;padding:9px 14px;border-radius:999px;
+  font-size:14px;font-weight:600;min-height:44px;display:flex;align-items:center}
+nav.chips a:hover{background:var(--rojo-claro)}
+nav.chips a:focus-visible{outline:3px solid var(--rojo);outline-offset:2px}
+
+/* ---------- secciones ---------- */
+main{padding:26px 0 60px}
+section{margin:0 0 30px;scroll-margin-top:130px}
+h2{font-size:clamp(1.2rem,3.2vw,1.6rem);margin:0 0 4px;font-weight:800;letter-spacing:-.01em;
+  display:flex;align-items:center;gap:10px}
+h2 .num{background:var(--rojo);color:#fff;width:34px;height:34px;border-radius:10px;
+  display:inline-flex;align-items:center;justify-content:center;font-size:16px;flex:0 0 auto}
+.sub{color:var(--muted);margin:0 0 16px;font-size:15px}
+
+.card{background:#fff;border:1px solid var(--border);border-radius:var(--r);
+  padding:20px;box-shadow:var(--sombra);margin-bottom:14px}
+.card h3{margin:0 0 10px;font-size:17px;font-weight:700}
+.card p:last-child,.card ul:last-child,.card ol:last-child{margin-bottom:0}
+
+.grid{display:grid;gap:14px}
+@media(min-width:760px){.grid-2{grid-template-columns:1fr 1fr}.grid-4{grid-template-columns:repeat(4,1fr)}}
+
+/* objetivos */
+.obj{border-radius:var(--r);padding:18px;color:#fff;box-shadow:var(--sombra)}
+.obj h3{margin:0 0 6px;font-size:16px;font-weight:800}
+.obj p{margin:0;font-size:14px;opacity:.95;line-height:1.45}
+.obj-lectura{background:linear-gradient(135deg,#2563eb,#1d4ed8)}
+.obj-mates{background:linear-gradient(135deg,#7c3aed,#6d28d9)}
+.obj-conviv{background:linear-gradient(135deg,#16a34a,#15803d)}
+.obj-absent{background:linear-gradient(135deg,#ea580c,#c2410c)}
+
+/* etiquetas */
+.tag{display:inline-flex;align-items:center;gap:5px;font-size:12.5px;font-weight:700;
+  padding:3px 9px;border-radius:999px;margin:0 4px 4px 0}
+.t-lectura{background:var(--lectura-bg);color:#1e40af}
+.t-mates{background:var(--mates-bg);color:#5b21b6}
+.t-conviv{background:var(--conviv-bg);color:#166534}
+.t-absent{background:var(--absent-bg);color:#9a3412}
+.t-norma{background:#f1f5f9;color:#475569}
+
+/* avisos */
+.aviso{border-left:5px solid;border-radius:10px;padding:14px 16px;margin:14px 0;font-size:15.5px}
+.a-ok{background:var(--ok-bg);border-color:var(--ok)}
+.a-info{background:var(--info-bg);border-color:var(--info)}
+.a-warn{background:var(--warn-bg);border-color:var(--warn)}
+.a-err{background:var(--err-bg);border-color:var(--err)}
+.aviso strong{display:block;margin-bottom:3px}
+
+/* tablas */
+.tabla-wrap{overflow-x:auto;border:1px solid var(--border);border-radius:12px;background:#fff}
+table{border-collapse:collapse;width:100%;min-width:520px;font-size:15px}
+th{background:var(--surface);text-align:left;padding:11px 13px;font-weight:700;
+  border-bottom:2px solid var(--border);color:var(--rojo-oscuro)}
+td{padding:11px 13px;border-bottom:1px solid #f5f5f4;vertical-align:top}
+tr:last-child td{border-bottom:0}
+tbody tr:nth-child(even){background:#fdfcff}
+
+/* listas */
+ul.check{list-style:none;padding:0;margin:0}
+ul.check li{position:relative;padding:9px 0 9px 34px;border-bottom:1px solid #f5f5f4;font-size:15.5px}
+ul.check li:last-child{border-bottom:0}
+ul.check li::before{content:"";position:absolute;left:6px;top:15px;width:14px;height:14px;
+  border:2px solid var(--rojo);border-radius:4px}
+ol.pasos{counter-reset:p;list-style:none;padding:0;margin:0}
+ol.pasos li{counter-increment:p;position:relative;padding:10px 0 10px 44px;font-size:15.5px;
+  border-bottom:1px solid #f5f5f4}
+ol.pasos li:last-child{border-bottom:0}
+ol.pasos li::before{content:counter(p);position:absolute;left:0;top:9px;width:28px;height:28px;
+  background:var(--rojo-claro);color:var(--rojo-oscuro);border-radius:8px;font-weight:800;
+  display:flex;align-items:center;justify-content:center;font-size:14px}
+
+/* acordeón */
+details{background:#fff;border:1px solid var(--border);border-radius:12px;margin-bottom:10px;overflow:hidden}
+details[open]{box-shadow:var(--sombra)}
+summary{cursor:pointer;padding:15px 18px;font-weight:700;font-size:16px;list-style:none;
+  display:flex;justify-content:space-between;align-items:center;gap:12px;min-height:52px}
+summary::-webkit-details-marker{display:none}
+summary::after{content:"+";font-size:22px;color:var(--rojo);font-weight:700;flex:0 0 auto}
+details[open] summary::after{content:"–"}
+summary:hover{background:var(--surface)}
+summary:focus-visible{outline:3px solid var(--rojo);outline-offset:-3px}
+.details-body{padding:0 18px 18px}
+
+/* niveles de logro */
+.niveles{display:grid;gap:10px}
+@media(min-width:700px){.niveles{grid-template-columns:repeat(4,1fr)}}
+.nivel{border-radius:12px;padding:14px;border:2px solid;font-size:14px}
+.n1{background:#fef2f2;border-color:#fca5a5}
+.n2{background:#fff7ed;border-color:#fdba74}
+.n3{background:#f0fdf4;border-color:#86efac}
+.n4{background:#eff6ff;border-color:#93c5fd}
+.nivel b{display:block;font-size:15px;margin-bottom:4px}
+
+/* calendario */
+.meses{display:grid;gap:10px}
+@media(min-width:700px){.meses{grid-template-columns:1fr 1fr}}
+.mes{background:#fff;border:1px solid var(--border);border-left:5px solid var(--rojo);
+  border-radius:10px;padding:13px 15px}
+.mes b{display:block;color:var(--rojo-oscuro);font-size:15px;margin-bottom:4px}
+.mes ul{margin:0;padding-left:18px;font-size:14.5px}
+.mes li{margin-bottom:3px}
+
+
+/* descarga */
+.descarga{display:flex;gap:16px;align-items:center;flex-wrap:wrap;
+  background:linear-gradient(135deg,#f5f3ff 0%,#faf5ff 100%);
+  border:2px solid var(--border);border-radius:var(--r);padding:18px 20px;margin-bottom:16px}
+.descarga .doc{flex:0 0 auto;width:52px;height:52px;border-radius:12px;background:var(--rojo);
+  display:flex;align-items:center;justify-content:center}
+.descarga .txt{flex:1 1 260px;min-width:220px}
+.descarga .txt b{display:block;font-size:16px;margin-bottom:3px}
+.descarga .txt span{font-size:14.5px;color:var(--muted);line-height:1.45}
+.descarga a.btn{flex:0 0 auto;background:var(--rojo);color:#fff;text-decoration:none;
+  font-weight:700;font-size:15px;padding:13px 22px;border-radius:12px;min-height:48px;
+  display:inline-flex;align-items:center;gap:8px;border:0;cursor:pointer}
+.descarga a.btn:hover{background:var(--rojo-oscuro)}
+.descarga a.btn:active{transform:scale(.97)}
+.descarga a.btn:focus-visible{outline:3px solid var(--text);outline-offset:3px}
+@media print{.descarga{display:none}}
+.sin-resultados{display:none;text-align:center;padding:40px 20px;color:var(--muted);font-size:17px}
+footer{border-top:1px solid var(--border);padding:24px 0 40px;color:var(--muted);font-size:14px}
+.oculto{display:none !important}
+mark{background:#fef08a;padding:0 2px;border-radius:3px}
+
+@media(prefers-reduced-motion:reduce){
+  *,*::before,*::after{animation-duration:.01ms !important;transition-duration:.01ms !important}
+  html{scroll-behavior:auto}
+}
+@media print{
+  .sticky,nav.chips,footer,.no-print{display:none !important}
+  body{background:#fff;font-size:11pt}
+  section{page-break-inside:avoid}
+  details{border:0} details>summary{font-size:13pt}
+  .details-body{display:block !important}
+}
+</style>
+</head>
+<body>
+
+<header>
+  <div class="wrap">
+    <span class="sello">CEIP Capitulaciones · Santa Fe</span>
+    <h1>CapiGuía</h1>
+    <p style="font-size:19px;font-weight:600;margin:0 0 8px">Cómo trabajamos en el CEIP Capitulaciones</p>
+    <p>Lo esencial del Plan de Centro, en una página. Si acabas de llegar al centro, con leer
+       esto tienes para empezar a trabajar mañana.</p>
+  </div>
+</header>
+
+<div class="sticky">
+  <div class="wrap">
+    <div class="buscador">
+      <label for="q">Buscar en la guía</label>
+      <input id="q" type="search" placeholder="Buscar: refuerzo, promoción, absentismo, rúbrica…"
+             autocomplete="off">
+      <button class="btn-limpiar" id="limpiar" type="button">Limpiar</button>
+    </div>
+    <nav class="chips" aria-label="Secciones">
+      <a href="#objetivos">Los 4 objetivos</a>
+      <a href="#primera">Primera semana</a>
+      <a href="#tiempos">Tiempos obligatorios</a>
+      <a href="#lectura">Cómo se trabaja la lectura</a>
+      <a href="#problemas">Cómo se resuelven problemas</a>
+      <a href="#evaluar">Evaluar</a>
+      <a href="#dificultades">Si no avanza</a>
+      <a href="#promocion">Promoción</a>
+      <a href="#convivencia">Convivencia</a>
+      <a href="#absentismo">Absentismo</a>
+      <a href="#familias">Familias</a>
+      <a href="#curso">El curso mes a mes</a>
+      <a href="#programacion">Tu programación</a>
+      <a href="#donde">Dónde está cada cosa</a>
+      <a href="#acogida">Acogida</a>
+      <a href="#apps">Apps del centro</a>
+      <a href="#faq">Preguntas frecuentes</a>
+      <a href="#errores">Errores frecuentes</a>
+    </nav>
+  </div>
+</div>
+
+<main class="wrap">
+
+<!-- 1 ---------------------------------------------------------------->
+<section id="objetivos">
+  <h2><span class="num">1</span> Los cuatro objetivos del centro</h2>
+  <p class="sub">Todo lo demás cuelga de aquí. Si dudas de si algo es prioritario, mira si encaja
+     en uno de estos cuatro.</p>
+  <div class="grid grid-4">
+    <div class="obj obj-absent"><h3>Absentismo</h3>
+      <p>Que vengan. Contacto con la familia el mismo día de la tercera falta sin justificar.</p></div>
+    <div class="obj obj-lectura"><h3>Lectura</h3>
+      <p>Que cada alumno mejore en comprensión respecto a su propio punto de partida.</p></div>
+    <div class="obj obj-mates"><h3>Matemáticas</h3>
+      <p>Resolución de problemas con la misma estructura en todos los cursos.</p></div>
+    <div class="obj obj-conviv"><h3>Convivencia</h3>
+      <p>Menos conductas contrarias, sociograma dos veces al año y recreos inclusivos.</p></div>
+  </div>
+  <div class="aviso a-info"><strong>Cómo se mide</strong>
+    No con porcentajes ambiciosos, sino con el progreso de cada alumno respecto a sí mismo y con
+    el cumplimiento de lo acordado. El centro está en Zona de Transformación Social y los objetivos
+    están calibrados para eso.</div>
+</section>
+
+<!-- 2 ---------------------------------------------------------------->
+<section id="primera">
+  <h2><span class="num">2</span> Tu primera semana</h2>
+  <p class="sub">Por orden. Si haces esto, ya vas bien.</p>
+  <div class="card">
+    <ul class="check">
+      <li>Lee los <strong>informes finales</strong> del curso anterior de tu grupo.</li>
+      <li>Localiza en tu horario las <strong>sesiones de lectura</strong> (una diaria) y las de
+          <strong>resolución de problemas</strong> (tres a la semana).</li>
+      <li>Pide a jefatura la <strong>estructura común</strong> de comprensión lectora y la de
+          resolución de problemas. Son las mismas en todo el centro y no se improvisan.</li>
+      <li>Elabora las <strong>normas de aula con el alumnado</strong> y déjalas visibles.
+          Primera quincena de septiembre.</li>
+      <li>Prepara tu <strong>registro de criterios</strong>: una fila por alumno, una columna por
+          criterio.</li>
+      <li>Mira qué alumnado llega con <strong>programa de refuerzo</strong> o con adaptación.</li>
+      <li>Comprueba si en tu grupo hay alumnado del <strong>aula específica</strong> y en qué
+          sesiones viene.</li>
+    </ul>
+  </div>
+  <div class="aviso a-warn"><strong>Antes del 15 de octubre</strong>
+    Tienes que haber hecho la evaluación inicial y haber llevado sus conclusiones a la sesión de
+    evaluación inicial del equipo docente.</div>
+</section>
+
+<!-- 3 ---------------------------------------------------------------->
+<section id="tiempos">
+  <h2><span class="num">3</span> Los tiempos que no se negocian</h2>
+  <p class="sub">No son objetivos del centro: son obligación normativa. Aparecen en tu horario.</p>
+  <div class="grid grid-2">
+    <div class="card">
+      <h3><span class="tag t-lectura">Lectura</span></h3>
+      <p><strong>30 minutos diarios</strong> de lectura planificada, en todos los cursos. Es tiempo
+         de trabajo de la comprensión con la estructura del centro, no de lectura libre silenciosa.
+         Se anota en el cuaderno semanal del Plan de Lectura.</p>
+    </div>
+    <div class="card">
+      <h3><span class="tag t-mates">Matemáticas</span></h3>
+      <p><strong>30 minutos, tres veces por semana</strong>, de resolución de problemas, en los días
+         que fije el horario de tu grupo. Con los mismos pasos y el mismo vocabulario que el resto
+         del centro.</p>
+    </div>
+  </div>
+  <div class="card">
+    <h3><span class="tag t-conviv">Recreos</span> Inclusivos y activos</h3>
+    <p>Al menos dos días por semana hay juego dirigido, con cuadrante y materiales. Se anota la
+       actividad realizada. No es vigilar: es organizar.</p>
+  </div>
+</section>
+
+
+<!-- 4 ---------------------------------------------------------------->
+<section id="lectura">
+  <h2><span class="num">4</span> Cómo se trabaja la lectura</h2>
+  <p class="sub">El método es el mismo de primero a sexto. Lo que cambia es la dificultad del texto,
+     nunca el método.</p>
+  <div class="descarga">
+    <div class="doc" aria-hidden="true">
+      <svg width="26" height="26" viewBox="0 0 24 24" fill="none" stroke="#fff" stroke-width="2"
+           stroke-linecap="round" stroke-linejoin="round">
+        <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/>
+        <path d="M14 2v6h6"/><path d="M12 18v-6"/><path d="M9 15l3 3 3-3"/>
+      </svg>
+    </div>
+    <div class="txt">
+      <b>Cómo trabajamos la lectura y los problemas</b>
+      <span>El documento completo del centro, en Word: nueve páginas con el método entero, las
+        rúbricas, qué hacer ante cada dificultad y los errores frecuentes. Imprímelo y tenlo encima de la mesa.</span>
+    </div>
+    <a class="btn" href="Como_trabajamos_lectura_y_problemas.docx"
+       download="Como trabajamos lectura y problemas - CEIP Capitulaciones.docx">
+      Descargar Word
+    </a>
+  </div>
+
+  <div class="card">
+    <h3>La sesión diaria: tres pasos, siempre iguales</h3>
+    <div class="tabla-wrap">
+      <table>
+        <thead><tr><th>Paso</th><th>Tiempo</th><th>Qué se hace</th></tr></thead>
+        <tbody>
+          <tr><td><strong>1 · ANTES</strong></td><td>5 min</td>
+              <td>¿De qué creéis que va? Título, imágenes y las palabras de vocabulario de la
+                  semana. Y sobre todo: <strong>decir para qué vamos a leer</strong>.</td></tr>
+          <tr><td><strong>2 · LEEMOS</strong></td><td>15 min</td>
+              <td>Lectura con una actividad concreta: en voz alta, coral, por turnos, en pareja,
+                  subrayando… con paradas para comprobar que se sigue.</td></tr>
+          <tr><td><strong>3 · DESPUÉS</strong></td><td>10 min</td>
+              <td>¿Qué hemos entendido? Preguntas de los tres niveles, y una actividad pequeña:
+                  dibujo, resumen u opinión.</td></tr>
+        </tbody>
+      </table>
+    </div>
+    <div class="aviso a-info" style="margin-bottom:0"><strong>La pregunta que más rendimiento da</strong>
+      «¿Para qué vamos a leer esto?». Quien sabe si lee para buscar un dato, para seguir unas
+      instrucciones o para disfrutar, lee de otra manera. Quien no lo sabe, lee por leer.</div>
+  </div>
+
+  <div class="card">
+    <h3>La semana</h3>
+    <p>De <strong>lunes a jueves</strong>, un texto distinto cada día, sin repetir dos días seguidos
+       el mismo tipo. El <strong>viernes</strong>, lectura libre del itinerario lector o de la
+       biblioteca. Dentro del mes la dificultad sube: la semana 1 es la más accesible y la última
+       lleva el mayor reto, que suele ser crear, opinar o debatir.</p>
+  </div>
+
+  <div class="card">
+    <h3>Los tres niveles de pregunta</h3>
+    <p>Se preguntan siempre en este orden y con estos nombres, que el alumnado tiene que reconocer.</p>
+    <div class="tabla-wrap">
+      <table>
+        <thead><tr><th>Nivel</th><th>Cómo se pregunta</th><th>Ejemplo</th></tr></thead>
+        <tbody>
+          <tr><td><strong>1 · Lo que dice el texto</strong><br><span style="color:var(--muted);font-size:13px">literal</span></td>
+              <td>¿Quién? ¿Dónde? ¿Cuándo? ¿Qué hizo?</td>
+              <td>¿Dónde vivía la protagonista?</td></tr>
+          <tr><td><strong>2 · Leer entre líneas</strong><br><span style="color:var(--muted);font-size:13px">inferencial</span></td>
+              <td>¿Por qué? ¿Qué crees que pasará? ¿Cómo se sentía?</td>
+              <td>¿Por qué crees que no quiso abrir la puerta?</td></tr>
+          <tr><td><strong>3 · Opinar</strong><br><span style="color:var(--muted);font-size:13px">crítico</span></td>
+              <td>¿Estás de acuerdo? ¿Qué habrías hecho tú? ¿Para qué lo escribió?</td>
+              <td>¿Te parece bien lo que hizo? ¿Por qué?</td></tr>
+        </tbody>
+      </table>
+    </div>
+    <div class="aviso a-ok"><strong>De cada cinco preguntas: dos, dos y una</strong>
+      Dos del nivel 1, dos del 2 y una del 3. El error más extendido es quedarse en el nivel 1, que
+      es el más rápido de corregir y el que menos enseña.</div>
+    <div class="aviso a-warn" style="margin-bottom:0"><strong>Y siempre: «¿dónde lo pone?»</strong>
+      Ninguna respuesta de nivel 2 o 3 se da por buena sin que diga en qué parte del texto se apoya.
+      Es la pregunta que más comprensión enseña.</div>
+  </div>
+
+  <details>
+    <summary>El vocabulario: ocho palabras al mes</summary>
+    <div class="details-body">
+      <p>Ocho palabras al mes relacionadas con la temática, dos o tres por semana. Se presentan
+         <strong>el lunes, en el paso ANTES</strong>, y se repasan un minuto cada día.</p>
+      <ul class="check">
+        <li>Se eligen las que impiden comprender el texto, no las raras ni las curiosas.</li>
+        <li>Se presentan dentro de una frase, nunca con una definición suelta.</li>
+        <li>Van al <strong>muro de palabras</strong> del aula, visible mientras se trabajan.</li>
+        <li>Cada alumno las recoge en su <strong>diccionario individual</strong>: la palabra, una
+            frase propia y un dibujo o sinónimo. Copiar la definición no sirve.</li>
+        <li>Tienen que <strong>volver a aparecer</strong> al menos tres veces en las semanas
+            siguientes. Sin reutilización no hay aprendizaje de vocabulario.</li>
+      </ul>
+      <p style="margin-top:10px;color:var(--muted);font-size:15px">La rotación de actividades por
+         ciclo está en el Plan de Lectura.</p>
+    </div>
+  </details>
+
+  <details>
+    <summary>La fluidez: cómo se mide en tres minutos</summary>
+    <div class="details-body">
+      <p><strong>Leer bien no es leer rápido.</strong> Son tres cosas: sin errores, a buen ritmo y
+         con entonación. La tercera es la que más dice sobre si comprende.</p>
+      <p>Se mide en <strong>octubre y en mayo</strong>, uno a uno, en un rincón mientras el resto
+         trabaja:</p>
+      <ol class="pasos">
+        <li>Dos copias de un texto que no conozca, de su nivel.</li>
+        <li>«Lee en voz alta como tú lees normalmente». Sin decirle que le cronometras.</li>
+        <li>Un minuto exacto. Marcas en tu copia cada palabra fallada.</li>
+        <li>Palabras leídas menos falladas. Eso son sus palabras por minuto.</li>
+        <li>Anotas tres cosas: las palabras por minuto, si se autocorrige y si respeta los puntos.</li>
+      </ol>
+      <p style="margin-top:12px"><strong>Es fallo</strong> saltarse la palabra, decir otra,
+         inventarla o pararse más de tres segundos. <strong>No es fallo</strong> equivocarse y
+         corregirse solo, repetir una palabra o leer con acento andaluz.</p>
+      <div class="tabla-wrap" style="margin-top:12px">
+        <table><thead><tr><th>Lo que te sale</th><th>Qué haces</th></tr></thead><tbody>
+          <tr><td>En su rango y con entonación</td><td>Nada especial.</td></tr>
+          <tr><td>En su rango pero de carrerilla, sin entonación</td>
+              <td>Lectura eco y teatro leído, dos veces por semana, diez minutos.</td></tr>
+          <tr><td>Muy por debajo</td>
+              <td>Lectura repetida cinco minutos diarios en grupo pequeño. Y mientras tanto, en las
+                  demás áreas, léele tú los enunciados.</td></tr>
+        </tbody></table>
+      </div>
+      <div class="aviso a-err" style="margin-bottom:0"><strong>Nunca</strong>
+        Ni carreras, ni comparaciones en voz alta, ni colgar resultados, ni hacer leer en público sin
+        preparación a quien lee mal. La fluidez no se califica: se mide para saber a quién ayudar.
+        Lo que importa no es el número de octubre, sino la diferencia con el de mayo.</div>
+    </div>
+  </details>
+
+  <details>
+    <summary>Si no comprende: averigua primero por qué</summary>
+    <div class="details-body">
+      <p>La prueba dura un minuto: <strong>léele tú el texto en voz alta</strong> y hazle las mismas
+         preguntas.</p>
+      <div class="tabla-wrap">
+        <table><thead><tr><th>Qué pasa</th><th>Qué significa</th><th>Qué haces</th></tr></thead>
+          <tbody>
+            <tr><td>Se lo lees y entiende</td><td>Es descodificación, no comprensión</td>
+                <td>Fluidez diaria en grupo pequeño. Y en las demás áreas, dale el texto leído.</td></tr>
+            <tr><td>Se lo lees y sigue sin entender</td><td>Es comprensión o vocabulario</td>
+                <td>Textos más cortos con las mismas preguntas y vocabulario previo intensivo.</td></tr>
+            <tr><td>Entiende pero no sabe explicarlo</td><td>Es expresión</td>
+                <td>Acepta respuesta oral, dibujo o señalar en el texto. No se penaliza dos veces.</td></tr>
+            <tr><td>Solo responde lo literal</td><td>Lo más habitual</td>
+                <td>Piensa en voz alta delante de él: muestra cómo se deduce.</td></tr>
+          </tbody></table>
+      </div>
+    </div>
+  </details>
+</section>
+
+<!-- 5 ---------------------------------------------------------------->
+<section id="problemas">
+  <h2><span class="num">5</span> Cómo se resuelven los problemas</h2>
+  <p class="sub">Cinco pasos, con estos cinco nombres, del problema más sencillo de primero al más
+     complejo de sexto.</p>
+  <div class="descarga">
+    <div class="doc" aria-hidden="true">
+      <svg width="26" height="26" viewBox="0 0 24 24" fill="none" stroke="#fff" stroke-width="2"
+           stroke-linecap="round" stroke-linejoin="round">
+        <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/>
+        <path d="M14 2v6h6"/><path d="M12 18v-6"/><path d="M9 15l3 3 3-3"/>
+      </svg>
+    </div>
+    <div class="txt">
+      <b>Cómo trabajamos la lectura y los problemas</b>
+      <span>El documento completo del centro, en Word: nueve páginas con el método entero, las
+        rúbricas, qué hacer ante cada dificultad y los errores frecuentes.</span>
+    </div>
+    <a class="btn" href="Como_trabajamos_lectura_y_problemas.docx"
+       download="Como trabajamos lectura y problemas - CEIP Capitulaciones.docx">
+      Descargar Word
+    </a>
+  </div>
+
+  <div class="card">
+    <div class="tabla-wrap">
+      <table>
+        <thead><tr><th>Paso</th><th>Qué hace el alumnado</th><th>Qué le preguntas</th></tr></thead>
+        <tbody>
+          <tr><td><strong>1 · Leo y entiendo</strong></td>
+              <td>Lee despacio, subraya los datos y rodea la pregunta. Cuenta el problema con sus
+                  palabras sin mirar.</td>
+              <td>¿Qué te cuentan? ¿Qué te piden?</td></tr>
+          <tr><td><strong>2 · Dibujo o represento</strong></td>
+              <td>Lo hace visible: dibujo, esquema, tabla o material. <strong>En los primeros cursos
+                  es obligatorio.</strong></td>
+              <td>¿Cómo lo dibujarías?</td></tr>
+          <tr><td><strong>3 · Elijo cómo resolverlo</strong></td>
+              <td>Decide la estrategia y explica el porqué <em>antes</em> de calcular.</td>
+              <td>¿Qué vas a hacer? ¿Por qué restas y no sumas?</td></tr>
+          <tr><td><strong>4 · Resuelvo</strong></td>
+              <td>Hace la operación con orden y calma.</td>
+              <td>(Aquí tú callas y le dejas trabajar.)</td></tr>
+          <tr><td><strong>5 · Compruebo</strong></td>
+              <td>¿Tiene sentido? Escribe la solución con una frase completa y se la explica a un
+                  compañero.</td>
+              <td>¿Puede ser más de lo que había? Explícamelo.</td></tr>
+        </tbody>
+      </table>
+    </div>
+    <div class="aviso a-info" style="margin-bottom:0"><strong>Dónde falla la gente de verdad</strong>
+      En los pasos 1, 2 y 5. Casi nadie falla calculando: falla porque no ha entendido el enunciado o
+      porque no comprueba nada. Y son justo los pasos a los que menos tiempo dedicamos.</div>
+  </div>
+
+  <div class="card">
+    <h3>Cada semana del mes hace una cosa distinta</h3>
+    <div class="tabla-wrap">
+      <table><thead><tr><th>Semana</th><th>Fase</th><th>Qué se hace</th></tr></thead><tbody>
+        <tr><td><strong>1</strong></td><td>Entender el problema</td>
+            <td>Material y dibujos. Solo comprensión del enunciado. <strong>No se resuelve
+                todavía.</strong></td></tr>
+        <tr><td><strong>2</strong></td><td>Elegir la estrategia</td>
+            <td>Problemas guiados en gran grupo, comparando qué estrategia conviene y por qué.</td></tr>
+        <tr><td><strong>3</strong></td><td>Resolver con autonomía</td>
+            <td>Cada uno resuelve y comprueba. Tú atiendes a quien lo necesita.</td></tr>
+        <tr><td><strong>4</strong></td><td>Inventar problemas</td>
+            <td>Inventan problemas del tipo trabajado y los resuelve la clase.</td></tr>
+      </tbody></table>
+    </div>
+    <div class="aviso a-warn" style="margin-bottom:0"><strong>Consecuencia práctica</strong>
+      En la semana 1 no se penaliza no llegar al resultado, porque no es lo que se trabaja. Y en la
+      semana 4, un problema inventado que esté mal construido te dice exactamente qué no ha
+      entendido su autor.</div>
+  </div>
+
+  <details>
+    <summary>Cuidado con las palabras clave</summary>
+    <div class="details-body">
+      <p>Enseñar que «en total» es sumar y «le quedan» es restar funciona… hasta que deja de
+         funcionar, y entonces hace daño. En «<em>tenía algunos, le dieron 5 y ahora tiene 13</em>»
+         la palabra «dieron» invita a sumar y hay que restar.</p>
+      <p><strong>En este centro no se enseñan palabras clave.</strong> Se enseña a representar la
+         situación, que es lo que sí funciona siempre. Por eso el paso 2 es obligatorio en los
+         primeros cursos.</p>
+    </div>
+  </details>
+
+  <details>
+    <summary>Qué hacer ante cada error</summary>
+    <div class="details-body">
+      <div class="tabla-wrap">
+        <table><thead><tr><th>Dónde falla</th><th>Qué NO hacer</th><th>Qué hacer</th></tr></thead>
+          <tbody>
+            <tr><td>No entiende el enunciado</td><td>Explicárselo con otras palabras y seguir</td>
+                <td>Es lectura. Leedlo juntos, subrayad datos y pregunta, y que lo cuente con sus
+                    palabras antes de tocar un número.</td></tr>
+            <tr><td>Elige mal la operación</td><td>Decirle cuál es</td>
+                <td>Vuelta al paso 2: que lo dibuje. Al ver la situación, la operación aparece
+                    sola.</td></tr>
+            <tr><td>Se equivoca al calcular</td><td>Suspender el problema</td>
+                <td>Son criterios distintos. Se anota por separado y, si evalúas resolver, dale
+                    calculadora o tabla.</td></tr>
+            <tr><td>No comprueba nunca</td><td>Recordárselo cada vez</td>
+                <td>Dale problemas con resultados absurdos a propósito, para que descubra que
+                    comprobar sirve.</td></tr>
+            <tr><td>Resuelve bien pero no lo explica</td><td>Darlo por bueno sin más</td>
+                <td>Que se lo explique a un compañero. Si no puede, la comprensión es frágil aunque
+                    el resultado esté bien.</td></tr>
+            <tr><td>Se bloquea y no empieza</td><td>Dejarle copiar</td>
+                <td>Paso 1 en voz alta con él y el mismo problema con números mucho más pequeños.
+                    Cuando lo resuelve, le devuelves los originales.</td></tr>
+          </tbody></table>
+      </div>
+    </div>
+  </details>
+
+  <details>
+    <summary>Tipos de problema que hay que garantizar</summary>
+    <div class="details-body">
+      <p>El fallo típico es que el alumnado solo vea un tipo de problema por operación. Hay que
+         asegurar estos:</p>
+      <ul class="check">
+        <li><strong>Cambio:</strong> una cantidad que aumenta o disminuye.</li>
+        <li><strong>Combinación:</strong> dos partes que forman un todo.</li>
+        <li><strong>Comparación:</strong> ¿cuántos más tiene?</li>
+        <li><strong>Igualación:</strong> ¿cuántos le faltan para tener los mismos?</li>
+        <li><strong>Con la incógnita al principio:</strong> «le dieron 5 y ahora tiene 13, ¿cuántos
+            tenía?».</li>
+        <li><strong>De dos operaciones</strong>, con un paso intermedio que nadie pide.</li>
+        <li><strong>Con datos que sobran</strong>, como en la vida real.</li>
+        <li><strong>Sin solución o con varias.</strong> No todo problema tiene un número detrás.</li>
+      </ul>
+      <p style="margin-top:10px">Los dos que más discriminan entre comprender y aplicar una rutina
+         son los de <strong>incógnita al principio</strong> y los que tienen <strong>datos que
+         sobran</strong>. Deben aparecer desde primer ciclo, aunque sea con números pequeños.</p>
+    </div>
+  </details>
+
+  <div class="aviso a-ok"><strong>Lo que comparten la lectura y los problemas</strong>
+    Antes de leer, para qué voy a leer. Leo y entiendo, qué me preguntan. En los dos casos lo que
+    enseña no es la tarea: es la parada. Parar a comprobar si se ha entendido y parar al final a
+    explicar lo hecho. Comprender el enunciado de un problema y comprender un texto son la misma
+    competencia.</div>
+</section>
+
+<!-- 6 ---------------------------------------------------------------->
+<section id="evaluar">
+  <h2><span class="num">6</span> Cómo se evalúa aquí</h2>
+  <p class="sub">Esta es la parte donde más se falla. Cinco reglas y una tabla.</p>
+
+  <div class="card">
+    <ol class="pasos">
+      <li><strong>Se evalúan criterios, no temas.</strong> La pregunta no es qué han dado, sino qué
+          saben hacer de lo que dice el criterio.</li>
+      <li><strong>Cada criterio se mide de 1 a 4.</strong> Esa escala es su rúbrica.</li>
+      <li><strong>Todos los criterios valen lo mismo.</strong> No se ponderan instrumentos. Una
+          prueba escrita no vale más que una observación.</li>
+      <li><strong>Cada criterio, dos veces y de dos maneras.</strong> Un solo registro no basta.</li>
+      <li><strong>Lo que no está registrado, no existe.</strong> Sin anotación no se puede calificar
+          ni defender ante una reclamación.</li>
+    </ol>
+  </div>
+
+  <h3 style="margin:22px 0 10px">Los cuatro niveles, para cualquier criterio</h3>
+  <div class="niveles">
+    <div class="nivel n1"><b>1 · No conseguido</b>No lo hace, ni siquiera con ayuda directa y
+      continuada.</div>
+    <div class="nivel n2"><b>2 · En proceso</b>Lo hace en la situación de clase, pero con ayuda,
+      con modelo delante o con errores que condicionan el resultado.</div>
+    <div class="nivel n3"><b>3 · Conseguido</b>Lo hace solo, en situaciones parecidas, sin errores
+      relevantes. <em>Es lo esperado en el curso.</em></div>
+    <div class="nivel n4"><b>4 · Con destreza</b>Lo hace solo en situaciones nuevas, lo explica y
+      puede ayudar a un compañero.</div>
+  </div>
+
+  <details style="margin-top:16px">
+    <summary>De los niveles a la nota del boletín</summary>
+    <div class="details-body">
+      <p>Dos pasos, sin porcentajes:</p>
+      <ol class="pasos">
+        <li>Media de los criterios de cada competencia específica.</li>
+        <li>Media de las competencias específicas. Esa es la nota del área.</li>
+      </ol>
+      <p style="margin-top:12px"><strong>Ejemplo.</strong> En una competencia con tres criterios
+         obtiene 3, 2 y 3 → media 2,67. En otra con dos criterios, 3 y 4 → media 3,5.
+         Nota del área: (2,67 + 3,5) ÷ 2 = <strong>3,08 → Notable</strong>.</p>
+      <div class="tabla-wrap" style="margin-top:12px">
+        <table><thead><tr><th>Media</th><th>Calificación</th></tr></thead><tbody>
+          <tr><td>1 a 1,49</td><td>Insuficiente</td></tr>
+          <tr><td>1,5 a 2,49</td><td>Suficiente</td></tr>
+          <tr><td>2,5 a 2,99</td><td>Bien</td></tr>
+          <tr><td>3 a 3,49</td><td>Notable</td></tr>
+          <tr><td>3,5 a 4</td><td>Sobresaliente</td></tr>
+        </tbody></table>
+      </div>
+      <div class="aviso a-warn" style="margin-bottom:0"><strong>Dos cosas importantes</strong>
+        Los criterios que no se han trabajado no entran en la media. Y un criterio sin registros
+        no se califica con un 1: se deja sin evaluar y se recoge más adelante.</div>
+    </div>
+  </details>
+
+  <details>
+    <summary>Qué instrumento uso para cada cosa</summary>
+    <div class="details-body">
+      <div class="tabla-wrap">
+        <table><thead><tr><th>Si el criterio pide…</th><th>Instrumento</th></tr></thead><tbody>
+          <tr><td>Explicar, justificar, exponer</td><td>Exposición oral o texto escrito, con rúbrica</td></tr>
+          <tr><td>Participar, cooperar, respetar normas</td><td>Observación directa durante la actividad</td></tr>
+          <tr><td>Aplicar un procedimiento, resolver</td><td>Tarea o producción del alumnado</td></tr>
+          <tr><td>Recordar o identificar</td><td>Prueba escrita breve</td></tr>
+          <tr><td>Mostrar una actitud o un hábito</td><td>Observación sostenida varias semanas</td></tr>
+        </tbody></table>
+      </div>
+      <div class="aviso a-err" style="margin-bottom:0"><strong>Nunca</strong>
+        La prueba escrita no puede ser el único instrumento de un criterio ni del área.</div>
+    </div>
+  </details>
+</section>
+
+<!-- 7 ---------------------------------------------------------------->
+<section id="dificultades">
+  <h2><span class="num">7</span> Si un alumno no avanza</h2>
+  <p class="sub">Regla de oro: <strong>lo primero que se cambia es la tarea, no el alumno de
+     sitio.</strong> La evaluación psicopedagógica no es el primer paso, es el último.</p>
+
+  <div class="tabla-wrap">
+    <table>
+      <thead><tr><th>Lo que ves</th><th>Esta semana</th><th>Si sigue en 3 semanas</th></tr></thead>
+      <tbody>
+        <tr><td>Falla en tareas sueltas pero sigue el ritmo</td>
+            <td>Modelo delante, ajuste de la tarea</td>
+            <td>Nada más. Es variación normal</td></tr>
+        <tr><td>Va por detrás, menos de dos cursos</td>
+            <td>Ajustes y anotar <em>qué criterio</em> falla</td>
+            <td>Equipo docente y programa de refuerzo. Avisar a la familia</td></tr>
+        <tr><td>No promocionó o arrastra el área</td>
+            <td>Programa de refuerzo desde septiembre, obligatorio</td>
+            <td>Revisar y ajustar criterios ya superados</td></tr>
+        <tr><td>Termina antes y se aburre</td>
+            <td>Tarea de investigación ligada a lo que se está haciendo</td>
+            <td>Programa de profundización</td></tr>
+        <tr><td>Falta mucho a clase</td>
+            <td>Avisar al tutor el mismo día</td>
+            <td>Refuerzo a la reincorporación</td></tr>
+        <tr><td>Entiende pero no puede demostrarlo por escrito</td>
+            <td>Cambiar el formato de respuesta</td>
+            <td>Consultar con PT antes de suspender ningún criterio</td></tr>
+        <tr><td>Sigue sin avanzar pese a todo</td>
+            <td>Reunir registros y medidas aplicadas</td>
+            <td>Solicitud de evaluación psicopedagógica (decisión del equipo docente, en acta)</td></tr>
+      </tbody>
+    </table>
+  </div>
+
+
+  <div class="card">
+    <h3>Cómo se organiza el apoyo</h3>
+    <p>Hay <strong>dos formas</strong>, y las dos son legítimas. La pregunta que decide no es
+       «¿tiene dificultades?», sino <strong>«¿necesita ayuda para hacer lo mismo, o necesita hacer
+       otra cosa?»</strong>.</p>
+    <div class="tabla-wrap">
+      <table>
+        <thead><tr><th>Forma</th><th>En qué consiste</th><th>Cuándo</th></tr></thead>
+        <tbody>
+          <tr><td><strong>Dentro del aula</strong></td>
+              <td>Un segundo docente entra en la sesión y trabaja con quien lo necesita, sin sacarlo
+                  del grupo.</td>
+              <td>Sigue la clase con ayuda, con más tiempo o con el modelo delante. También cuando
+                  el problema es de atención u organización, no de contenido.</td></tr>
+          <tr><td><strong>Grupo de nivel fuera del aula</strong></td>
+              <td>Se reúne, en una sesión concreta, a alumnado de <strong>distintos cursos</strong>
+                  con un nivel de competencia parecido, y se trabaja en grupo pequeño.</td>
+              <td>El desfase es tan grande que lo que hace la clase le queda lejos incluso con
+                  ayuda. Permite además atender con un solo recurso a varios alumnos a la vez.</td></tr>
+        </tbody>
+      </table>
+    </div>
+    <div class="aviso a-warn"><strong>Tres reglas para el grupo de nivel</strong>
+      Se entra y se sale: se revisa en cada sesión de evaluación. No se pierde el área entera, solo
+      algunas sesiones. Y nunca se saca en Educación Física, Música, Artística ni en las salidas,
+      que suelen ser donde ese alumnado encuentra su sitio.</div>
+    <div class="aviso a-info" style="margin-bottom:0"><strong>Y si entran dos adultos al aula</strong>
+      Meter dos adultos no es apoyo. Lo que lo convierte en apoyo es decidir antes qué hace cada
+      uno. Cinco minutos bastan: qué criterio se trabaja hoy, qué modelo se usa, quién se ocupa de
+      quién y qué se anota.</div>
+  </div>
+
+  <div class="descarga">
+    <div class="doc" aria-hidden="true">
+      <svg width="26" height="26" viewBox="0 0 24 24" fill="none" stroke="#fff" stroke-width="2"
+           stroke-linecap="round" stroke-linejoin="round">
+        <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/>
+        <path d="M14 2v6h6"/><path d="M12 18v-6"/><path d="M9 15l3 3 3-3"/>
+      </svg>
+    </div>
+    <div class="txt">
+      <b>Atención a la diversidad en el aula</b>
+      <span>Nueve páginas: los seis modelos de docencia compartida, cómo se forma un grupo de nivel
+        y qué no puede pasar en él, y un banco de ajustes por dificultad y por área —no lee, lee y
+        no comprende, no escribe, no atiende, no calcula, no entiende el español, le cuesta el
+        cambio, termina antes, no participa—.</span>
+    </div>
+    <a class="btn" href="Atencion_a_la_diversidad_en_el_aula.docx"
+       download="Atencion a la diversidad en el aula - CEIP Capitulaciones.docx">
+      Descargar Word
+    </a>
+  </div>
+
+  <details style="margin-top:16px">
+    <summary>Seis gestos para ajustar una tarea sin bajar el criterio</summary>
+    <div class="details-body">
+      <ul class="check">
+        <li><strong>Da la instrucción de dos maneras.</strong> En voz alta y escrita o dibujada.</li>
+        <li><strong>Reduce la cantidad, no la exigencia.</strong> Cuatro bien hechas valen más que doce a medias.</li>
+        <li><strong>Permite responder de otra forma.</strong> Oral, dibujo, esquema.</li>
+        <li><strong>Anticipa.</strong> Di cuántas partes tiene la tarea y qué hay que entregar.</li>
+        <li><strong>Deja un modelo a la vista.</strong> No es hacerle el trabajo, es andamiaje.</li>
+        <li><strong>Da más tiempo antes que menos tarea.</strong></li>
+      </ul>
+    </div>
+  </details>
+
+  <details>
+    <summary>El programa de refuerzo, en una cara de folio</summary>
+    <div class="details-body">
+      <ol class="pasos">
+        <li><strong>Qué refuerzo.</strong> El criterio concreto, con su código. No el área entera.</li>
+        <li><strong>De dónde parte.</strong> Su nivel actual en ese criterio.</li>
+        <li><strong>Qué voy a hacer.</strong> Tipo de tarea, tipo de ayuda y en qué sesiones.</li>
+        <li><strong>Cómo compruebo que avanza.</strong> Con qué instrumento y cada cuánto.</li>
+        <li><strong>Tres fechas de revisión.</strong> Una por trimestre.</li>
+      </ol>
+      <div class="aviso a-ok" style="margin-bottom:0"><strong>Truco</strong>
+        Si redactarlo te lleva más de diez minutos, es que estás describiendo al alumno
+        («le cuesta concentrarse») en lugar de describir la medida («tarea partida en dos sesiones
+        con modelo delante»).</div>
+    </div>
+  </details>
+</section>
+
+<!-- 8 ---------------------------------------------------------------->
+<section id="promocion">
+  <h2><span class="num">8</span> Promoción, en tres pasos</h2>
+  <p class="sub">Se decide en equipo docente al final de cada ciclo. Si no hay consenso, por mayoría
+     de dos tercios.</p>
+  <div class="card">
+    <ol class="pasos">
+      <li><strong>¿Alcanza nivel 2 o más</strong> en los descriptores del Perfil competencial del
+          ciclo? → Promociona.</li>
+      <li>Si no: <strong>¿ha evolucionado positivamente</strong> y <strong>ha participado con
+          esfuerzo</strong> tras aplicar las medidas? Las dos condiciones juntas → Promociona con
+          programa de refuerzo.</li>
+      <li>Solo si no se cumplen y se han agotado las medidas: se valora la
+          <strong>permanencia un año más</strong>. Es excepcional y solo una vez en toda la etapa,
+          siempre con programa de refuerzo.</li>
+    </ol>
+  </div>
+  <div class="aviso a-warn"><strong>Obligatorio antes de decidir</strong>
+    Entrevista con la familia durante junio, con constancia escrita.</div>
+</section>
+
+<!-- 9 ---------------------------------------------------------------->
+<section id="convivencia">
+  <h2><span class="num">9</span> Convivencia</h2>
+  <div class="grid grid-2">
+    <div class="card"><h3>Lo que haces siempre</h3>
+      <ul class="check">
+        <li>Normas de aula elaboradas <strong>con</strong> el alumnado y visibles todo el curso.</li>
+        <li>Cualquier conducta contraria, <strong>registrada en Séneca en 24 horas</strong>, con la
+            medida aplicada.</li>
+        <li>Trabajo cooperativo en grupos heterogéneos como forma habitual.</li>
+      </ul>
+    </div>
+    <div class="card"><h3>Dos veces al año</h3>
+      <p>El <strong>sociograma</strong>, en noviembre y en abril. No es un trámite: de ahí salen los
+         agrupamientos del aula, los equipos cooperativos y los grupos de las salidas.</p>
+      <p>Si un alumno sigue aislado en abril, la medida de noviembre no funcionó: <strong>se cambia,
+         no se repite</strong>.</p>
+    </div>
+  </div>
+  <div class="aviso a-info"><strong>Si hay reiteración</strong>
+    Compromiso de convivencia firmado con la familia y hoja de seguimiento mensual. Ante cualquier
+    indicio de acoso, el protocolo se activa <strong>el mismo día</strong>.</div>
+</section>
+
+<!-- 10 ---------------------------------------------------------------->
+<section id="absentismo">
+  <h2><span class="num">10</span> Absentismo</h2>
+  <p class="sub">Es el primer objetivo del centro porque sin asistencia no funciona ninguna medida.</p>
+  <div class="card">
+    <ol class="pasos">
+      <li><strong>Control diario</strong> de faltas en Séneca, en la primera sesión.</li>
+      <li>A la <strong>tercera falta sin justificar</strong>: llamada a la familia
+          <strong>ese mismo día</strong>.</li>
+      <li>Si continúa: <strong>protocolo abierto en los siete días siguientes</strong>, con
+          jefatura de estudios y, si el centro cuenta con este recurso, el educador o educadora social.</li>
+      <li>Cuando vuelve: se retoma <strong>sin periodo de espera</strong>, con programa de refuerzo.</li>
+    </ol>
+  </div>
+  <div class="aviso a-err"><strong>Nunca</strong>
+    Las faltas no se traducen en un 1. Si no se ha podido observar un criterio, se registra que no
+    se ha podido observar y se le da otra oportunidad.</div>
+</section>
+
+<!-- 11 ---------------------------------------------------------------->
+<section id="familias">
+  <h2><span class="num">11</span> Comunicación con las familias</h2>
+  <div class="grid grid-2">
+    <div class="card" style="border-left:5px solid var(--ok)">
+      <h3>Canal oficial: Séneca / iPasen</h3>
+      <p>Calificaciones, boletines, citaciones, faltas, incidencias de convivencia y cualquier
+         notificación con efectos académicos. <strong>Es el único con valor oficial.</strong></p>
+    </div>
+    <div class="card" style="border-left:5px solid var(--warn)">
+      <h3>Canal alternativo: mensajería</h3>
+      <p>Solo avisos rápidos: cambios de actividad, salidas, mal tiempo, recordar que hay algo
+         pendiente en Séneca. <strong>Nunca calificaciones ni datos personales del alumnado.</strong></p>
+    </div>
+  </div>
+  <div class="card">
+    <h3>Cuándo hay que informar</h3>
+    <ul class="check">
+      <li>Reunión general de principio de curso y reunión al principio de cada trimestre.</li>
+      <li>Tras cada sesión de evaluación: boletín y entrevista a quien la pida y a las familias del
+          alumnado con áreas no superadas.</li>
+      <li>Alumnado con programa de refuerzo o con medidas: al menos <strong>tres veces al año</strong>.</li>
+      <li>Hora semanal de atención a familias, en horario de tarde.</li>
+    </ul>
+  </div>
+</section>
+
+<!-- 10 --------------------------------------------------------------->
+<section id="curso">
+  <h2><span class="num">12</span> El curso, mes a mes</h2>
+  <p class="sub">Lo que te toca a ti como tutor o tutora.</p>
+  <div class="meses">
+    <div class="mes"><b>Septiembre</b><ul>
+      <li>Acogida y normas de aula con el alumnado</li>
+      <li>Lectura de informes del curso anterior</li>
+      <li>Observación para la evaluación inicial</li></ul></div>
+    <div class="mes"><b>Octubre</b><ul>
+      <li>Sesión de evaluación inicial, antes del día 15</li>
+      <li>Programas de refuerzo redactados y en Séneca</li>
+      <li>Reunión general con las familias</li></ul></div>
+    <div class="mes"><b>Noviembre</b><ul>
+      <li>Sociograma y medidas de agrupamiento</li>
+      <li>Día contra la violencia hacia la mujer</li></ul></div>
+    <div class="mes"><b>Diciembre</b><ul>
+      <li>Sesión de evaluación del primer trimestre</li>
+      <li>Boletines y entrevistas</li>
+      <li>Día de la Lectura en Andalucía</li></ul></div>
+    <div class="mes"><b>Enero</b><ul>
+      <li>Revisión de los programas de refuerzo</li>
+      <li>Día de la Paz</li></ul></div>
+    <div class="mes"><b>Febrero</b><ul>
+      <li>Mujer y Niña en la Ciencia · Día de Andalucía</li>
+      <li>Revisión del clima del grupo</li></ul></div>
+    <div class="mes"><b>Marzo</b><ul>
+      <li>Sesión de evaluación del segundo trimestre</li>
+      <li>Día de la Mujer</li></ul></div>
+    <div class="mes"><b>Abril</b><ul>
+      <li>Segundo sociograma y comparación con noviembre</li>
+      <li>Día del Libro · reuniones de tránsito</li></ul></div>
+    <div class="mes"><b>Mayo</b><ul>
+      <li>Prueba final de comprensión lectora</li>
+      <li>Entrevistas con familias de promoción dudosa</li></ul></div>
+    <div class="mes"><b>Junio</b><ul>
+      <li>Evaluación ordinaria y decisión de promoción</li>
+      <li>Informes finales y traspaso al siguiente tutor</li></ul></div>
+  </div>
+</section>
+
+<!-- 11 --------------------------------------------------------------->
+<section id="programacion">
+  <h2><span class="num">13</span> Tu programación</h2>
+  <div class="card">
+    <h3>Quién hace qué</h3>
+    <div class="tabla-wrap">
+      <table><thead><tr><th>Documento</th><th>Quién</th><th>Qué es</th></tr></thead><tbody>
+        <tr><td>Programación didáctica de ciclo</td><td>El equipo de ciclo</td>
+            <td>El documento marco del área. Ya está hecho.</td></tr>
+        <tr><td>Programación de aula</td><td>Cada maestro</td>
+            <td><strong>Son tus situaciones de aprendizaje.</strong> No es un documento aparte.</td></tr>
+        <tr><td>Situación de aprendizaje</td><td>Cada maestro</td>
+            <td>Concreta la programación de ciclo a tu curso y a tu grupo.</td></tr>
+      </tbody></table>
+    </div>
+  </div>
+  <div class="card">
+    <h3>La unidad de programación de este centro</h3>
+    <p>En Primaria: entre <strong>4 y 6 situaciones de aprendizaje por trimestre y área</strong>, de
+       6 a 12 sesiones cada una. En Infantil: <strong>proyecto o centro de interés</strong>, de 3 a
+       6 semanas, dos o tres por trimestre.</p>
+    <p>El modelo de situación de aprendizaje tiene nueve apartados fijos y está en jefatura en
+       formato editable.</p>
+  </div>
+  <div class="aviso a-info"><strong>Después de la evaluación inicial</strong>
+    Antes del 15 de octubre hay que incorporar el <em>anexo de revisión</em>: qué saberes se
+    refuerzan, qué criterios se retoman y qué cambia de metodología.</div>
+</section>
+
+<!-- 12 --------------------------------------------------------------->
+<section id="donde">
+  <h2><span class="num">14</span> Dónde está cada cosa</h2>
+  <p class="sub">Si necesitas el detalle, esto es lo que tienes que abrir.</p>
+  <div class="tabla-wrap">
+    <table>
+      <thead><tr><th>Si buscas…</th><th>Mira en…</th></tr></thead>
+      <tbody>
+        <tr><td>El método de lectura y de problemas, con todo el detalle</td><td>«Cómo trabajamos la lectura y los problemas» (<a href="Como_trabajamos_lectura_y_problemas.docx" download style="color:var(--rojo);font-weight:600">descargar</a>), Plan de Lectura y Plan de Resolución de Problemas</td></tr>
+        <tr><td>Cómo se organiza el apoyo y qué ajustes aplicar</td><td>«Atención a la diversidad en el aula» (<a href="Atencion_a_la_diversidad_en_el_aula.docx" download style="color:var(--rojo);font-weight:600">descargar</a>), apartado F del Proyecto educativo y Plan de Atención a la Diversidad</td></tr>
+        <tr><td>Los objetivos del centro</td><td>Proyecto educativo, apartado A</td></tr>
+        <tr><td>Qué se enseña y los saberes básicos</td><td>Apartado C</td></tr>
+        <tr><td>Criterios de evaluación y promoción</td><td>Apartado E</td></tr>
+        <tr><td>Atención a la diversidad</td><td>Apartado F y Plan de Atención a la Diversidad</td></tr>
+        <tr><td>Programas de refuerzo</td><td>Apartado G</td></tr>
+        <tr><td>Tutoría y orientación</td><td>Apartado H y POAT</td></tr>
+        <tr><td>Convivencia</td><td>Apartado J y Plan de Convivencia</td></tr>
+        <tr><td>Horarios y actividades complementarias</td><td>Apartado L</td></tr>
+        <tr><td>Cómo se elaboran las programaciones</td><td>Apartado Ñ</td></tr>
+        <tr><td>Tránsito entre etapas</td><td>Apartado P</td></tr>
+        <tr><td>Normas de funcionamiento del centro</td><td>Reglamento de Organización y Funcionamiento</td></tr>
+      </tbody>
+    </table>
+  </div>
+</section>
+
+
+<!-- 13 --------------------------------------------------------------->
+<section id="acogida">
+  <h2><span class="num">15</span> Acogida</h2>
+  <p class="sub">Cómo recibe el centro a quien llega nuevo, sea alumnado o profesorado.</p>
+
+  <div class="card">
+    <h3>Alumnado que empieza en Infantil de 3 años</h3>
+    <ol class="pasos">
+      <li><strong>Mayo y junio.</strong> Reunión informativa con las familias y visita al centro,
+          para que conozcan el aula y el patio antes del verano.</li>
+      <li><strong>Junio.</strong> Cuestionario inicial a la familia: hábitos, autonomía, salud,
+          lengua familiar y lo que quieran contar.</li>
+      <li><strong>Primeros días de septiembre.</strong> Plan de adaptación, con entrada flexible y
+          grupos reducidos.</li>
+      <li><strong>Septiembre.</strong> El equipo de ciclo revisa expedientes y los informes que
+          lleguen de escuelas infantiles.</li>
+    </ol>
+  </div>
+
+  <div class="card">
+    <h3>Alumnado que llega con el curso empezado</h3>
+    <ul class="check">
+      <li>El tutor o tutora habla con la familia el primer día y recoge lo que sepa de su
+          escolarización anterior.</li>
+      <li>Se le asigna <strong>un compañero o compañera de referencia</strong> las primeras semanas.</li>
+      <li>Antes de un mes, <strong>valoración de su punto de partida</strong> en lectura y en
+          matemáticas. No se espera al trimestre siguiente.</li>
+      <li>Si no conoce el español, se avisa a jefatura para valorar la atención del profesorado de
+          ATAL.</li>
+      <li>Si trae informe de necesidades específicas, se comunica de inmediato al maestro o maestra
+          de Pedagogía Terapéutica.</li>
+    </ul>
+  </div>
+
+  <div class="card">
+    <h3>Profesorado que se incorpora</h3>
+    <p>El centro no da por supuesto que nadie adivine cómo se trabaja aquí. En la primera quincena
+       de septiembre, o en tu primera semana si llegas más tarde, tienes derecho a que te expliquen:</p>
+    <ul class="check">
+      <li>Los <strong>cuatro objetivos</strong> del centro y por qué son esos.</li>
+      <li>La <strong>estructura común de comprensión lectora</strong> y la de <strong>resolución de
+          problemas</strong>. Son acuerdos de centro, no opciones personales.</li>
+      <li>Cómo se <strong>evalúa y se califica</strong>: rúbrica de cuatro niveles, sin porcentajes
+          por instrumento.</li>
+      <li>El <strong>protocolo de detección</strong> de dificultades y a quién se avisa.</li>
+      <li>Cómo y en qué plazo se <strong>registra la convivencia</strong>.</li>
+      <li>Los <strong>canales de comunicación</strong> con familias y qué no se manda por mensajería.</li>
+      <li>El <strong>calendario de reuniones</strong> y qué se trata en cada una.</li>
+    </ul>
+    <div class="aviso a-ok" style="margin-bottom:0"><strong>Si no te lo han contado</strong>
+      Pídelo en jefatura de estudios. Está comprometido por escrito en el plan de formación del
+      centro; no es un favor.</div>
+  </div>
+</section>
+
+<!-- 14 --------------------------------------------------------------->
+<section id="apps">
+  <h2><span class="num">16</span> Las herramientas del centro</h2>
+  <p class="sub">Profesorado del centro ha desarrollado varias aplicaciones propias.
+     <strong>Su uso es voluntario</strong>: quien prefiera papel trabaja igual. Se cuentan aquí
+     porque ahorran bastante tiempo.</p>
+
+  <div class="grid grid-2">
+    <div class="card"><h3>Ágora Capitulaciones
+      <span class="tag t-lectura">Lectura</span><span class="tag t-mates">Matemáticas</span></h3>
+      <p>Planificador semanal de las sesiones de lectura y de resolución de problemas. Trae un
+         catálogo de dificultades frecuentes con orientaciones, genera fichas y sirve de registro de
+         lo trabajado.</p></div>
+
+    <div class="card"><h3>SDA Capitulaciones</h3>
+      <p>Genera situaciones de aprendizaje con la estructura de nueve apartados del centro. Propone
+         la secuencia y tú la ajustas. Es lo que más tiempo ahorra al programar.</p></div>
+
+    <div class="card"><h3>Convive+ y sociograma
+      <span class="tag t-conviv">Convivencia</span></h3>
+      <p>El primero facilita el registro de incidencias y saca gráficas por grupo y trimestre. El
+         segundo pasa el sociograma, calcula los índices y propone agrupamientos.</p></div>
+
+    <div class="card"><h3>Teletrabajo Capitulaciones</h3>
+      <p>Convocatorias, orden del día y actas. Trae los puntos ya propuestos según el órgano y el
+         mes, y las competencias del órgano para marcar las que se traten.</p></div>
+
+    <div class="card"><h3>Gestor PE</h3>
+      <p>Para el profesorado de Pedagogía Terapéutica: seguimiento de cuadernos, adaptaciones
+         curriculares y memoria final.</p></div>
+
+    <div class="card"><h3>Recursos de aula</h3>
+      <p>La suite <strong>Capitulín</strong> reúne juegos de lectoescritura, cálculo, clasificación
+         y coeducación. <strong>Santa Fe Histórica</strong> se usa en las salidas por la localidad,
+         con pictogramas y lectura fácil.</p></div>
+  </div>
+
+  <div class="aviso a-warn"><strong>Dos reglas que no se saltan</strong>
+    Ninguna aplicación sustituye a <strong>Séneca</strong>, que es el sistema oficial y el único con
+    valor administrativo: calificaciones, faltas e incidencias se registran ahí. Y las que manejan
+    información del alumnado <strong>no guardan nombres completos</strong>, solo códigos o
+    iniciales.</div>
+
+  <p style="font-size:15px;color:var(--muted)">Todas se abren desde el portal
+     <strong>Capitoolsappciones</strong>, funcionan en el móvil y no hay que instalar nada.</p>
+</section>
+
+<!-- 15 --------------------------------------------------------------->
+<section id="faq">
+  <h2><span class="num">17</span> Preguntas frecuentes</h2>
+  <p class="sub">Las que más se repiten en la sala de profesores.</p>
+
+  <details><summary>¿Puedo poner exámenes?</summary><div class="details-body">
+    Sí. Lo que no puedes es que sea el único instrumento de un criterio ni del área, ni convertir la
+    nota del examen en la nota del área. Va muy bien para criterios de recordar o identificar, y muy
+    mal para criterios de participar, cooperar o explicar.</div></details>
+
+  <details><summary>Entonces, ¿cómo pongo la nota sin porcentajes?</summary><div class="details-body">
+    Media de los criterios de cada competencia específica, y media de las competencias. Tienes el
+    ejemplo numérico en el apartado 4. Los porcentajes por instrumento del tipo «pruebas 60%,
+    cuaderno 20%, actitud 20%» no los contempla la normativa.</div></details>
+
+  <details><summary>Un padre me reclama una nota. ¿Qué hago?</summary><div class="details-body">
+    <ol class="pasos">
+      <li><strong>Aclaración.</strong> Se pide al tutor o tutora y se responde en un máximo de tres
+          días lectivos.</li>
+      <li><strong>Revisión por escrito</strong>, en dos días lectivos desde la entrega del boletín.</li>
+      <li>El profesorado del área revisa en dos días si los criterios aplicados son los de la
+          programación y si los instrumentos eran adecuados, y emite informe motivado.</li>
+      <li>Si continúa, escrito a la dirección, que responde antes de fin de curso.</li>
+    </ol>
+    <p style="margin-top:10px">Por eso importa la regla 5: con los registros y las rúbricas delante,
+       esto se resuelve en una reunión. Sin ellos no hay forma de defender la nota.</p></div></details>
+
+  <details><summary>¿Puedo mandar las notas por el grupo de mensajería?</summary><div class="details-body">
+    No. Calificaciones, faltas, citaciones e incidencias van por Séneca. Por mensajería solo avisos:
+    cambios de actividad, salidas, mal tiempo o recordar que hay algo pendiente en Séneca. Nunca
+    datos personales del alumnado.</div></details>
+
+  <details><summary>Un alumno no llega. ¿Pido ya la valoración del EOE?</summary><div class="details-body">
+    No de entrada. Primero aplicas medidas generales durante al menos tres meses y las registras.
+    Solo si no bastan, el equipo docente decide en reunión solicitar la evaluación psicopedagógica y
+    lo hace constar en acta, con las medidas aplicadas y su resultado. La tramita el tutor con el
+    visto bueno de jefatura.</div></details>
+
+  <details><summary>¿Puedo bajarle el nivel a un alumno muy retrasado?</summary><div class="details-body">
+    Ajustas la tarea, no el criterio: menos cantidad, más tiempo, otro formato de respuesta, modelo
+    delante. Solo cambian los referentes si hay <strong>adaptación curricular significativa</strong>,
+    que exige informe de evaluación psicopedagógica y un desfase de al menos dos cursos en esa
+    área.</div></details>
+
+  <details><summary>¿Los 30 minutos de lectura tienen que ser en Lengua?</summary><div class="details-body">
+    No necesariamente. Es un tiempo diario de centro que figura en el horario del grupo y lo imparte
+    quien tenga esa sesión, sea tutor o especialista. Lo que no vale es que se convierta en lectura
+    silenciosa sin trabajo de comprensión.</div></details>
+
+  <details><summary>¿Y si mi grupo no tiene Matemáticas ese día?</summary><div class="details-body">
+    Las tres sesiones de resolución de problemas se sitúan en los días que permita el horario de tu
+    grupo. No hay días fijos para todo el centro: lo comprueba jefatura al hacer los horarios en
+    septiembre.</div></details>
+
+  <details><summary>¿Tengo que hacer el sociograma aunque mi grupo vaya bien?</summary><div class="details-body">
+    Sí, en noviembre y en abril, en todos los grupos. Sirve precisamente para ver lo que no se ve:
+    el alumnado que no molesta pero está solo. De ahí salen los agrupamientos del aula y los grupos
+    de las salidas.</div></details>
+
+  <details><summary>Falta mucho pero la familia justifica siempre. ¿Cuento las faltas?</summary><div class="details-body">
+    Se registran todas, justificadas y no. El protocolo se activa por las no justificadas, pero un
+    patrón continuo de faltas justificadas también se comunica a jefatura: puede estar tapando otra
+    cosa.</div></details>
+
+  <details><summary>¿Qué hago si detecto indicios de acoso?</summary><div class="details-body">
+    Se comunica a la dirección <strong>el mismo día</strong> y se activa el protocolo. No se espera a
+    confirmarlo ni se investiga por cuenta propia: el protocolo existe para eso.</div></details>
+
+  <details><summary>¿Estoy obligado a usar las apps del centro?</summary><div class="details-body">
+    No. Son voluntarias y ningún registro, programación o documento puede exigirse solo en ese
+    formato.</div></details>
+
+  <details><summary>¿Dónde está el detalle de todo esto?</summary><div class="details-body">
+    En el Plan de Centro. El apartado 12 te dice qué abrir según lo que busques. Esta guía es un
+    resumen: cuando haya que citar algo con precisión, manda el documento.</div></details>
+</section>
+
+<!-- 16 --------------------------------------------------------------->
+<section id="errores">
+  <h2><span class="num">18</span> Los errores más frecuentes</h2>
+  <div class="card">
+    <ul class="check">
+      <li>Calificar por la media de los exámenes sin pasar por los criterios.</li>
+      <li>Poner porcentajes por instrumento: «pruebas 60%, cuaderno 20%, actitud 20%».
+          <strong>No lo contempla la normativa y no resiste una reclamación.</strong></li>
+      <li>Evaluar la actitud como si fuera un criterio del área.</li>
+      <li>Dejar toda la recogida de datos para la última semana del trimestre.</li>
+      <li>Bajar el criterio en lugar de ajustar la tarea.</li>
+      <li>Sacar al alumnado del aula como primera medida y no como última.</li>
+      <li>Abrir el programa de refuerzo en mayo, cuando ya no da tiempo a nada.</li>
+      <li>Aplicar una medida y no registrarla: si no consta, no cuenta.</li>
+      <li>Mandar calificaciones por mensajería en vez de por Séneca.</li>
+    </ul>
+  </div>
+</section>
+
+<p class="sin-resultados" id="sinResultados">No hay nada con esas palabras. Prueba con otras.</p>
+
+</main>
+
+<footer class="wrap">
+  <p><strong>Esta guía es un resumen.</strong> No sustituye al Plan de Centro: cuando haya duda o
+     haga falta el detalle, manda el documento original.</p>
+  <p>CEIP Capitulaciones · Santa Fe (Granada) · Revisión del Plan de Centro</p>
+</footer>
+
+<script>
+(function(){
+  var q = document.getElementById('q');
+  var limpiar = document.getElementById('limpiar');
+  var secciones = Array.prototype.slice.call(document.querySelectorAll('main section'));
+  var sinRes = document.getElementById('sinResultados');
+
+  function quitarTildes(s){
+    return s.normalize('NFD').replace(/[\u0300-\u036f]/g,'').toLowerCase();
+  }
+  function debounce(fn, ms){
+    var t; return function(){ var a=arguments; clearTimeout(t); t=setTimeout(function(){fn.apply(null,a);}, ms); };
+  }
+  function limpiarMarcas(){
+    document.querySelectorAll('mark').forEach(function(m){
+      var p=m.parentNode; p.replaceChild(document.createTextNode(m.textContent), m); p.normalize();
+    });
+  }
+  function resaltar(nodo, termino){
+    var it = document.createTreeWalker(nodo, NodeFilter.SHOW_TEXT, null);
+    var textos=[], n;
+    while((n = it.nextNode())) { if(n.nodeValue.trim()) textos.push(n); }
+    textos.forEach(function(t){
+      var idx = quitarTildes(t.nodeValue).indexOf(termino);
+      if(idx < 0) return;
+      var antes = t.nodeValue.slice(0, idx);
+      var medio = t.nodeValue.slice(idx, idx + termino.length);
+      var despues = t.nodeValue.slice(idx + termino.length);
+      var frag = document.createDocumentFragment();
+      if(antes) frag.appendChild(document.createTextNode(antes));
+      var mk = document.createElement('mark'); mk.textContent = medio; frag.appendChild(mk);
+      if(despues) frag.appendChild(document.createTextNode(despues));
+      t.parentNode.replaceChild(frag, t);
+    });
+  }
+
+  var filtrar = debounce(function(){
+    var t = quitarTildes(q.value.trim());
+    limpiarMarcas();
+    if(t.length < 2){
+      secciones.forEach(function(s){ s.classList.remove('oculto'); });
+      sinRes.style.display = 'none';
+      return;
+    }
+    var visibles = 0;
+    secciones.forEach(function(s){
+      var hay = quitarTildes(s.textContent).indexOf(t) >= 0;
+      s.classList.toggle('oculto', !hay);
+      if(hay){
+        visibles++;
+        s.querySelectorAll('details').forEach(function(d){ d.open = true; });
+        resaltar(s, t);
+      }
+    });
+    sinRes.style.display = visibles ? 'none' : 'block';
+  }, 220);
+
+  q.addEventListener('input', filtrar);
+  limpiar.addEventListener('click', function(){
+    q.value=''; filtrar(); q.focus();
+  });
+  document.addEventListener('keydown', function(e){
+    if(e.key === 'Escape' && document.activeElement === q){ q.value=''; filtrar(); }
+  });
+})();
+
+if('serviceWorker' in navigator){
+  window.addEventListener('load', function(){
+    navigator.serviceWorker.register('sw.js').catch(function(){ /* sin conexión, sin problema */ });
+  });
+}
+</script>
+</body>
+</html>

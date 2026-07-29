@@ -1,0 +1,36 @@
+{
+  "name": "CapiGuía · Cómo trabajamos en el CEIP Capitulaciones",
+  "short_name": "CapiGuía",
+  "description": "Lo esencial del Plan de Centro para el profesorado del CEIP Capitulaciones: evaluación, atención a la diversidad, convivencia, absentismo y calendario del curso.",
+  "start_url": ".",
+  "scope": ".",
+  "display": "standalone",
+  "orientation": "portrait-primary",
+  "lang": "es",
+  "background_color": "#ffffff",
+  "theme_color": "#7c3aed",
+  "categories": [
+    "education",
+    "productivity"
+  ],
+  "icons": [
+    {
+      "src": "icon-192.png",
+      "sizes": "192x192",
+      "type": "image/png",
+      "purpose": "any"
+    },
+    {
+      "src": "icon-512.png",
+      "sizes": "512x512",
+      "type": "image/png",
+      "purpose": "any"
+    },
+    {
+      "src": "icon-maskable-512.png",
+      "sizes": "512x512",
+      "type": "image/png",
+      "purpose": "maskable"
+    }
+  ]
+}
