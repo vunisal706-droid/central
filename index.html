@@ -135,6 +135,37 @@
         .install-banner button:hover { transform: translateY(-1px); }
         .install-banner button:active { transform: scale(0.97); }
 
+
+        /* Tarjeta destacada: la primera que hay que mirar */
+        .tool-card.destacada {
+            grid-column: 1 / -1;
+            flex-direction: row;
+            text-align: left;
+            gap: 20px;
+            padding: 26px 28px;
+            border-width: 3px;
+        }
+        .tool-card.destacada .tool-icon { margin: 0; flex: 0 0 auto; }
+        .tool-card.destacada .contenido { flex: 1 1 auto; }
+        .tool-card.destacada h2 { margin-bottom: 6px; }
+        .tool-card.destacada .abrir { margin-top: 10px; }
+        .etiqueta-empieza {
+            display: inline-block;
+            background: var(--card-color);
+            color: #fff;
+            font-size: 0.72em;
+            font-weight: 800;
+            letter-spacing: 0.06em;
+            text-transform: uppercase;
+            padding: 4px 11px;
+            border-radius: 999px;
+            margin-bottom: 8px;
+        }
+        @media (max-width: 600px) {
+            .tool-card.destacada { flex-direction: column; text-align: center; }
+            .tool-card.destacada .tool-icon { margin: 0 auto; }
+        }
+
         .tools-grid {
             display: grid;
             grid-template-columns: repeat(auto-fit, minmax(260px, 1fr));
@@ -332,6 +363,20 @@
 
         <nav class="tools-grid" aria-label="Herramientas del centro">
 
+            <a class="tool-card destacada" style="--card-color:#dc2626; --card-color-dark:#b91c1c; --card-glow:rgba(220,38,38,0.45);"
+               href="https://vunisal706-droid.github.io/capiguia/" target="_blank" rel="noopener">
+                <div class="tool-icon" aria-hidden="true">📖</div>
+                <div class="contenido">
+                    <span class="etiqueta-empieza">Empieza por aquí</span>
+                    <h2>CapiGuía</h2>
+                    <p><strong>Si acabas de llegar al centro, esto es lo primero que hay que mirar.</strong>
+                       Cómo trabajamos en el CEIP Capitulaciones: evaluación, lectura, resolución de
+                       problemas, atención a la diversidad, convivencia y el curso mes a mes. Lo
+                       esencial del Plan de Centro en una sola página.</p>
+                    <span class="abrir">Abrir →</span>
+                </div>
+            </a>
+
             <a class="tool-card" style="--card-color:#1e88e5; --card-color-dark:#1565c0; --card-glow:rgba(30,136,229,0.45);"
                href="https://vunisal706-droid.github.io/teletrabajo/" target="_blank" rel="noopener">
                 <div class="tool-icon" aria-hidden="true">💼</div>
@@ -348,13 +393,14 @@
                 <span class="abrir">Abrir →</span>
             </a>
 
-            <a class="tool-card" style="--card-color:#8e24aa; --card-color-dark:#6a1b9a; --card-glow:rgba(142,36,170,0.45);"
-               href="https://vunisal706-droid.github.io/horario/" target="_blank" rel="noopener">
-                <div class="tool-icon" aria-hidden="true">🕒</div>
-                <h2>Horarios</h2>
-                <p>Generador de horarios del centro con reglas pedagógicas</p>
+            <a class="tool-card" style="--card-color:#16a34a; --card-color-dark:#15803d; --card-glow:rgba(22,163,74,0.45);"
+               href="https://vunisal706-droid.github.io/convivencia/" target="_blank" rel="noopener">
+                <div class="tool-icon" aria-hidden="true">🧩</div>
+                <h2>ConVive</h2>
+                <p>Sociograma del grupo: relaciones, alumnado aislado y propuestas de agrupamiento</p>
                 <span class="abrir">Abrir →</span>
             </a>
+
 
             <a class="tool-card" style="--card-color:#43a047; --card-color-dark:#2e7d32; --card-glow:rgba(67,160,71,0.45);"
                href="https://vunisal706-droid.github.io/gestorevalu/" target="_blank" rel="noopener">
