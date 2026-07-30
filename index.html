@@ -45,7 +45,7 @@
             overflow-x: hidden;
             color: var(--color-text);
             /* Fondo dinámico de colores (siempre claro y luminoso) */
-            background: linear-gradient(-45deg, #bbdefb, #e1f5fe, #dcfce7, #fef9c3, #fce7f3, #ede9fe);
+            background: linear-gradient(-45deg, #bbdefb, #e1f5fe, #dcfce7, #fef9c3, #fce7f3, #cffafe);
             background-size: 400% 400%;
             animation: gradientShift 18s ease infinite;
         }
@@ -180,7 +180,13 @@
             align-items: center;
             text-align: center;
             gap: 10px;
-            background: linear-gradient(160deg, var(--card-color) 0%, var(--card-color-dark, var(--card-color)) 100%);
+            background:
+                radial-gradient(circle at 50% 48%, rgba(255,255,255,0.14) 0%, rgba(255,255,255,0) 62%),
+                linear-gradient(135deg,
+                    var(--card-color) 0%,
+                    var(--card-color) 14%,
+                    var(--card-color-dark, var(--card-color)) 86%,
+                    var(--card-color-dark, var(--card-color)) 100%);
             border-radius: 22px;
             padding: 30px 22px 24px;
             border: none;
@@ -228,6 +234,9 @@
         .tool-card:nth-child(6) { animation-delay: 0.30s; }
         .tool-card:nth-child(7) { animation-delay: 0.35s; }
         .tool-card:nth-child(8) { animation-delay: 0.40s; }
+        .tool-card:nth-child(9) { animation-delay: 0.45s; }
+        .tool-card:nth-child(10) { animation-delay: 0.50s; }
+        .tool-card:nth-child(11) { animation-delay: 0.55s; }
 
         @keyframes fadeInUp {
             from { opacity: 0; transform: translateY(18px); }
@@ -363,7 +372,7 @@
 
         <nav class="tools-grid" aria-label="Herramientas del centro">
 
-            <a class="tool-card destacada" style="--card-color:#7c3aed; --card-color-dark:#5b21b6; --card-glow:rgba(124,58,237,0.42);"
+            <a class="tool-card destacada" style="--card-color:#22d3ee; --card-color-dark:#1d4ed8; --card-glow:rgba(34,211,238,0.42);"
                href="https://vunisal706-droid.github.io/capiguia/" target="_blank" rel="noopener">
                 <div class="tool-icon" aria-hidden="true">📖</div>
                 <div class="contenido">
@@ -377,7 +386,7 @@
                 </div>
             </a>
 
-            <a class="tool-card" style="--card-color:#2563eb; --card-color-dark:#1d4ed8; --card-glow:rgba(37,99,235,0.42);"
+            <a class="tool-card" style="--card-color:#3b82f6; --card-color-dark:#4338ca; --card-glow:rgba(59,130,246,0.42);"
                href="https://vunisal706-droid.github.io/teletrabajo/" target="_blank" rel="noopener">
                 <div class="tool-icon" aria-hidden="true">💼</div>
                 <h2>Teletrabajo</h2>
@@ -385,7 +394,7 @@
                 <span class="abrir">Abrir →</span>
             </a>
 
-            <a class="tool-card" style="--card-color:#e11d48; --card-color-dark:#9f1239; --card-glow:rgba(225,29,72,0.42);"
+            <a class="tool-card" style="--card-color:#fb7185; --card-color-dark:#9f1239; --card-glow:rgba(244,63,94,0.42);"
                href="https://vunisal706-droid.github.io/parteconvivencia/" target="_blank" rel="noopener">
                 <div class="tool-icon" aria-hidden="true">🤝</div>
                 <h2>Parte de Convivencia</h2>
@@ -393,7 +402,7 @@
                 <span class="abrir">Abrir →</span>
             </a>
 
-            <a class="tool-card" style="--card-color:#10b981; --card-color-dark:#047857; --card-glow:rgba(16,185,129,0.42);"
+            <a class="tool-card" style="--card-color:#34d399; --card-color-dark:#0e7490; --card-glow:rgba(16,185,129,0.42);"
                href="https://vunisal706-droid.github.io/convivencia/" target="_blank" rel="noopener">
                 <div class="tool-icon" aria-hidden="true">🧩</div>
                 <h2>ConVive</h2>
@@ -402,7 +411,7 @@
             </a>
 
 
-            <a class="tool-card" style="--card-color:#65a30d; --card-color-dark:#3f6212; --card-glow:rgba(101,163,13,0.42);"
+            <a class="tool-card" style="--card-color:#a3e635; --card-color-dark:#166534; --card-glow:rgba(132,204,22,0.42);"
                href="https://vunisal706-droid.github.io/gestorevalu/" target="_blank" rel="noopener">
                 <div class="tool-icon" aria-hidden="true">📈</div>
                 <h2>Gestor de Evaluación</h2>
@@ -410,7 +419,7 @@
                 <span class="abrir">Abrir →</span>
             </a>
 
-            <a class="tool-card" style="--card-color:#f97316; --card-color-dark:#c2410c; --card-glow:rgba(249,115,22,0.42);"
+            <a class="tool-card" style="--card-color:#fbbf24; --card-color-dark:#ea580c; --card-glow:rgba(249,115,22,0.42);"
                href="https://vunisal706-droid.github.io/sdacapitulaciones/" target="_blank" rel="noopener">
                 <div class="tool-icon" aria-hidden="true">🧩</div>
                 <h2>SDA Capitulaciones</h2>
@@ -418,7 +427,7 @@
                 <span class="abrir">Abrir →</span>
             </a>
 
-            <a class="tool-card" style="--card-color:#0891b2; --card-color-dark:#0e7490; --card-glow:rgba(8,145,178,0.42);"
+            <a class="tool-card" style="--card-color:#67e8f9; --card-color-dark:#075985; --card-glow:rgba(8,145,178,0.42);"
                href="https://vunisal706-droid.github.io/Resoluciondeproblemas/" target="_blank" rel="noopener">
                 <div class="tool-icon" aria-hidden="true">🧮</div>
                 <h2>Plan de Resolución</h2>
@@ -426,7 +435,7 @@
                 <span class="abrir">Abrir →</span>
             </a>
 
-            <a class="tool-card" style="--card-color:#475569; --card-color-dark:#1e293b; --card-glow:rgba(71,85,105,0.42);"
+            <a class="tool-card" style="--card-color:#94a3b8; --card-color-dark:#1e293b; --card-glow:rgba(71,85,105,0.42);"
                href="https://vunisal706-droid.github.io/pcentro/" target="_blank" rel="noopener">
                 <div class="tool-icon" aria-hidden="true">🏫</div>
                 <h2>Plan de Centro</h2>
@@ -434,11 +443,27 @@
                 <span class="abrir">Abrir →</span>
             </a>
 
-            <a class="tool-card" style="--card-color:#db2777; --card-color-dark:#9d174d; --card-glow:rgba(219,39,119,0.42);"
+            <a class="tool-card" style="--card-color:#f472b6; --card-color-dark:#be185d; --card-glow:rgba(219,39,119,0.42);"
                href="https://vunisal706-droid.github.io/leoresuelvo/" target="_blank" rel="noopener">
                 <div class="tool-icon" aria-hidden="true">📖</div>
                 <h2>Ágora Capitulaciones</h2>
                 <p>App del Plan de Lectura y del Plan de Resolución de Problemas del CEIP Capitulaciones</p>
+                <span class="abrir">Abrir →</span>
+            </a>
+
+            <a class="tool-card" style="--card-color:#2dd4bf; --card-color-dark:#0f766e; --card-glow:rgba(45,212,191,0.42);"
+               href="https://vunisal706-droid.github.io/lecturayproblemas/" target="_blank" rel="noopener">
+                <div class="tool-icon" aria-hidden="true">📝</div>
+                <h2>Registro Lectura y Problemas</h2>
+                <p>Registro semanal del trabajo de lectura y de resolución de problemas por curso</p>
+                <span class="abrir">Abrir →</span>
+            </a>
+
+            <a class="tool-card" style="--card-color:#facc15; --card-color-dark:#e11d48; --card-glow:rgba(250,204,21,0.45);"
+               href="https://vunisal706-droid.github.io/webcentral/" target="_blank" rel="noopener">
+                <div class="tool-icon" aria-hidden="true">🎮</div>
+                <h2>Portal Educativo</h2>
+                <p>Juegos y actividades interactivas del CEIP Capitulaciones para el alumnado</p>
                 <span class="abrir">Abrir →</span>
             </a>
 
