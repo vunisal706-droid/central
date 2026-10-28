@@ -130,6 +130,19 @@ main{max-width:760px;margin:0 auto;padding:0 18px}
 .fch i{font-style:normal;font-size:.68rem;font-weight:600;text-transform:uppercase;letter-spacing:.04em}
 .fch b{font-size:1.35rem;font-weight:700}
 .aviso .txt b{-webkit-line-clamp:4}
+.panel{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:12px}
+.kpi{background:var(--blanco);border-radius:var(--radio);box-shadow:var(--sombra);padding:14px 16px;display:flex;flex-direction:column;gap:4px;min-height:132px}
+.kpi-ancho{grid-column:1/-1}
+.kpi-et{font-size:.78rem;font-weight:600;text-transform:uppercase;letter-spacing:.05em;color:var(--gris)}
+.kpi-num{font-size:2.3rem;font-weight:700;color:var(--azul-osc);line-height:1.05}
+.kpi-num small{font-size:1rem;font-weight:600;color:var(--azul)}
+.kpi-tit{font-size:1.6rem;font-weight:700;color:var(--azul-osc);display:block;margin:2px 0}
+.kpi-sub{font-size:.88rem;color:var(--gris);line-height:1.35}
+.kpi-barra{height:7px;border-radius:7px;background:var(--azul-claro);overflow:hidden;margin-top:auto}
+.kpi-barra i{display:block;height:100%;background:var(--azul);border-radius:7px}
+.kpi-valor{background:linear-gradient(135deg,#fff,#fbf6dc)}
+@media(min-width:700px){.panel{grid-template-columns:repeat(3,minmax(0,1fr))}}
+@media(max-width:360px){.kpi-num{font-size:1.9rem}}
 .vacio{color:var(--gris);background:var(--blanco);border-radius:var(--radio);padding:18px;box-shadow:var(--sombra);font-size:.95rem}
 
 /* Cabecera de pestaña */
@@ -250,6 +263,11 @@ main{max-width:760px;margin:0 auto;padding:0 18px}
     </section>
 
     <section class="seccion">
+      <div class="sec-tit"><h2>Panel del centro</h2></div>
+      <div class="panel" id="panel"><div class="vacio kpi-ancho">Cargando datos…</div></div>
+    </section>
+
+    <section class="seccion">
       <div class="sec-tit"><h2>Para empezar</h2></div>
       <div class="lista" id="paraEmpezar"></div>
     </section>
@@ -327,6 +345,7 @@ main{max-width:760px;margin:0 auto;padding:0 18px}
       <li>Fondo del mismo color gris claro que Séneca.</li>
       <li>Nuevo icono de la app con el logo del cole.</li>
       <li>La <b>Web del cole</b> ya está en las acciones rápidas.</li>
+      <li><b>Panel del centro</b>: días lectivos que quedan del trimestre y del curso, próximo día sin cole, próximas reuniones, actividades de la semana y valor del mes.</li>
     </ul>
     <div class="botones"><button class="btn prim" id="btnNovOk">Entendido</button></div>
   </div>
@@ -510,6 +529,77 @@ function cuando(f){
 const fechaChip = d => `<span class="fch"><i>${DIAS[d.getDay()].slice(0,3)}</i><b>${d.getDate()}</b><i>${MESES[d.getMonth()].slice(0,3)}</i></span>`;
 const nuevoEtq = t => t && t>vistoHasta ? '<span class="nuevo">Nuevo</span>' : '';
 
+/* ---------- Panel del profesorado (dashboard) ---------- */
+const VALORES = {9:['Acogida','Nos conocemos y pertenecemos','🤗'],10:['Respeto','Nos cuidamos y valoramos a los demás','🤝'],11:['Empatía','Nos ponemos en el lugar del otro','💞'],
+  12:['Solidaridad','Ayudamos y compartimos','🎁'],1:['Responsabilidad','Cumplimos con nuestros deberes','✅'],2:['Tolerancia','Aceptamos que somos diferentes','🌈'],
+  3:['Perseverancia','No nos rendimos','💪'],4:['Honestidad','Decimos la verdad y somos sinceros','🗣️'],5:['Cooperación','Juntos llegamos más lejos','🧩'],6:['Paz','Dialogamos, perdonamos y convivimos','🕊️']};
+const masDias = (ds,n) => { const d = new Date(ds+'T12:00'); d.setDate(d.getDate()+n); return isoD(d); };
+function lectivosEntre(desde, hasta){ let n = 0; for (let ds = desde; ds <= hasta; ds = masDias(ds,1)) if (!sinCole(ds)) n++; return n; }
+function trimestreActual(){
+  const C = window.CalendarioCole && CalendarioCole.datos, hoyS = isoD(new Date());
+  const c = C && (C.cursos||[]).find(x=>x.inicio<=hoyS && hoyS<=x.fin) || (C && (C.cursos||[]).find(x=>hoyS<x.inicio));
+  if (!c) return null;
+  const vac = (c.periodos||[]).filter(p=>/navidad|semana santa/i.test(p.nombre)).sort((a,b)=>a.desde.localeCompare(b.desde));
+  const tramos = []; let ini = c.inicio;
+  vac.forEach(p=>{ tramos.push({ini, fin:masDias(p.desde,-1)}); ini = masDias(p.hasta,1); });
+  tramos.push({ini, fin:c.fin});
+  const i = tramos.findIndex(t=>hoyS<=t.fin); if (i<0) return null;
+  return {num:i+1, ...tramos[i], curso:c};
+}
+const barra = pct => `<div class="kpi-barra"><i style="width:${Math.max(0,Math.min(100,pct))}%"></i></div>`;
+function pintarPanel(reuniones, acts){
+  const el = document.getElementById('panel'); if (!el) return;
+  const hoyS = isoD(new Date()), ahora = new Date();
+  const desde = (!sinCole(hoyS) && ahora.getHours() >= 14) ? masDias(hoyS,1) : hoyS;
+  const tiles = [];
+
+  // 1) Trimestre
+  const T = trimestreActual();
+  if (T){
+    const quedan = lectivosEntre(desde > T.ini ? desde : T.ini, T.fin), total = lectivosEntre(T.ini, T.fin);
+    const fin = new Date(T.fin+'T12:00');
+    tiles.push(`<div class="kpi"><span class="kpi-et">${T.num}.º trimestre</span><b class="kpi-num">${quedan}</b>
+      <span class="kpi-sub">días lectivos para terminar (${fin.getDate()} ${MESES[fin.getMonth()].slice(0,3)})</span>${barra(100*(total-quedan)/(total||1))}</div>`);
+    const cq = lectivosEntre(desde > T.curso.inicio ? desde : T.curso.inicio, T.curso.fin), ct = lectivosEntre(T.curso.inicio, T.curso.fin);
+    tiles.push(`<div class="kpi"><span class="kpi-et">Curso ${esc(T.curso.curso||'')}</span><b class="kpi-num">${Math.round(100*(ct-cq)/(ct||1))}<small>%</small></b>
+      <span class="kpi-sub">completado · quedan ${cq} días lectivos</span>${barra(100*(ct-cq)/(ct||1))}</div>`);
+  }
+
+  // 2) Próximo día sin cole
+  const P = window.CalendarioCole && CalendarioCole.proximos ? CalendarioCole.proximos(1, masDias(hoyS,1))[0] : null;
+  if (P){
+    const k = Math.round((new Date(P.fecha+'T12:00') - new Date(hoyS+'T12:00'))/864e5);
+    const f = new Date(P.fecha+'T12:00');
+    tiles.push(`<div class="kpi"><span class="kpi-et">Próximo día sin cole</span><b class="kpi-num">${k}<small> ${k===1?'día':'días'}</small></b>
+      <span class="kpi-sub">${esc(P.emoji||'')} ${DIAS[f.getDay()]} ${f.getDate()} de ${MESES[f.getMonth()]} · ${esc(P.nombre)}</span></div>`);
+  }
+
+  // 3) Próxima reunión
+  const L = reuniones ? proximoLunesLectivo() : null;
+  if (L){
+    const r = (reuniones.cuadrante||{})[String(L.n)] || [];
+    tiles.push(`<div class="kpi"><span class="kpi-et">Próximas reuniones</span><b class="kpi-num">${r.length}</b>
+      <span class="kpi-sub">${cuando(L.fecha).replace(/ de (\w+)$/, (m,mm)=>' '+mm.slice(0,3))}${r.length?' · '+esc(r[0].nombre)+(r[0].hora?' a las '+esc(r[0].hora.split(' ')[0]):'')+(r.length>1?' y '+(r.length-1)+' más':''):' · sin reuniones de cuadrante'}</span></div>`);
+  }
+
+  // 4) Actividades de esta semana
+  if (acts){
+    const lunes = new Date(); lunes.setHours(12,0,0,0); lunes.setDate(lunes.getDate() - ((lunes.getDay()+6)%7));
+    const dom = masDias(isoD(lunes), 6);
+    const sem = acts.filter(a=>a.fecha>=hoyS && a.fecha<=dom);
+    const sig = acts[0];
+    tiles.push(`<div class="kpi"><span class="kpi-et">Actividades esta semana</span><b class="kpi-num">${sem.length}</b>
+      <span class="kpi-sub">${sig ? 'Siguiente: '+cuando(new Date(sig.fecha+'T12:00')).toLowerCase()+' · '+esc(limpio(sig.texto).slice(0,45))+(limpio(sig.texto).length>45?'…':'') : 'No hay actividades previstas'}</span></div>`);
+  }
+
+  // 5) Valor del mes
+  const V = VALORES[new Date().getMonth()+1];
+  if (V) tiles.push(`<div class="kpi kpi-valor"><span class="kpi-et">Valor del mes</span>
+      <b class="kpi-tit"><span aria-hidden="true">${V[2]}</span> ${V[0]}</b><span class="kpi-sub">${V[1]}</span></div>`);
+
+  el.innerHTML = tiles.join('') || '<div class="vacio kpi-ancho">No se han podido cargar los datos del panel.</div>';
+}
+
 async function cargarTablon(){
   const cont = document.getElementById('tablon');
   try{
@@ -554,11 +644,13 @@ async function cargarTablon(){
       h += `<div class="vacio" style="padding:12px 18px">Tutorías con familias: ${esc(reuniones.tutorias||'16:00 - 17:00')}</div>`;
     }
 
+    pintarPanel(reuniones, acts ? lista : null);
     if (!h) h = '<div class="vacio">No hay avisos para el profesorado por ahora.</div>';
     cont.innerHTML = h + `<a class="enlace" style="align-self:flex-end;margin-top:2px" href="${TABLON}" target="_blank" rel="noopener">Abrir el Tablón de Avisos</a>`;
     const g = document.getElementById('globoCampana');
     if (nuevos){ g.textContent = nuevos>9?'9+':nuevos; g.style.display='flex'; }
   }catch(e){
+    try{ pintarPanel(null, null); }catch(_){}
     cont.innerHTML = `<a class="fila" href="${TABLON}" target="_blank" rel="noopener"><span class="txt"><b>Abrir el Tablón de Avisos</b><span>No se han podido cargar los avisos aquí.</span></span>${svg('chev','ico chev')}</a>`;
   }
 }
@@ -572,7 +664,7 @@ document.getElementById('campana').onclick = ()=>{
 document.getElementById('tablon').addEventListener('click', e=>{ if (e.target.closest('a')) marcarVistos(); });
 
 /* ---------- Novedades (una sola vez por dispositivo) ---------- */
-const NOV = 'capi-novedades-seneca-v4';
+const NOV = 'capi-novedades-seneca-v5';
 const veloNov = document.getElementById('veloNov');
 if(!ls.get(NOV,false)) setTimeout(()=>veloNov.classList.add('abierto'), 500);
 document.getElementById('btnNovOk').onclick = ()=>{ ls.set(NOV,true); veloNov.classList.remove('abierto'); };
