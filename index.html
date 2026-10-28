@@ -10,8 +10,8 @@
 <meta name="apple-mobile-web-app-title" content="Capitoolsapp">
 <meta name="mobile-web-app-capable" content="yes">
 <link rel="manifest" href="manifest.json">
-<link rel="icon" type="image/png" href="icon-192.png">
-<link rel="apple-touch-icon" href="icon-192.png">
+<link rel="icon" type="image/png" href="favicon.png">
+<link rel="apple-touch-icon" href="apple-touch-icon.png">
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=Fira+Sans:wght@400;500;600;700&display=swap" rel="stylesheet">
@@ -232,7 +232,7 @@ main{max-width:760px;margin:0 auto;padding:0 18px}
   <div id="vista-inicio" class="vista">
     <section class="seccion">
       <div class="sec-tit">
-        <h2 id="fechaHoy">Hoy</h2>
+        <h2 id="fechaHoy" style="font-size:1.08rem;font-weight:600">Hoy</h2>
         <a class="enlace" href="https://vunisal706-droid.github.io/agenda/" target="_blank" rel="noopener">
           <svg class="ico" viewBox="0 0 24 24"><rect x="3.5" y="5" width="17" height="15" rx="2"/><path d="M3.5 10h17M8 3v4M16 3v4"/></svg>Ver agenda
         </a>
@@ -325,6 +325,8 @@ main{max-width:760px;margin:0 auto;padding:0 18px}
       <li>Herramientas ordenadas en <b>Gestión</b>, <b>Pedagógico</b> y <b>Alumnado</b> (barra de abajo).</li>
       <li>Acceso directo a la <b>agenda</b> desde la fecha.</li>
       <li>Fondo del mismo color gris claro que Séneca.</li>
+      <li>Nuevo icono de la app con el logo del cole.</li>
+      <li>La <b>Web del cole</b> ya está en las acciones rápidas.</li>
     </ul>
     <div class="botones"><button class="btn prim" id="btnNovOk">Entendido</button></div>
   </div>
@@ -344,6 +346,7 @@ const I = {
   agora:'<path d="M4 19.5V5.5A1.5 1.5 0 0 1 5.5 4H20v14H5.5A1.5 1.5 0 0 0 4 19.5z"/><path d="M4 19.5A1.5 1.5 0 0 0 5.5 21H20"/><path d="m10 8 1.2 2.4 2.6.4-1.9 1.8.5 2.6-2.4-1.3-2.3 1.3.4-2.6L6.2 10.8l2.6-.4z"/>',
   registro:'<rect x="5" y="4" width="14" height="17" rx="2"/><path d="M9 4V3h6v1"/><path d="m8.5 10 1.3 1.3L12 9M8.5 15.5l1.3 1.3L12 14.5M14 10h2M14 15.5h2"/>',
   portal:'<rect x="2.5" y="7" width="19" height="11" rx="5.5"/><path d="M7.5 10.5v4M5.5 12.5h4"/><path d="M15.5 11.5h.01M18 13.5h.01"/>',
+  web:'<circle cx="12" cy="12" r="8.5"/><path d="M3.5 12h17M12 3.5c2.3 2.4 3.5 5.2 3.5 8.5s-1.2 6.1-3.5 8.5c-2.3-2.4-3.5-5.2-3.5-8.5s1.2-6.1 3.5-8.5z"/>',
   chev:'<path d="m9 6 6 6-6 6"/>'
 };
 const svg = (k, cls='ico') => `<svg class="${cls}" viewBox="0 0 24 24" aria-hidden="true">${I[k]}</svg>`;
@@ -370,6 +373,8 @@ const APPS = [
    desc:'Registro y gestión de incidencias de convivencia escolar'},
   {id:'convive', nom:'ConVive', corto:'ConVive', ic:'sociograma', cat:'alumnado', url:'https://vunisal706-droid.github.io/convivencia/',
    desc:'Sociograma del grupo: relaciones, alumnado aislado y propuestas de agrupamiento'},
+  {id:'web', nom:'Web del cole', corto:'Web del cole', ic:'web', cat:'web', url:'https://colegiocapitulaciones.com/',
+   desc:'Página web oficial del CEIP Capitulaciones'},
   {id:'portal', nom:'Portal Educativo', corto:'Portal Educativo', ic:'portal', cat:'alumnado', url:'https://vunisal706-droid.github.io/webcentral/',
    desc:'Juegos y actividades interactivas del CEIP Capitulaciones para el alumnado'}
 ];
@@ -397,8 +402,13 @@ function fila(a){
 })();
 
 /* ---------- Acciones rápidas ---------- */
-const POR_DEFECTO = ['teletrabajo','gestorevalu','parte','pcentro'];
+const POR_DEFECTO = ['web','teletrabajo','gestorevalu','parte'];
 let favoritas = ls.get('capi-rapidas', POR_DEFECTO).filter(id=>porId[id]).slice(0,4);
+// Una sola vez: añadir la Web del cole a quien ya tenía sus acciones guardadas
+if (!ls.get('capi-rapidas-web', false)){
+  if (!favoritas.includes('web')) favoritas = ['web', ...favoritas].slice(0,4);
+  ls.set('capi-rapidas', favoritas); ls.set('capi-rapidas-web', true);
+}
 function pintarRapidas(){
   document.getElementById('rapidas').innerHTML = favoritas.map(id=>{
     const a = porId[id];
@@ -562,7 +572,7 @@ document.getElementById('campana').onclick = ()=>{
 document.getElementById('tablon').addEventListener('click', e=>{ if (e.target.closest('a')) marcarVistos(); });
 
 /* ---------- Novedades (una sola vez por dispositivo) ---------- */
-const NOV = 'capi-novedades-seneca-v3';
+const NOV = 'capi-novedades-seneca-v4';
 const veloNov = document.getElementById('veloNov');
 if(!ls.get(NOV,false)) setTimeout(()=>veloNov.classList.add('abierto'), 500);
 document.getElementById('btnNovOk').onclick = ()=>{ ls.set(NOV,true); veloNov.classList.remove('abierto'); };
