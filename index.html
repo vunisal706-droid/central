@@ -126,6 +126,12 @@ main{max-width:760px;margin:0 auto;padding:0 18px}
 .aviso .txt b{display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical;overflow:hidden;font-weight:500;font-size:1rem;line-height:1.3}
 .aviso .txt span{display:block;color:var(--gris);font-size:.85rem;margin-top:4px}
 .nuevo{display:inline-block;background:var(--rojo);color:#fff;font-size:.68rem;font-weight:600;padding:1px 7px;border-radius:999px;margin-left:6px;vertical-align:middle}
+.sub-tab{font-size:1rem;font-weight:600;color:var(--azul);margin:8px 0 -2px}
+.sub-tab:first-child{margin-top:0}
+.fch{flex:0 0 54px;display:flex;flex-direction:column;align-items:center;border-radius:12px;background:var(--azul-claro);color:var(--azul-osc);padding:5px 0;line-height:1.1}
+.fch i{font-style:normal;font-size:.68rem;font-weight:600;text-transform:uppercase;letter-spacing:.04em}
+.fch b{font-size:1.35rem;font-weight:700}
+.aviso .txt b{-webkit-line-clamp:4}
 .vacio{color:var(--gris);background:var(--blanco);border-radius:var(--radio);padding:18px;box-shadow:var(--sombra);font-size:.95rem}
 
 /* Cabecera de pestaña */
@@ -317,7 +323,7 @@ main{max-width:760px;margin:0 auto;padding:0 18px}
     <ul>
       <li><b>Acciones rápidas</b>: tus 4 herramientas favoritas. Pulsa «Personalizar» para elegirlas.</li>
       <li><b>Buscador</b> para encontrar cualquier herramienta.</li>
-      <li><b>Tablón de anuncios</b> con los últimos avisos al profesorado y campana de avisos nuevos.</li>
+      <li><b>Tablón de anuncios</b> con lo mismo que ve el profesorado en la app Tablón: próximas actividades, avisos y reuniones del próximo lunes. La campana avisa de lo nuevo.</li>
       <li>Herramientas ordenadas en <b>Gestión</b>, <b>Pedagógico</b> y <b>Alumnado</b> (barra de abajo).</li>
       <li>Acceso directo a la <b>agenda</b> desde la fecha.</li>
     </ul>
@@ -460,45 +466,104 @@ function limpiarBusca(){ busca.value=''; buscar(); }
 busca.addEventListener('input', buscar);
 borrar.onclick = ()=>{ limpiarBusca(); busca.focus(); };
 
-/* ---------- Tablón de anuncios (avisos al profesorado) ---------- */
+/* ---------- Tablón de anuncios: lo mismo que ve el Profesorado en la app Tablón ---------- */
 const DB = 'https://gestoreva-7315a-default-rtdb.europe-west1.firebasedatabase.app';
 const TABLON = 'https://vunisal706-droid.github.io/tablon/';
+const DIAS = ['domingo','lunes','martes','miércoles','jueves','viernes','sábado'];
+const MESES = ['enero','febrero','marzo','abril','mayo','junio','julio','agosto','septiembre','octubre','noviembre','diciembre'];
+const ORDN = ['', '1.er', '2.º', '3.er', '4.º', '5.º'];
+const pad2 = n => String(n).padStart(2,'0');
+const isoD = d => `${d.getFullYear()}-${pad2(d.getMonth()+1)}-${pad2(d.getDate())}`;
+const sinCole = ds => window.CalendarioCole ? CalendarioCole.sinCole(ds) : null;
+const limpio = t => String(t||'').replace(/\s+([,.;:])/g,'$1').replace(/\s+/g,' ').trim().replace(/^./,c=>c.toUpperCase());
 const vistoHasta = ls.get('capi-tablon-visto', 0);
+let ultimoVisto = 0;
+const getJSON = u => fetch(u, {cache:'no-store'}).then(r=>r.ok?r.json():null).catch(()=>null);
+const cargarScript = src => new Promise(res=>{ const s=document.createElement('script'); s.src=src; s.onload=res; s.onerror=res; document.head.appendChild(s); });
+
+function proximoLunesLectivo(){
+  const ahora = new Date(), d = new Date(ahora); d.setHours(12,0,0,0);
+  if (ahora.getDay()===1 && ahora.getHours()>=19) d.setDate(d.getDate()+1);
+  while (d.getDay()!==1) d.setDate(d.getDate()+1);
+  for (let k=0; k<60; k++, d.setDate(d.getDate()+7)){
+    const ds = isoD(d); if (sinCole(ds)) continue;
+    let n = 0; const x = new Date(d.getFullYear(), d.getMonth(), 1, 12);
+    while (x <= d){ if (x.getDay()===1 && !sinCole(isoD(x))) n++; x.setDate(x.getDate()+1); }
+    return {fecha:new Date(d), n};
+  }
+  return null;
+}
+function cuando(f){
+  const h = new Date(); h.setHours(12,0,0,0);
+  const k = Math.round((f-h)/864e5);
+  return k===0 ? 'Hoy' : k===1 ? 'Mañana' : `${DIAS[f.getDay()].replace(/^./,c=>c.toUpperCase())} ${f.getDate()} de ${MESES[f.getMonth()]}`;
+}
+const fechaChip = d => `<span class="fch"><i>${DIAS[d.getDay()].slice(0,3)}</i><b>${d.getDate()}</b><i>${MESES[d.getMonth()].slice(0,3)}</i></span>`;
+const nuevoEtq = t => t && t>vistoHasta ? '<span class="nuevo">Nuevo</span>' : '';
+
 async function cargarTablon(){
   const cont = document.getElementById('tablon');
   try{
-    const r = await fetch(DB + '/avisos_maestros.json?orderBy=%22$key%22&limitToLast=10');
-    if(!r.ok) throw new Error(r.status);
-    const datos = await r.json() || {};
-    const avisos = Object.values(datos).filter(a=>a && a.timestamp).sort((a,b)=>b.timestamp-a.timestamp);
-    const nuevos = avisos.filter(a=>a.timestamp>vistoHasta).length;
+    await cargarScript('/agenda/calendario.js');
+    if (window.CalendarioCole && CalendarioCole.listo) await CalendarioCole.listo;
+    const [reuniones, acts, avisosImg] = await Promise.all([
+      getJSON('/agenda/reuniones.json?_='+Date.now()),
+      getJSON(DB+'/actividades_profesorado.json'),
+      getJSON(DB+'/avisos_maestros.json?orderBy=%22$key%22&limitToLast=5')
+    ]);
+    if (!reuniones && !acts && !avisosImg) throw new Error('sin datos');
+    let h = '', nuevos = 0;
+
+    // 1) Próximas actividades del Equipo Directivo (hasta que pasa su día)
+    const hoy = isoD(new Date());
+    const lista = Object.entries(acts||{}).filter(([k,a])=>k!=='_ordenes' && a && a.fecha>=hoy)
+      .map(([k,a])=>a).sort((a,b)=>(a.fecha+(a.hora||'')).localeCompare(b.fecha+(b.hora||'')));
+    lista.forEach(a=>{ const t=a.editado||a.creado||0; if (t>vistoHasta) nuevos++; ultimoVisto=Math.max(ultimoVisto,t); });
+    if (lista.length){
+      h += `<h3 class="sub-tab">Próximas actividades</h3>` + lista.map(a=>{
+        const d = new Date(a.fecha+'T12:00');
+        return `<div class="aviso">${fechaChip(d)}<span class="txt"><b>${esc(limpio(a.texto))}</b><span>${cuando(d)}${a.hora?' · '+esc(a.hora):''}${nuevoEtq(a.editado||a.creado)}</span></span></div>`;
+      }).join('');
+    }
+
+    // 2) Avisos con imagen publicados para el profesorado
+    const imgs = Object.values(avisosImg||{}).filter(a=>a && a.timestamp).sort((a,b)=>b.timestamp-a.timestamp);
+    imgs.forEach(a=>{ if (a.timestamp>vistoHasta) nuevos++; ultimoVisto=Math.max(ultimoVisto,a.timestamp); });
+    if (imgs.length){
+      h += `<h3 class="sub-tab">Avisos</h3>` + imgs.slice(0,3).map(a=>`<a class="aviso" href="${TABLON}" target="_blank" rel="noopener">
+        ${a.imageB64?`<img src="${esc(a.imageB64)}" alt="" loading="lazy">`:''}
+        <span class="txt"><b>${esc(a.descripcion||'Aviso')}</b><span>${new Date(a.timestamp).toLocaleDateString('es-ES',{day:'numeric',month:'long'})}${nuevoEtq(a.timestamp)}</span></span>${svg('chev','ico chev')}</a>`).join('');
+    }
+
+    // 3) Reuniones del próximo lunes lectivo (cuadrante del centro)
+    const L = reuniones ? proximoLunesLectivo() : null;
+    if (L){
+      const r = (reuniones.cuadrante||{})[String(L.n)] || [];
+      h += `<h3 class="sub-tab">Reuniones · ${cuando(L.fecha)} (${ORDN[L.n]||L.n+'.º'} lunes lectivo)</h3>`;
+      h += r.length ? r.map(x=>`<div class="aviso">${fechaChip(L.fecha)}<span class="txt"><b>${esc(x.nombre)}</b><span>${x.hora?esc(x.hora):''}${x.nota?' · '+esc(x.nota):''}</span></span></div>`).join('')
+        : `<div class="vacio">Ese lunes no hay reuniones en el cuadrante.</div>`;
+      h += `<div class="vacio" style="padding:12px 18px">Tutorías con familias: ${esc(reuniones.tutorias||'16:00 - 17:00')}</div>`;
+    }
+
+    if (!h) h = '<div class="vacio">No hay avisos para el profesorado por ahora.</div>';
+    cont.innerHTML = h + `<a class="enlace" style="align-self:flex-end;margin-top:2px" href="${TABLON}" target="_blank" rel="noopener">Abrir el Tablón de Avisos</a>`;
     const g = document.getElementById('globoCampana');
-    if(nuevos){ g.textContent = nuevos>9?'9+':nuevos; g.style.display='flex'; }
-    if(!avisos.length){ cont.innerHTML = '<div class="vacio">No hay avisos para el profesorado por ahora.</div>'; return; }
-    cont.innerHTML = avisos.slice(0,3).map(a=>{
-      const f = new Date(a.timestamp).toLocaleDateString('es-ES',{day:'numeric',month:'long'});
-      return `<a class="aviso" href="${TABLON}" target="_blank" rel="noopener">
-        ${a.imageB64 ? `<img src="${esc(a.imageB64)}" alt="" loading="lazy">` : ''}
-        <span class="txt"><b>${esc(a.descripcion || 'Aviso')}</b><span>${f}${a.timestamp>vistoHasta?'<span class="nuevo">Nuevo</span>':''}</span></span>
-        ${svg('chev','ico chev')}
-      </a>`;
-    }).join('') + `<a class="enlace" style="align-self:flex-end;margin-top:2px" href="${TABLON}" target="_blank" rel="noopener">Ver todos los avisos</a>`;
-    window._ultimoAviso = avisos[0].timestamp;
+    if (nuevos){ g.textContent = nuevos>9?'9+':nuevos; g.style.display='flex'; }
   }catch(e){
     cont.innerHTML = `<a class="fila" href="${TABLON}" target="_blank" rel="noopener"><span class="txt"><b>Abrir el Tablón de Avisos</b><span>No se han podido cargar los avisos aquí.</span></span>${svg('chev','ico chev')}</a>`;
   }
 }
 cargarTablon();
-function marcarVistos(){ if(window._ultimoAviso){ ls.set('capi-tablon-visto', window._ultimoAviso); document.getElementById('globoCampana').style.display='none'; } }
+function marcarVistos(){ if (ultimoVisto){ ls.set('capi-tablon-visto', ultimoVisto); document.getElementById('globoCampana').style.display='none'; } }
 document.getElementById('campana').onclick = ()=>{
   irA('inicio');
-  setTimeout(()=>document.getElementById('tablon').scrollIntoView({behavior:'smooth',block:'center'}), 150);
-  marcarVistos();
+  setTimeout(()=>document.getElementById('tablon').scrollIntoView({behavior:'smooth',block:'start'}), 150);
+  setTimeout(marcarVistos, 4000);
 };
-document.getElementById('tablon').addEventListener('click', e=>{ if(e.target.closest('a')) marcarVistos(); });
+document.getElementById('tablon').addEventListener('click', e=>{ if (e.target.closest('a')) marcarVistos(); });
 
 /* ---------- Novedades (una sola vez por dispositivo) ---------- */
-const NOV = 'capi-novedades-seneca-v1';
+const NOV = 'capi-novedades-seneca-v2';
 const veloNov = document.getElementById('veloNov');
 if(!ls.get(NOV,false)) setTimeout(()=>veloNov.classList.add('abierto'), 500);
 document.getElementById('btnNovOk').onclick = ()=>{ ls.set(NOV,true); veloNov.classList.remove('abierto'); };
