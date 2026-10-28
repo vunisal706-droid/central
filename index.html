@@ -345,7 +345,7 @@ main{max-width:760px;margin:0 auto;padding:0 18px}
       <li>Fondo del mismo color gris claro que Séneca.</li>
       <li>Nuevo icono de la app con el logo del cole.</li>
       <li>La <b>Web del cole</b> ya está en las acciones rápidas.</li>
-      <li><b>Panel del centro</b>: días lectivos que quedan del trimestre y del curso, próximo día sin cole, próximas reuniones, actividades de la semana y valor del mes.</li>
+      <li><b>Panel del centro</b>: días lectivos que quedan del trimestre y del curso, próximo día sin cole y valor del mes.</li>
     </ul>
     <div class="botones"><button class="btn prim" id="btnNovOk">Entendido</button></div>
   </div>
@@ -574,24 +574,6 @@ function pintarPanel(reuniones, acts){
       <span class="kpi-sub">${esc(P.emoji||'')} ${DIAS[f.getDay()]} ${f.getDate()} de ${MESES[f.getMonth()]} · ${esc(P.nombre)}</span></div>`);
   }
 
-  // 3) Próxima reunión
-  const L = reuniones ? proximoLunesLectivo() : null;
-  if (L){
-    const r = (reuniones.cuadrante||{})[String(L.n)] || [];
-    tiles.push(`<div class="kpi"><span class="kpi-et">Próximas reuniones</span><b class="kpi-num">${r.length}</b>
-      <span class="kpi-sub">${cuando(L.fecha).replace(/ de (\w+)$/, (m,mm)=>' '+mm.slice(0,3))}${r.length?' · '+esc(r[0].nombre)+(r[0].hora?' a las '+esc(r[0].hora.split(' ')[0]):'')+(r.length>1?' y '+(r.length-1)+' más':''):' · sin reuniones de cuadrante'}</span></div>`);
-  }
-
-  // 4) Actividades de esta semana
-  if (acts){
-    const lunes = new Date(); lunes.setHours(12,0,0,0); lunes.setDate(lunes.getDate() - ((lunes.getDay()+6)%7));
-    const dom = masDias(isoD(lunes), 6);
-    const sem = acts.filter(a=>a.fecha>=hoyS && a.fecha<=dom);
-    const sig = acts[0];
-    tiles.push(`<div class="kpi"><span class="kpi-et">Actividades esta semana</span><b class="kpi-num">${sem.length}</b>
-      <span class="kpi-sub">${sig ? 'Siguiente: '+cuando(new Date(sig.fecha+'T12:00')).toLowerCase()+' · '+esc(limpio(sig.texto).slice(0,45))+(limpio(sig.texto).length>45?'…':'') : 'No hay actividades previstas'}</span></div>`);
-  }
-
   // 5) Valor del mes
   const V = VALORES[new Date().getMonth()+1];
   if (V) tiles.push(`<div class="kpi kpi-valor"><span class="kpi-et">Valor del mes</span>
@@ -664,7 +646,7 @@ document.getElementById('campana').onclick = ()=>{
 document.getElementById('tablon').addEventListener('click', e=>{ if (e.target.closest('a')) marcarVistos(); });
 
 /* ---------- Novedades (una sola vez por dispositivo) ---------- */
-const NOV = 'capi-novedades-seneca-v5';
+const NOV = 'capi-novedades-seneca-v6';
 const veloNov = document.getElementById('veloNov');
 if(!ls.get(NOV,false)) setTimeout(()=>veloNov.classList.add('abierto'), 500);
 document.getElementById('btnNovOk').onclick = ()=>{ ls.set(NOV,true); veloNov.classList.remove('abierto'); };
