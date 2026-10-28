@@ -140,6 +140,9 @@ main{max-width:760px;margin:0 auto;padding:0 18px}
 .kpi-sub{font-size:.88rem;color:var(--gris);line-height:1.35}
 .kpi-barra{height:7px;border-radius:7px;background:var(--azul-claro);overflow:hidden;margin-top:auto}
 .kpi-barra i{display:block;height:100%;background:var(--azul);border-radius:7px}
+a.kpi{color:inherit;transition:box-shadow .15s ease}
+@media(hover:hover){a.kpi:hover{box-shadow:0 6px 18px rgba(20,35,60,.12)}}
+.kpi-tiempo{background:linear-gradient(135deg,#fff,#eaf3fd)}
 .kpi-valor{background:linear-gradient(135deg,#fff,#fbf6dc)}
 @media(min-width:700px){.panel{grid-template-columns:repeat(3,minmax(0,1fr))}}
 @media(max-width:360px){.kpi-num{font-size:1.9rem}}
@@ -346,6 +349,7 @@ main{max-width:760px;margin:0 auto;padding:0 18px}
       <li>Nuevo icono de la app con el logo del cole.</li>
       <li>La <b>Web del cole</b> ya está en las acciones rápidas.</li>
       <li><b>Panel del centro</b>: días lectivos que quedan del trimestre y del curso, próximo día sin cole y valor del mes.</li>
+      <li><b>El tiempo</b> en Santa Fe y si el recreo será en el patio o dentro (de la app Mi Tiempo).</li>
     </ul>
     <div class="botones"><button class="btn prim" id="btnNovOk">Entendido</button></div>
   </div>
@@ -548,10 +552,11 @@ function trimestreActual(){
 }
 const barra = pct => `<div class="kpi-barra"><i style="width:${Math.max(0,Math.min(100,pct))}%"></i></div>`;
 function pintarPanel(reuniones, acts){
+  window._panelArgs = [reuniones, acts];
   const el = document.getElementById('panel'); if (!el) return;
   const hoyS = isoD(new Date()), ahora = new Date();
   const desde = (!sinCole(hoyS) && ahora.getHours() >= 14) ? masDias(hoyS,1) : hoyS;
-  const tiles = [];
+  const tiles = [...tiempoTiles];
 
   // 1) Trimestre
   const T = trimestreActual();
@@ -582,11 +587,53 @@ function pintarPanel(reuniones, acts){
   el.innerHTML = tiles.join('') || '<div class="vacio kpi-ancho">No se han podido cargar los datos del panel.</div>';
 }
 
+/* ---------- Tiempo en Santa Fe y recreo (datos de Open-Meteo, como la app Mi Tiempo) ---------- */
+const MITIEMPO = 'https://vunisal706-droid.github.io/tiempo/';
+const wmo = (c, dia=1) => c===0 ? (dia?'☀️':'🌙') : c<=2 ? (dia?'🌤️':'☁️') : c===3 ? '☁️' : c<=48 ? '🌫️' : c<=57 ? '🌦️' : c<=67 ? '🌧️' : c<=77 ? '🌨️' : c<=82 ? '🌧️' : c<=86 ? '🌨️' : '⛈️';
+const wmoTxt = c => c===0 ? 'Despejado' : c<=2 ? 'Poco nuboso' : c===3 ? 'Nublado' : c<=48 ? 'Niebla' : c<=57 ? 'Llovizna' : c<=67 ? 'Lluvia' : c<=77 ? 'Nieve' : c<=82 ? 'Chubascos' : c<=86 ? 'Nieve' : 'Tormenta';
+function veredictoRecreo(H, i){
+  const prob = H.precipitation_probability[i] ?? 0, rain = H.precipitation[i] ?? 0, feel = H.apparent_temperature[i], wind = H.wind_speed_10m[i] ?? 0;
+  if (prob>=50 || rain>=0.3) return ['☔','Recreo dentro',`Lluvia probable (${prob}%)`];
+  if (feel>=32) return ['🥵','Mucho calor',`${Math.round(feel)}° · sombra y agua`];
+  if (feel<6) return ['🥶','Frío',`${Math.round(feel)}° · salir abrigados`];
+  if (prob>=30) return ['🌦️','Patio, con ojo',`Puede chispear (${prob}%)`];
+  if (wind>=35) return ['💨','Mucho viento',`${Math.round(wind)} km/h`];
+  return ['✅','Al patio',`${Math.round(feel)}° · sin lluvia`];
+}
+let tiempoTiles = [];
+async function cargarTiempo(){
+  try{
+    const u = 'https://api.open-meteo.com/v1/forecast?latitude=37.1887&longitude=-3.7178'
+      + '&current=temperature_2m,apparent_temperature,weather_code,is_day'
+      + '&hourly=apparent_temperature,precipitation_probability,precipitation,wind_speed_10m'
+      + '&daily=weather_code,temperature_2m_max,temperature_2m_min,precipitation_probability_max'
+      + '&timezone=Europe%2FMadrid&forecast_days=7';
+    const w = await fetch(u).then(r=>{ if(!r.ok) throw 0; return r.json(); });
+    const c = w.current, d = w.daily, hoyS = c.time.slice(0,10), hora = +c.time.slice(11,13);
+    const i0 = d.time.indexOf(hoyS);
+    tiempoTiles = [`<a class="kpi kpi-tiempo" href="${MITIEMPO}" target="_blank" rel="noopener"><span class="kpi-et">Santa Fe ahora</span>
+      <b class="kpi-num"><span aria-hidden="true" style="font-size:.8em">${wmo(c.weather_code, c.is_day)}</span> ${Math.round(c.temperature_2m)}<small>°</small></b>
+      <span class="kpi-sub">${wmoTxt(c.weather_code)} · máx. ${Math.round(d.temperature_2m_max[i0])}° mín. ${Math.round(d.temperature_2m_min[i0])}°${(d.precipitation_probability_max[i0]??0)>=20?' · lluvia '+d.precipitation_probability_max[i0]+'%':''}</span></a>`];
+    // Recreo: hoy si aún no ha pasado (12:00); si no, el siguiente día con cole
+    let dia = hora>=13 ? masDias(hoyS,1) : hoyS;
+    for (let k=0; k<7 && sinCole(dia); k++) dia = masDias(dia,1);
+    const i = w.hourly.time.indexOf(dia+'T12:00');
+    if (i>=0 && !sinCole(dia)){
+      const [e, v, s] = veredictoRecreo(w.hourly, i);
+      const f = new Date(dia+'T12:00');
+      const cuandoR = dia===hoyS ? 'hoy' : dia===masDias(hoyS,1) ? 'mañana' : 'el '+DIAS[f.getDay()];
+      tiempoTiles.push(`<a class="kpi kpi-tiempo" href="${MITIEMPO}" target="_blank" rel="noopener"><span class="kpi-et">Recreo ${cuandoR} · 12:00</span>
+        <b class="kpi-tit"><span aria-hidden="true">${e}</span> ${v}</b><span class="kpi-sub">${s}</span></a>`);
+    }
+  }catch(e){ tiempoTiles = []; }
+  if (window._panelArgs) pintarPanel(..._panelArgs);
+}
 async function cargarTablon(){
   const cont = document.getElementById('tablon');
   try{
     await cargarScript('/agenda/calendario.js');
     if (window.CalendarioCole && CalendarioCole.listo) await CalendarioCole.listo;
+    cargarTiempo();
     const [reuniones, acts, avisosImg] = await Promise.all([
       getJSON('/agenda/reuniones.json?_='+Date.now()),
       getJSON(DB+'/actividades_profesorado.json'),
@@ -646,7 +693,7 @@ document.getElementById('campana').onclick = ()=>{
 document.getElementById('tablon').addEventListener('click', e=>{ if (e.target.closest('a')) marcarVistos(); });
 
 /* ---------- Novedades (una sola vez por dispositivo) ---------- */
-const NOV = 'capi-novedades-seneca-v6';
+const NOV = 'capi-novedades-seneca-v7';
 const veloNov = document.getElementById('veloNov');
 if(!ls.get(NOV,false)) setTimeout(()=>veloNov.classList.add('abierto'), 500);
 document.getElementById('btnNovOk').onclick = ()=>{ ls.set(NOV,true); veloNov.classList.remove('abierto'); };
