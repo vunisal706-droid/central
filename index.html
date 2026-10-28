@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
-<meta name="theme-color" content="#f4f6fa">
+<meta name="theme-color" content="#f8f8fa">
 <meta name="description" content="CEIP Capitulaciones - Hub de herramientas educativas">
 <meta name="apple-mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-status-bar-style" content="default">
@@ -24,7 +24,7 @@
   --tinta:#1b1f24;
   --gris:#5b6470;
   --gris-claro:#6b7480;
-  --fondo:#f4f6fa;
+  --fondo:#f8f8fa;
   --blanco:#ffffff;
   --linea:#e3e7ee;
   --amarillo:#e9d77a;      /* chip de cargo */
@@ -38,9 +38,7 @@ html,body{min-height:100%}
 body{
   font-family:'Fira Sans',system-ui,-apple-system,'Segoe UI',sans-serif;
   color:var(--tinta);
-  background:linear-gradient(-45deg,#f4f6fa,#eef4fb,#f3f8f2,#fbf8ee,#f8f1f5,#eef7f8);
-  background-size:400% 400%;
-  animation:fondo 30s ease infinite;
+  background:#f8f8fa;
   -webkit-tap-highlight-color:transparent;
   padding-bottom:calc(var(--nav-h) + env(safe-area-inset-bottom) + 16px);
 }
@@ -326,6 +324,7 @@ main{max-width:760px;margin:0 auto;padding:0 18px}
       <li><b>Tablón de anuncios</b> con lo mismo que ve el profesorado en la app Tablón: próximas actividades, avisos y reuniones del próximo lunes. La campana avisa de lo nuevo.</li>
       <li>Herramientas ordenadas en <b>Gestión</b>, <b>Pedagógico</b> y <b>Alumnado</b> (barra de abajo).</li>
       <li>Acceso directo a la <b>agenda</b> desde la fecha.</li>
+      <li>Fondo del mismo color gris claro que Séneca.</li>
     </ul>
     <div class="botones"><button class="btn prim" id="btnNovOk">Entendido</button></div>
   </div>
@@ -563,7 +562,7 @@ document.getElementById('campana').onclick = ()=>{
 document.getElementById('tablon').addEventListener('click', e=>{ if (e.target.closest('a')) marcarVistos(); });
 
 /* ---------- Novedades (una sola vez por dispositivo) ---------- */
-const NOV = 'capi-novedades-seneca-v2';
+const NOV = 'capi-novedades-seneca-v3';
 const veloNov = document.getElementById('veloNov');
 if(!ls.get(NOV,false)) setTimeout(()=>veloNov.classList.add('abierto'), 500);
 document.getElementById('btnNovOk').onclick = ()=>{ ls.set(NOV,true); veloNov.classList.remove('abierto'); };
