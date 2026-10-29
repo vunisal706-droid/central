@@ -95,6 +95,8 @@ main{max-width:760px;margin:0 auto;padding:0 18px}
   transition:transform .15s ease, box-shadow .15s ease;
 }
 .rapida svg{width:34px;height:34px;color:var(--azul-osc)}
+.rapida span{max-width:100%;overflow-wrap:anywhere;hyphens:auto}
+@media(max-width:480px){.rapida{font-size:.84rem;padding:14px 3px 12px;min-height:108px}}
 .rapida:active{transform:scale(.97)}
 @media(hover:hover){.rapida:hover{box-shadow:0 6px 18px rgba(20,35,60,.12)}}
 
@@ -338,7 +340,7 @@ a.kpi{color:inherit;transition:box-shadow .15s ease}
   <div class="hoja">
     <div class="asa"></div>
     <h3 id="titPers">Personalizar acciones rápidas</h3>
-    <p class="sub">Elige hasta 4 herramientas (<b id="cuentaSel">0</b>/4). Se guarda en este dispositivo.</p>
+    <p class="sub">Elige hasta 8 herramientas (<b id="cuentaSel">0</b>/8). Se guarda en este dispositivo.</p>
     <div id="opciones"></div>
     <div class="botones">
       <button class="btn sec" id="btnCancelar">Cancelar</button>
@@ -354,7 +356,7 @@ a.kpi{color:inherit;transition:box-shadow .15s ease}
     <h3 id="titNov">✨ Novedades de Capitoolappciones</h3>
     <p class="sub">Nuevo aspecto, al estilo de Séneca:</p>
     <ul>
-      <li><b>Acciones rápidas</b>: tus 4 herramientas favoritas. Pulsa «Personalizar» para elegirlas.</li>
+      <li><b>Acciones rápidas</b>: tus 8 herramientas favoritas. Pulsa «Personalizar» para elegirlas.</li>
       <li><b>Buscador</b> para encontrar cualquier herramienta.</li>
       <li><b>Tablón de anuncios</b> con lo mismo que ve el profesorado en la app Tablón: próximas actividades, avisos y reuniones del próximo lunes. La campana avisa de lo nuevo.</li>
       <li>Herramientas ordenadas en <b>Gestión</b>, <b>Pedagógico</b> y <b>Alumnado</b> (barra de abajo).</li>
@@ -364,6 +366,7 @@ a.kpi{color:inherit;transition:box-shadow .15s ease}
       <li>La <b>Web del cole</b> ya está en las acciones rápidas.</li>
       <li><b>Panel del centro</b>: días lectivos que quedan del trimestre y del curso, próximo día sin cole y valor del mes.</li>
       <li><b>Puertas</b>: si toca entrada normal o protocolo de lluvia. <b>Patio</b>: si el recreo será fuera o dentro.</li>
+      <li><b>8 acciones rápidas</b> en dos filas de 4 (puedes cambiarlas en «Personalizar»).</li>
       <li><b>Cuadro de alertas</b> cuando hay terremoto cerca de Santa Fe o mal tiempo fuerte.</li>
     </ul>
     <div class="botones"><button class="btn prim" id="btnNovOk">Entendido</button></div>
@@ -440,12 +443,17 @@ function fila(a){
 })();
 
 /* ---------- Acciones rápidas ---------- */
-const POR_DEFECTO = ['web','teletrabajo','gestorevalu','parte'];
-let favoritas = ls.get('capi-rapidas', POR_DEFECTO).filter(id=>porId[id]).slice(0,4);
+const MAX_RAP = 8;
+const POR_DEFECTO = ['web','teletrabajo','gestorevalu','parte','pcentro','capiguia','agora','registro'];
+let favoritas = ls.get('capi-rapidas', POR_DEFECTO).filter(id=>porId[id]).slice(0,MAX_RAP);
 // Una sola vez: añadir la Web del cole a quien ya tenía sus acciones guardadas
 if (!ls.get('capi-rapidas-web', false)){
-  if (!favoritas.includes('web')) favoritas = ['web', ...favoritas].slice(0,4);
+  if (!favoritas.includes('web')) favoritas = ['web', ...favoritas].slice(0,MAX_RAP);
   ls.set('capi-rapidas', favoritas); ls.set('capi-rapidas-web', true);
+}
+if (!ls.get('capi-rapidas-8', false)){
+  POR_DEFECTO.forEach(id=>{ if (favoritas.length<MAX_RAP && !favoritas.includes(id)) favoritas.push(id); });
+  ls.set('capi-rapidas', favoritas); ls.set('capi-rapidas-8', true);
 }
 function pintarRapidas(){
   document.getElementById('rapidas').innerHTML = favoritas.map(id=>{
@@ -460,14 +468,14 @@ let seleccion = [];
 function pintarOpciones(){
   document.getElementById('cuentaSel').textContent = seleccion.length;
   document.getElementById('opciones').innerHTML = APPS.map(a=>{
-    const marcada = seleccion.includes(a.id), bloq = !marcada && seleccion.length>=4;
+    const marcada = seleccion.includes(a.id), bloq = !marcada && seleccion.length>=MAX_RAP;
     return `<label class="opcion${bloq?' bloq':''}"><span class="ic">${svg(a.ic)}</span><span>${esc(a.nom)}</span>
       <input type="checkbox" data-id="${a.id}" ${marcada?'checked':''} ${bloq?'disabled':''}></label>`;
   }).join('');
 }
 document.getElementById('opciones').addEventListener('change', e=>{
   const id = e.target.dataset.id; if(!id) return;
-  if(e.target.checked){ if(seleccion.length<4) seleccion.push(id); } else seleccion = seleccion.filter(x=>x!==id);
+  if(e.target.checked){ if(seleccion.length<MAX_RAP) seleccion.push(id); } else seleccion = seleccion.filter(x=>x!==id);
   pintarOpciones();
 });
 document.getElementById('btnPersonalizar').onclick = ()=>{ seleccion = favoritas.slice(); pintarOpciones(); veloPers.classList.add('abierto'); };
@@ -762,7 +770,7 @@ document.getElementById('campana').onclick = ()=>{
 document.getElementById('tablon').addEventListener('click', e=>{ if (e.target.closest('a')) marcarVistos(); });
 
 /* ---------- Novedades (una sola vez por dispositivo) ---------- */
-const NOV = 'capi-novedades-seneca-v8';
+const NOV = 'capi-novedades-seneca-v9';
 const veloNov = document.getElementById('veloNov');
 if(!ls.get(NOV,false)) setTimeout(()=>veloNov.classList.add('abierto'), 500);
 document.getElementById('btnNovOk').onclick = ()=>{ ls.set(NOV,true); veloNov.classList.remove('abierto'); };
