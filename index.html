@@ -354,20 +354,9 @@ a.kpi{color:inherit;transition:box-shadow .15s ease}
   <div class="hoja">
     <div class="asa"></div>
     <h3 id="titNov">✨ Novedades de Capitoolappciones</h3>
-    <p class="sub">Nuevo aspecto, al estilo de Séneca:</p>
+    <p class="sub">Nueva herramienta:</p>
     <ul>
-      <li><b>Acciones rápidas</b>: tus 8 herramientas favoritas. Pulsa «Personalizar» para elegirlas.</li>
-      <li><b>Buscador</b> para encontrar cualquier herramienta.</li>
-      <li><b>Tablón de anuncios</b> con lo mismo que ve el profesorado en la app Tablón: próximas actividades, avisos y reuniones del próximo lunes. La campana avisa de lo nuevo.</li>
-      <li>Herramientas ordenadas en <b>Gestión</b>, <b>Pedagógico</b> y <b>Alumnado</b> (barra de abajo).</li>
-      <li>Acceso directo a la <b>agenda</b> desde la fecha.</li>
-      <li>Fondo del mismo color gris claro que Séneca.</li>
-      <li>Nuevo icono de la app con el logo del cole.</li>
-      <li>La <b>Web del cole</b> ya está en las acciones rápidas.</li>
-      <li><b>Panel del centro</b>: días lectivos que quedan del trimestre y del curso, próximo día sin cole y valor del mes.</li>
-      <li><b>Puertas</b>: si toca entrada normal o protocolo de lluvia. <b>Patio</b>: si el recreo será fuera o dentro.</li>
-      <li><b>8 acciones rápidas</b> en dos filas de 4 (puedes cambiarlas en «Personalizar»).</li>
-      <li><b>Cuadro de alertas</b> cuando hay terremoto cerca de Santa Fe o mal tiempo fuerte.</li>
+      <li>🆕 <b>Gestor de Refuerzo</b>, en la pestaña <b>Alumnado</b>: programas de refuerzo de Séneca, programación por días, sesiones de hoy con ausencias, evaluación e informes en Word.</li>
     </ul>
     <div class="botones"><button class="btn prim" id="btnNovOk">Entendido</button></div>
   </div>
@@ -388,11 +377,12 @@ const I = {
   registro:'<rect x="5" y="4" width="14" height="17" rx="2"/><path d="M9 4V3h6v1"/><path d="m8.5 10 1.3 1.3L12 9M8.5 15.5l1.3 1.3L12 14.5M14 10h2M14 15.5h2"/>',
   portal:'<rect x="2.5" y="7" width="19" height="11" rx="5.5"/><path d="M7.5 10.5v4M5.5 12.5h4"/><path d="M15.5 11.5h.01M18 13.5h.01"/>',
   web:'<circle cx="12" cy="12" r="8.5"/><path d="M3.5 12h17M12 3.5c2.3 2.4 3.5 5.2 3.5 8.5s-1.2 6.1-3.5 8.5c-2.3-2.4-3.5-5.2-3.5-8.5s1.2-6.1 3.5-8.5z"/>',
+  refuerzo:'<path d="M4 19.5V6a1.5 1.5 0 0 1 1.5-1.5H12v15H5.5A1.5 1.5 0 0 0 4 21"/><path d="M12 4.5h6.5A1.5 1.5 0 0 1 20 6v13.5"/><path d="M15 9.5h2.5M16.25 8.25v2.5"/><path d="M7 9h2.5M7 12.5h2.5"/>',
   chev:'<path d="m9 6 6 6-6 6"/>'
 };
 const svg = (k, cls='ico') => `<svg class="${cls}" viewBox="0 0 24 24" aria-hidden="true">${I[k]}</svg>`;
 
-/* ---------- Herramientas (las 11 de siempre) ---------- */
+/* ---------- Herramientas ---------- */
 const APPS = [
   {id:'capiguia', nom:'CapiGuía', corto:'CapiGuía', ic:'guia', cat:'gestion', url:'https://vunisal706-droid.github.io/capiguia/',
    desc:'Cómo trabajamos en el centro: evaluación, lectura, problemas, diversidad, convivencia y el curso mes a mes.', destacada:true},
@@ -412,6 +402,8 @@ const APPS = [
    desc:'Registro semanal del trabajo de lectura y de resolución de problemas por curso'},
   {id:'parte', nom:'Parte de Convivencia', corto:'Parte de convivencia', ic:'parte', cat:'alumnado', url:'https://vunisal706-droid.github.io/parteconvivencia/',
    desc:'Registro y gestión de incidencias de convivencia escolar'},
+  {id:'refuerzo', nom:'Gestor de Refuerzo', corto:'Refuerzo', ic:'refuerzo', cat:'alumnado', url:'https://vunisal706-droid.github.io/refuerzo/',
+   desc:'Programas de refuerzo, programación por días, sesiones de hoy, evaluación e informes'},
   {id:'convive', nom:'ConVive', corto:'ConVive', ic:'sociograma', cat:'alumnado', url:'https://vunisal706-droid.github.io/convivencia/',
    desc:'Sociograma del grupo: relaciones, alumnado aislado y propuestas de agrupamiento'},
   {id:'web', nom:'Web del cole', corto:'Web del cole', ic:'web', cat:'web', url:'https://colegiocapitulaciones.com/',
@@ -770,7 +762,7 @@ document.getElementById('campana').onclick = ()=>{
 document.getElementById('tablon').addEventListener('click', e=>{ if (e.target.closest('a')) marcarVistos(); });
 
 /* ---------- Novedades (una sola vez por dispositivo) ---------- */
-const NOV = 'capi-novedades-seneca-v9';
+const NOV = 'capi-novedades-seneca-v10';
 const veloNov = document.getElementById('veloNov');
 if(!ls.get(NOV,false)) setTimeout(()=>veloNov.classList.add('abierto'), 500);
 document.getElementById('btnNovOk').onclick = ()=>{ ls.set(NOV,true); veloNov.classList.remove('abierto'); };
