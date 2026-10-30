@@ -356,6 +356,7 @@ a.kpi{color:inherit;transition:box-shadow .15s ease}
     <h3 id="titNov">✨ Novedades de Capitoolappciones</h3>
     <p class="sub">Novedades:</p>
     <ul>
+      <li><b>Nuevo orden</b>: Teletrabajo, SDA, Registro de lectura, Parte de convivencia, Evaluación, Ágora, Refuerzo, ConVive, Resolución…</li>
       <li><b>«Acciones rápidas» pasa a ser «Apps del cole»</b> y ahora salen <b>todas</b> las apps, también las que no estaban marcadas.</li>
       <li>Nuevas en la lista: <b>Aula PT</b>, <b>Tablón de Avisos</b> y <b>Agenda</b>, con su propio icono.</li>
       <li>🆕 <b>Gestor de Refuerzo</b>, en la pestaña <b>Alumnado</b>: programas de refuerzo de Séneca, programación por días, sesiones de hoy con ausencias, evaluación e informes en Word.</li>
@@ -447,7 +448,7 @@ function fila(a){
 
 /* ---------- Acciones rápidas ---------- */
 const MAX_RAP = 99;
-const ORDEN_INICIO = ['web','tablon','agenda','teletrabajo','gestorevalu','parte','pcentro','capiguia','agora','registro'];
+const ORDEN_INICIO = ['teletrabajo','sda','registro','parte','gestorevalu','agora','refuerzo','convive','resolucion','aulapt','tablon','agenda','pcentro','capiguia','web','portal'];
 const POR_DEFECTO = [...ORDEN_INICIO, ...APPS.map(a=>a.id).filter(id=>!ORDEN_INICIO.includes(id))];
 let favoritas = ls.get('capi-rapidas', POR_DEFECTO).filter(id=>porId[id]).slice(0,MAX_RAP);
 // Una sola vez: añadir la Web del cole a quien ya tenía sus acciones guardadas
@@ -465,6 +466,12 @@ if (!ls.get('capi-apps-todas', false)){
   const arriba = ['tablon','agenda'].filter(id=>nuevas.includes(id));
   favoritas = [...(favoritas.includes('web')?['web']:[]), ...arriba, ...favoritas.filter(id=>id!=='web'), ...nuevas.filter(id=>!arriba.includes(id))];
   ls.set('capi-rapidas', favoritas); ls.set('capi-apps-todas', true);
+}
+// Una sola vez: nuevo orden de las apps (se respetan las que cada uno haya ocultado)
+if (!ls.get('capi-apps-orden-v2', false)){
+  const pos = id => { const i = POR_DEFECTO.indexOf(id); return i<0 ? 999 : i; };
+  favoritas = favoritas.slice().sort((a,b)=>pos(a)-pos(b));
+  ls.set('capi-rapidas', favoritas); ls.set('capi-apps-orden-v2', true);
 }
 function pintarRapidas(){
   document.getElementById('rapidas').innerHTML = favoritas.map(id=>{
@@ -781,7 +788,7 @@ document.getElementById('campana').onclick = ()=>{
 document.getElementById('tablon').addEventListener('click', e=>{ if (e.target.closest('a')) marcarVistos(); });
 
 /* ---------- Novedades (una sola vez por dispositivo) ---------- */
-const NOV = 'capi-novedades-seneca-v11';
+const NOV = 'capi-novedades-seneca-v12';
 const veloNov = document.getElementById('veloNov');
 if(!ls.get(NOV,false)) setTimeout(()=>veloNov.classList.add('abierto'), 500);
 document.getElementById('btnNovOk').onclick = ()=>{ ls.set(NOV,true); veloNov.classList.remove('abierto'); };
