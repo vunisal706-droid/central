@@ -272,7 +272,7 @@ a.kpi{color:inherit;transition:box-shadow .15s ease}
 
     <section class="seccion" style="margin-top:18px">
       <div class="sec-tit">
-        <h2>Acciones rápidas</h2>
+        <h2>Apps del cole</h2>
         <button class="enlace" id="btnPersonalizar">
           <svg class="ico" viewBox="0 0 24 24"><path d="M15.5 4.5l4 4L8 20H4v-4z"/><path d="M13.5 6.5l4 4"/></svg>Personalizar
         </button>
@@ -339,8 +339,8 @@ a.kpi{color:inherit;transition:box-shadow .15s ease}
 <div class="velo" id="veloPers" role="dialog" aria-modal="true" aria-labelledby="titPers">
   <div class="hoja">
     <div class="asa"></div>
-    <h3 id="titPers">Personalizar acciones rápidas</h3>
-    <p class="sub">Elige hasta 8 herramientas (<b id="cuentaSel">0</b>/8). Se guarda en este dispositivo.</p>
+    <h3 id="titPers">Personalizar apps del cole</h3>
+    <p class="sub">Marca las apps que quieres ver en la página principal (<b id="cuentaSel">0</b> marcadas). Se guarda en este dispositivo.</p>
     <div id="opciones"></div>
     <div class="botones">
       <button class="btn sec" id="btnCancelar">Cancelar</button>
@@ -354,8 +354,10 @@ a.kpi{color:inherit;transition:box-shadow .15s ease}
   <div class="hoja">
     <div class="asa"></div>
     <h3 id="titNov">✨ Novedades de Capitoolappciones</h3>
-    <p class="sub">Nueva herramienta:</p>
+    <p class="sub">Novedades:</p>
     <ul>
+      <li><b>«Acciones rápidas» pasa a ser «Apps del cole»</b> y ahora salen <b>todas</b> las apps, también las que no estaban marcadas.</li>
+      <li>Nuevas en la lista: <b>Aula PT</b>, <b>Tablón de Avisos</b> y <b>Agenda</b>, con su propio icono.</li>
       <li>🆕 <b>Gestor de Refuerzo</b>, en la pestaña <b>Alumnado</b>: programas de refuerzo de Séneca, programación por días, sesiones de hoy con ausencias, evaluación e informes en Word.</li>
     </ul>
     <div class="botones"><button class="btn prim" id="btnNovOk">Entendido</button></div>
@@ -377,6 +379,9 @@ const I = {
   registro:'<rect x="5" y="4" width="14" height="17" rx="2"/><path d="M9 4V3h6v1"/><path d="m8.5 10 1.3 1.3L12 9M8.5 15.5l1.3 1.3L12 14.5M14 10h2M14 15.5h2"/>',
   portal:'<rect x="2.5" y="7" width="19" height="11" rx="5.5"/><path d="M7.5 10.5v4M5.5 12.5h4"/><path d="M15.5 11.5h.01M18 13.5h.01"/>',
   web:'<circle cx="12" cy="12" r="8.5"/><path d="M3.5 12h17M12 3.5c2.3 2.4 3.5 5.2 3.5 8.5s-1.2 6.1-3.5 8.5c-2.3-2.4-3.5-5.2-3.5-8.5s1.2-6.1 3.5-8.5z"/>',
+  agenda:'<rect x="3.5" y="5" width="17" height="15" rx="2"/><path d="M3.5 10h17M8 3v4M16 3v4"/><path d="M7.5 13.5h2M11 13.5h2M14.5 13.5h2M7.5 16.5h2M11 16.5h2"/>',
+  tablon:'<rect x="3" y="4" width="18" height="13" rx="1.5"/><path d="M8 21l2-4M16 21l-2-4"/><path d="M7 8h6M7 11h10M7 14h4"/><circle cx="17" cy="8" r="1"/>',
+  aulapt:'<path d="M4 20V9l8-5 8 5v11"/><path d="M9 20v-5h6v5"/><path d="M8.5 11.5h.01M15.5 11.5h.01"/><path d="M12 8.2l.9 1.6 1.8.3-1.3 1.2.3 1.8-1.7-.9-1.6.9.3-1.8-1.3-1.2 1.8-.3z"/>',
   refuerzo:'<path d="M4 19.5V6a1.5 1.5 0 0 1 1.5-1.5H12v15H5.5A1.5 1.5 0 0 0 4 21"/><path d="M12 4.5h6.5A1.5 1.5 0 0 1 20 6v13.5"/><path d="M15 9.5h2.5M16.25 8.25v2.5"/><path d="M7 9h2.5M7 12.5h2.5"/>',
   chev:'<path d="m9 6 6 6-6 6"/>'
 };
@@ -384,6 +389,10 @@ const svg = (k, cls='ico') => `<svg class="${cls}" viewBox="0 0 24 24" aria-hidd
 
 /* ---------- Herramientas ---------- */
 const APPS = [
+  {id:'tablon', nom:'Tablón de Avisos', corto:'Tablón', ic:'tablon', cat:'gestion', url:'https://vunisal706-droid.github.io/tablon/',
+   desc:'Avisos para familias y profesorado, actividades y reuniones'},
+  {id:'agenda', nom:'Agenda del Equipo Directivo', corto:'Agenda', ic:'agenda', cat:'gestion', url:'https://vunisal706-droid.github.io/agenda/',
+   desc:'Calendario escolar, tareas del curso y reuniones'},
   {id:'capiguia', nom:'CapiGuía', corto:'CapiGuía', ic:'guia', cat:'gestion', url:'https://vunisal706-droid.github.io/capiguia/',
    desc:'Cómo trabajamos en el centro: evaluación, lectura, problemas, diversidad, convivencia y el curso mes a mes.', destacada:true},
   {id:'teletrabajo', nom:'Teletrabajo', corto:'Teletrabajo', ic:'reunion', cat:'gestion', url:'https://vunisal706-droid.github.io/teletrabajo/',
@@ -402,6 +411,8 @@ const APPS = [
    desc:'Registro semanal del trabajo de lectura y de resolución de problemas por curso'},
   {id:'parte', nom:'Parte de Convivencia', corto:'Parte de convivencia', ic:'parte', cat:'alumnado', url:'https://vunisal706-droid.github.io/parteconvivencia/',
    desc:'Registro y gestión de incidencias de convivencia escolar'},
+  {id:'aulapt', nom:'Aula PT', corto:'Aula PT', ic:'aulapt', cat:'alumnado', url:'https://vunisal706-droid.github.io/aulapt/index.html#home',
+   desc:'Actividades para el aula de Pedagogía Terapéutica: grafía, lectura, fonología, números y funciones ejecutivas'},
   {id:'refuerzo', nom:'Gestor de Refuerzo', corto:'Refuerzo', ic:'refuerzo', cat:'alumnado', url:'https://vunisal706-droid.github.io/refuerzo/',
    desc:'Programas de refuerzo, programación por días, sesiones de hoy, evaluación e informes'},
   {id:'convive', nom:'ConVive', corto:'ConVive', ic:'sociograma', cat:'alumnado', url:'https://vunisal706-droid.github.io/convivencia/',
@@ -435,8 +446,9 @@ function fila(a){
 })();
 
 /* ---------- Acciones rápidas ---------- */
-const MAX_RAP = 8;
-const POR_DEFECTO = ['web','teletrabajo','gestorevalu','parte','pcentro','capiguia','agora','registro'];
+const MAX_RAP = 99;
+const ORDEN_INICIO = ['web','tablon','agenda','teletrabajo','gestorevalu','parte','pcentro','capiguia','agora','registro'];
+const POR_DEFECTO = [...ORDEN_INICIO, ...APPS.map(a=>a.id).filter(id=>!ORDEN_INICIO.includes(id))];
 let favoritas = ls.get('capi-rapidas', POR_DEFECTO).filter(id=>porId[id]).slice(0,MAX_RAP);
 // Una sola vez: añadir la Web del cole a quien ya tenía sus acciones guardadas
 if (!ls.get('capi-rapidas-web', false)){
@@ -446,6 +458,13 @@ if (!ls.get('capi-rapidas-web', false)){
 if (!ls.get('capi-rapidas-8', false)){
   POR_DEFECTO.forEach(id=>{ if (favoritas.length<MAX_RAP && !favoritas.includes(id)) favoritas.push(id); });
   ls.set('capi-rapidas', favoritas); ls.set('capi-rapidas-8', true);
+}
+// Una sola vez: pasan a verse todas las apps del cole (también las que no estaban marcadas)
+if (!ls.get('capi-apps-todas', false)){
+  const nuevas = POR_DEFECTO.filter(id=>!favoritas.includes(id));
+  const arriba = ['tablon','agenda'].filter(id=>nuevas.includes(id));
+  favoritas = [...(favoritas.includes('web')?['web']:[]), ...arriba, ...favoritas.filter(id=>id!=='web'), ...nuevas.filter(id=>!arriba.includes(id))];
+  ls.set('capi-rapidas', favoritas); ls.set('capi-apps-todas', true);
 }
 function pintarRapidas(){
   document.getElementById('rapidas').innerHTML = favoritas.map(id=>{
@@ -762,7 +781,7 @@ document.getElementById('campana').onclick = ()=>{
 document.getElementById('tablon').addEventListener('click', e=>{ if (e.target.closest('a')) marcarVistos(); });
 
 /* ---------- Novedades (una sola vez por dispositivo) ---------- */
-const NOV = 'capi-novedades-seneca-v10';
+const NOV = 'capi-novedades-seneca-v11';
 const veloNov = document.getElementById('veloNov');
 if(!ls.get(NOV,false)) setTimeout(()=>veloNov.classList.add('abierto'), 500);
 document.getElementById('btnNovOk').onclick = ()=>{ ls.set(NOV,true); veloNov.classList.remove('abierto'); };
