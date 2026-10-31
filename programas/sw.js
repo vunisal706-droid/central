@@ -1,7 +1,7 @@
 // Service Worker de Programas del cole: funciona sin conexión.
 const VERSION = 'v1-b2610311150';
 const SHELL = 'programas-shell-' + VERSION, LIBS = 'programas-libs-' + VERSION;
-const APP = ['./', './index.html', './app.js', './app2.js', './plazos.js', './palancas.js', './manifest.json', './img/junta.jpg', './img/colegio.png', './icon-192.png', './icon-512.png'];
+const APP = ['./', './index.html', './app.js', './app2.js', './plazos.js', './palancas.js', './manifest.json', './img/junta.jpg', './img/colegio.png', './img/logos-fse-proa.png', './icon-192.png', './icon-512.png'];
 const EXT = ['https://www.gstatic.com/firebasejs/10.7.1/firebase-app-compat.js',
   'https://www.gstatic.com/firebasejs/10.7.1/firebase-database-compat.js',
   'https://www.gstatic.com/firebasejs/10.7.1/firebase-auth-compat.js'];

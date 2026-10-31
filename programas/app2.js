@@ -4,6 +4,9 @@ const eur = n => (Math.round((+n || 0) * 100) / 100).toLocaleString('es-ES', { m
 const fLarga = s => s ? new Date(s + 'T12:00').toLocaleDateString('es-ES', { day: 'numeric', month: 'long', year: 'numeric' }) : '';
 function triDe(f) { const y = startY(CURSO); if (f < (y + 1) + '-01-07') return 1; if (f < (y + 1) + '-04-01') return 2; return 3; }
 const M = () => D.mem || {};
+// Logos oficiales FSE+ incrustados (así salen al imprimir y en el Word)
+let LOGO_FSE = 'img/logos-fse-proa.png';
+fetch('img/logos-fse-proa.png').then(r => r.blob()).then(b => { const fr = new FileReader(); fr.onload = () => { LOGO_FSE = fr.result; }; fr.readAsDataURL(b); }).catch(() => { });
 const PALN = c => { const p = PALANCAS.find(x => x.c === c); return p ? p.c + ' · ' + p.t : 'Gastos generales del programa'; };
 
 // ─── Documento imprimible / Word ───
@@ -12,7 +15,7 @@ function abrirDoc(titulo, cuerpo, prog) {
   const fse = prog === 'PROA+' ? 'Programa de Cooperación Territorial de Orientación, Avance y Enriquecimiento Educativo PROA+ Transfórmate, cofinanciado por el Fondo Social Europeo Plus (FSE+).' : 'Actuación cofinanciada por el Fondo Social Europeo Plus (FSE+). Consejería de Educación de la Junta de Andalucía.';
   const css = '.salto{page-break-before:always;break-before:page}.firma{height:34px}body{font-family:Calibri,Arial,sans-serif;max-width:820px;margin:24px auto;padding:0 20px;color:#111;line-height:1.45;font-size:14px}h1{font-size:19px;text-align:center;margin:6px 0}h2{font-size:16px;color:#1f3f7a;border-bottom:2px solid #1f3f7a;padding-bottom:2px;margin-top:22px}h3{font-size:14px;margin:12px 0 4px}table{width:100%;border-collapse:collapse;margin:6px 0}td,th{border:1px solid #999;padding:5px 7px;vertical-align:top;text-align:left}th{background:#e8effc}.cab{display:flex;justify-content:space-between;align-items:center}.cab img{height:52px}.sub{text-align:center;color:#444;margin:0 0 10px}.fse{font-size:11px;text-align:center;margin-top:28px;color:#333}.bar{text-align:center;margin:16px}.bar button{font-size:15px;padding:8px 14px;margin:0 4px;cursor:pointer}@media print{.bar{display:none}}';
   const html = '<!doctype html><html lang="es"><head><meta charset="utf-8"><title>' + esc(titulo) + '</title><style>' + css + '</style></head><body>' +
-    '<div class="cab"><img src="' + base + 'img/junta.jpg" alt=""><img src="' + base + 'img/fse.png" alt="" onerror="this.remove()"><img src="' + base + 'img/colegio.png" alt=""></div>' +
+    (prog === 'PROA' ? '<img src="' + (LOGO_FSE.startsWith('data:') ? LOGO_FSE : base + LOGO_FSE) + '" alt="Cofinanciado por la Unión Europea · Ministerio de Trabajo y Economía Social · Fondos Europeos · Junta de Andalucía, Consejería de Educación" style="width:100%;height:auto;display:block">' : '<div class="cab"><img src="' + base + 'img/junta.jpg" alt=""><img src="' + base + 'img/colegio.png" alt=""></div>') +
     '<h1>' + esc(titulo) + '</h1><p class="sub">CEIP Capitulaciones (18008853) · Santa Fe (Granada) · Curso ' + CURSO.replace('-', '/') + '</p>' + cuerpo +
     '<p class="fse">' + fse + '</p></body></html>';
   const w = window.open('', '_blank');
