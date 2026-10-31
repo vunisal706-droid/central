@@ -39,7 +39,7 @@ const db = fbApp.database();
 const auth = () => fbApp.auth();
 
 let PERFIL = null, CURSO = cursoAcDe(hoyIso()), BASE = '', ref = null, ultimoLocal = 0;
-const VACIO = () => ({ hechos: {}, grupos: {}, sesiones: {}, reuniones: {}, palancas: {}, retos: {}, informes: {}, cotejo: {} });
+const VACIO = () => ({ hechos: {}, grupos: {}, sesiones: {}, reuniones: {}, palancas: {}, retos: {}, informes: {}, cotejo: {}, eco: {}, pem: {} });
 let D = VACIO();
 let seccion = 'panel', filtroPlazo = 'pend', progPlazo = '', grupoSel = null, fechaLista = hoyIso(), mesResumen = null, filtroReu = '';
 
@@ -107,7 +107,7 @@ function pintarCursos() {
   $('selCurso').innerHTML = [i - 1, i, i + 1].map(y => { const c = y + '-' + String(y + 1).slice(2); return '<option value="' + c + '"' + (c === CURSO ? ' selected' : '') + '>' + y + '/' + String(y + 1).slice(2) + '</option>'; }).join('');
   $('selCurso').onchange = () => { CURSO = $('selCurso').value; conectar(); };
 }
-function novedades() { const K = 'programas-nov-v1'; try { if (localStorage.getItem(K)) return; localStorage.setItem(K, 1); } catch (e) { } setTimeout(() => { try { $('novedades').showModal(); } catch (e) { } }, 500); }
+function novedades() { const K = 'programas-nov-v2'; try { if (localStorage.getItem(K)) return; localStorage.setItem(K, 1); } catch (e) { } setTimeout(() => { try { $('novedades').showModal(); } catch (e) { } }, 500); }
 
 // ─── Navegación ───
 $('nav').onclick = e => { const b = e.target.closest('button'); if (b) irA(b.dataset.s); };
@@ -118,8 +118,9 @@ function irA(s) {
   document.querySelectorAll('main > section').forEach(x => x.classList.toggle('oculto', x.id !== 'sec-' + s));
   render(); window.scrollTo(0, 0);
 }
+const RENDER = {};
 function render() {
-  const f = { panel: rPanel, plazos: rPlazos, acomp: rAcomp, reuniones: rReuniones, palancas: rPalancas }[seccion];
+  const f = Object.assign({ panel: rPanel, plazos: rPlazos, acomp: rAcomp, reuniones: rReuniones, palancas: rPalancas }, RENDER)[seccion];
   if (f) $('sec-' + seccion).innerHTML = f();
 }
 
@@ -177,7 +178,7 @@ function rPanel() {
     (G.length ? '' : '<div class="aviso">Crea los grupos en <b>Acompañamiento</b> para pasar lista y llevar las horas.</div>');
   const PAL = D.palancas || {}, enM = PALANCAS.filter(p => (PAL[p.c] || {}).estado === 'marcha').length, hechas = PALANCAS.filter(p => (PAL[p.c] || {}).estado === 'hecha').length;
   const comis = Object.values(D.reuniones || {}).filter(r => r.tipo === 'comision').length;
-  const extraPP = '<div class="kpis"><div class="kpi"><b>' + enM + '/10</b><span>palancas en marcha</span></div><div class="kpi"><b>' + hechas + '</b><span>completadas</span></div><div class="kpi"><b>' + comis + '/2</b><span>comisiones de seguimiento</span></div></div>';
+  const extraPP = '<div class="kpis"><div class="kpi"><b>' + enM + '/10</b><span>palancas en marcha</span></div><div class="kpi"><b>' + hechas + '</b><span>completadas</span></div><div class="kpi"><b>' + comis + '/2</b><span>comisiones de seguimiento</span></div>' + (typeof ecoTot === 'function' && ecoDot() ? '<div class="kpi"><b>' + Math.round(100 * ecoTot().total / ecoDot()) + ' %</b><span>dotación gastada</span></div>' : '') + '</div>';
   return '<div class="card"><h2>Hola, ' + esc(PERFILES[PERFIL] ? PERFILES[PERFIL].nombre.split(' ')[0] : '') + ' 👋</h2><p class="muted small">Curso ' + CURSO.replace('-', '/') + ' · Lo vencido y lo de las próximas semanas de cada programa.</p></div>' +
     '<div class="grid">' + tarjeta('PROA', extraPROA) + tarjeta('PROA+', extraPP) + tarjeta('ZTS', '') + '</div>';
 }
@@ -360,9 +361,9 @@ function rPalancas() {
       '<details><summary>Actuaciones previstas e indicadores</summary><ul style="margin:6px 0 6px 20px">' + p.acc.map(a => '<li>' + esc(a) + '</li>').join('') + '</ul><p class="small"><b>Indicadores:</b> ' + esc(p.ind) + '</p></details>' +
       '<div style="margin-top:8px"><b class="small">Actuaciones realizadas y evidencias (' + ev.length + ')</b>' +
       ev.map(([eid, x]) => '<div class="item"><div class="fecha">' + (x.fecha ? fechaCorta(x.fecha) : '') + '</div><div class="cuerpo"><div>' + esc(x.texto) + '</div>' + (x.part ? '<div class="dd">Participantes: ' + esc(x.part) + '</div>' : '') + '</div><button class="btn sec peq" data-delev="' + p.c + '|' + eid + '" aria-label="Borrar">🗑️</button></div>').join('') +
-      '<div style="margin-top:6px"><button class="btn sec peq" data-nuevaev="' + p.c + '">＋ Añadir actuación</button></div></div></div>';
+      '<div style="margin-top:6px"><button class="btn sec peq" data-nuevaev="' + p.c + '">＋ Añadir actuación</button> <button class="btn sec peq" data-ficha="' + p.c + '">📄 Ficha</button></div></div></div>';
   }).join('');
-  return h;
+  return h + (typeof rPEM === 'function' ? rPEM() : '');
 }
 function dlgEvidencia(c) {
   $('dlgIn').innerHTML = '<h2>Nueva actuación · ' + esc(c) + '</h2><label>Fecha</label><input type="date" id="eF" value="' + hoyIso() + '"><label>Qué se ha hecho</label><textarea id="eT" placeholder="Ej.: Taller de matemáticas con familias de 2.º (OAOA)"></textarea><label>Participantes (nº alumnado, familias, docentes)</label><input id="eP">' +
