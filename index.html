@@ -180,13 +180,49 @@ a.kpi{color:inherit;transition:box-shadow .15s ease}
   border-radius:22px 22px 0 0;box-shadow:0 -4px 16px rgba(20,35,60,.06);
   padding:8px 6px calc(8px + env(safe-area-inset-bottom));
 }
-.barra-in{display:grid;grid-template-columns:repeat(4,1fr);max-width:760px;margin:0 auto}
+.barra-in{display:grid;grid-template-columns:repeat(5,1fr);max-width:760px;margin:0 auto}
 .pest{display:flex;flex-direction:column;align-items:center;gap:4px;padding:6px 2px;color:var(--gris);font-size:.86rem}
 .pest svg{width:30px;height:30px;stroke-width:1.5}
 .pest.activa{color:var(--tinta);font-weight:600}
 .pest.activa svg{color:var(--azul);stroke-width:2}
 .pest.activa .raya{background:var(--azul)}
 .pest .raya{width:26px;height:3px;border-radius:3px;background:transparent;margin-top:-2px}
+
+/* Asistente del cole */
+.as-entrada{display:flex;align-items:center;gap:14px;width:100%;text-align:left;margin-top:18px;padding:14px 16px;border-radius:16px;background:linear-gradient(135deg,#0d4a8f,#1d6fc4);color:#fff;box-shadow:0 6px 18px rgba(13,74,143,.25)}
+.as-entrada .ic{width:46px;height:46px;border-radius:50%;background:rgba(255,255,255,.18);display:grid;place-items:center;flex:0 0 auto}
+.as-entrada .ic svg{width:26px;height:26px;color:#fff}
+.as-entrada .txt{flex:1;min-width:0}.as-entrada b{display:block;font-size:1.08rem;font-weight:600}
+.as-entrada .txt span{display:block;font-size:.9rem;opacity:.9;margin-top:2px}
+.as-entrada .chev{width:22px;height:22px;color:#fff;opacity:.8}
+.as-form{display:flex;gap:8px;margin-top:16px}
+.as-form input{flex:1;min-width:0;border:1.5px solid #cfd6df;border-radius:14px;padding:13px 14px;font:inherit;font-size:1.05rem;background:#fff;color:var(--tinta)}
+.as-form input:focus{outline:none;border-color:var(--azul)}
+.as-btn{width:52px;border-radius:14px;background:var(--azul);color:#fff;display:grid;place-items:center}
+.as-btn svg{width:24px;height:24px;color:#fff}
+.as-resp{margin-top:14px}
+.as-hint{color:var(--gris);font-size:.93rem;margin:6px 0 8px}
+.as-chips{display:flex;flex-wrap:wrap;gap:8px}
+.as-chip{background:var(--azul-claro);color:var(--azul-osc);border-radius:999px;padding:8px 13px;font-size:.92rem;text-align:left}
+.as-chip.as-hist{background:#fff;border:1px solid #d6dde6}
+.as-cargando{padding:22px;text-align:center;color:var(--gris)}
+.as-mejor{background:#fff;border-radius:16px;padding:16px 16px 14px;border-left:5px solid var(--azul);box-shadow:0 2px 10px rgba(0,0,0,.05);margin-bottom:14px}
+.as-mejor h3{font-size:1.1rem;font-weight:600;margin:4px 0 8px}
+.as-mejor p{font-size:1rem;line-height:1.55;margin:0 0 8px}
+.as-ruta{font-size:.8rem;font-weight:600;color:var(--azul);text-transform:uppercase;letter-spacing:.03em}
+.as-mejor mark,.as-fila mark{background:#fff1b8;color:inherit;border-radius:3px;padding:0 1px}
+.as-fila{background:#fff;border-radius:14px;padding:12px 14px;margin-bottom:10px;border:1px solid #e3e8ee}
+.as-extracto{font-size:.95rem;line-height:1.45;margin:6px 0}
+.as-completo{display:none;font-size:.95rem;line-height:1.5;margin:6px 0}
+.as-fila.abierta .as-extracto{display:none}.as-fila.abierta .as-completo{display:block}
+.as-acc{display:flex;gap:18px}
+.as-nada{background:#fff7e6;border:1px solid #f3d9a4;border-radius:14px;padding:14px;margin-bottom:12px;line-height:1.45}
+.as-cal{background:#eef6ee;border:1px solid #cfe6cf;border-radius:14px;padding:12px 14px;margin-bottom:12px}
+.as-cal ul{margin:6px 0 8px 18px;line-height:1.5}
+.as-mejor .as-resto{display:none}.as-mejor.abierta .as-resto{display:block}
+.as-mejor .as-todo{margin-right:16px}
+.as-pie{color:var(--gris-claro);font-size:.8rem;margin-top:14px;text-align:center}
+.pest{font-size:.8rem}
 
 /* Hoja inferior (Personalizar / Novedades) */
 .velo{position:fixed;inset:0;z-index:50;background:rgba(15,25,40,.45);display:none;align-items:flex-end;justify-content:center}
@@ -270,6 +306,12 @@ a.kpi{color:inherit;transition:box-shadow .15s ease}
       </div>
     </section>
 
+    <button class="as-entrada" id="irAsistente" type="button">
+      <span class="ic"><svg class="ico" viewBox="0 0 24 24"><path d="M5 5.5h14a1.5 1.5 0 0 1 1.5 1.5v8a1.5 1.5 0 0 1-1.5 1.5h-7l-4.5 3.5V16.5H5A1.5 1.5 0 0 1 3.5 15V7A1.5 1.5 0 0 1 5 5.5z"/><path d="M10 9.2a2 2 0 1 1 2.8 1.8c-.5.3-.8.7-.8 1.2v.3M12 14.2h.01"/></svg></span>
+      <span class="txt"><b>¿Tienes una duda del cole?</b><span>Pregúntale al asistente: responde con el Plan de Centro y la CapiGuía</span></span>
+      <svg class="ico chev" viewBox="0 0 24 24"><path d="m9 6 6 6-6 6"/></svg>
+    </button>
+
     <section class="seccion" style="margin-top:18px">
       <div class="sec-tit">
         <h2>Apps del cole</h2>
@@ -302,6 +344,15 @@ a.kpi{color:inherit;transition:box-shadow .15s ease}
     </section>
   </div>
 
+  <div id="vista-asistente" class="vista oculto">
+    <div class="tab-cab"><h2>Asistente del cole</h2><p>Pregunta cualquier duda del centro. Te respondo con el texto del Plan de Centro, la CapiGuía y los protocolos.</p></div>
+    <form id="asForm" class="as-form" autocomplete="off">
+      <input id="asPregunta" type="search" placeholder="Escribe tu pregunta… (p. ej. ¿qué hago si llueve?)" aria-label="Escribe tu pregunta">
+      <button type="submit" class="as-btn" aria-label="Preguntar"><svg class="ico" viewBox="0 0 24 24"><circle cx="10.5" cy="10.5" r="6.5"/><path d="m20 20-4.8-4.8"/></svg></button>
+    </form>
+    <div id="asRespuesta" class="as-resp"></div>
+  </div>
+
   <div id="vista-gestion" class="vista oculto">
     <div class="tab-cab"><h2>Gestión</h2><p>Organización del centro, reuniones y evaluación</p></div>
     <div class="lista seccion" style="margin-top:18px" data-cat="gestion"></div>
@@ -322,6 +373,9 @@ a.kpi{color:inherit;transition:box-shadow .15s ease}
   <div class="barra-in">
     <button class="pest activa" data-vista="inicio">
       <svg class="ico" viewBox="0 0 24 24"><path d="M3.5 11 12 4l8.5 7"/><path d="M5.5 9.5V20h13V9.5"/><path d="M10 20v-5h4v5"/></svg>Inicio<i class="raya"></i>
+    </button>
+    <button class="pest" data-vista="asistente">
+      <svg class="ico" viewBox="0 0 24 24"><path d="M5 5.5h14a1.5 1.5 0 0 1 1.5 1.5v8a1.5 1.5 0 0 1-1.5 1.5h-7l-4.5 3.5V16.5H5A1.5 1.5 0 0 1 3.5 15V7A1.5 1.5 0 0 1 5 5.5z"/><path d="M10 9.2a2 2 0 1 1 2.8 1.8c-.5.3-.8.7-.8 1.2v.3M12 14.2h.01"/></svg>Asistente<i class="raya"></i>
     </button>
     <button class="pest" data-vista="gestion">
       <svg class="ico" viewBox="0 0 24 24"><rect x="3" y="7" width="18" height="13" rx="2"/><path d="M9 7V5a1 1 0 0 1 1-1h4a1 1 0 0 1 1 1v2M3 12.5h18"/><path d="M11 12.5v2h2v-2"/></svg>Gestión<i class="raya"></i>
@@ -356,6 +410,7 @@ a.kpi{color:inherit;transition:box-shadow .15s ease}
     <h3 id="titNov">✨ Novedades de Capitoolappciones</h3>
     <p class="sub">Novedades:</p>
     <ul>
+      <li>🆕 <b>Asistente del cole</b> (nueva pestaña abajo): pregunta cualquier duda y te responde con el texto del <b>Plan de Centro</b>, la <b>CapiGuía</b> y los <b>protocolos</b>, con enlace al apartado exacto.</li>
       <li><b>Nuevo orden</b>: Teletrabajo, SDA, Registro de lectura, Parte de convivencia, Evaluación, Ágora, Refuerzo, ConVive, Resolución…</li>
       <li><b>«Acciones rápidas» pasa a ser «Apps del cole»</b> y ahora salen <b>todas</b> las apps, también las que no estaban marcadas.</li>
       <li>Nuevas en la lista: <b>Aula PT</b>, <b>Tablón de Avisos</b> y <b>Agenda</b>, con su propio icono.</li>
@@ -520,6 +575,7 @@ function irA(v){
   window.scrollTo({top:0,behavior:'smooth'});
 }
 document.querySelectorAll('.pest').forEach(p=> p.onclick = ()=> irA(p.dataset.vista));
+document.getElementById('irAsistente').onclick = ()=>{ irA('asistente'); setTimeout(()=>document.getElementById('asPregunta').focus(), 350); };
 
 /* ---------- Buscador ---------- */
 const busca = document.getElementById('busca'), borrar = document.getElementById('borrarBusca');
@@ -788,7 +844,7 @@ document.getElementById('campana').onclick = ()=>{
 document.getElementById('tablon').addEventListener('click', e=>{ if (e.target.closest('a')) marcarVistos(); });
 
 /* ---------- Novedades (una sola vez por dispositivo) ---------- */
-const NOV = 'capi-novedades-seneca-v12';
+const NOV = 'capi-novedades-seneca-v13';
 const veloNov = document.getElementById('veloNov');
 if(!ls.get(NOV,false)) setTimeout(()=>veloNov.classList.add('abierto'), 500);
 document.getElementById('btnNovOk').onclick = ()=>{ ls.set(NOV,true); veloNov.classList.remove('abierto'); };
@@ -813,5 +869,6 @@ const offlineNote = document.getElementById('offlineNote');
 const updateOnline = ()=> offlineNote.style.display = navigator.onLine ? 'none' : 'block';
 window.addEventListener('online', updateOnline); window.addEventListener('offline', updateOnline); updateOnline();
 </script>
+<script src="asistente.js"></script>
 </body>
 </html>

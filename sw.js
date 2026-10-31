@@ -6,7 +6,8 @@ const urlsToCache = [
   './icon-512.png',
   './icon-maskable-512.png',
   './apple-touch-icon.png',
-  './favicon.png'
+  './favicon.png',
+  './asistente.js'
 ];
 
 // Instalar: cachear recursos y activar de inmediato
