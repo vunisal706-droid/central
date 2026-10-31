@@ -145,7 +145,7 @@ function datosAcomp() {
     const n = Object.keys(g.alumnos || {}).length; al += n; let gi = 0, gh = 0, gn = 0;
     Object.values((D.sesiones || {})[gid] || {}).forEach(s => { if (s.impartida) { gi++; gh += +s.horas || 0; Object.values(s.asist || {}).forEach(v => { tot++; if (v === 'P') P++; }); } else gn++; });
     imp += gi; noImp += gn; horas += gh; euros += gh * EUROS[g.mod || 'B'];
-    Object.keys(g.alumnos || {}).forEach(a => [1, 2, 3].forEach(t => { infTot++; if ((((D.informes || {})[gid] || {})[a] || {})['t' + t] && D.informes[gid][a]['t' + t].texto) infs++; }));
+    Object.keys(g.alumnos || {}).forEach(a => [1, 2, 3].forEach(t => { infTot++; { const x = (((D.informes || {})[gid] || {})[a] || {})['t' + t]; if (x && (x.q1 || x.texto)) infs++; } }));
     return [esc(g.nombre), esc(ACT[g.act] || ''), esc(g.docente || ''), n, gi, gn, gh + ' h', eur(gh * EUROS[g.mod || 'B'])];
   });
   const R = Object.values(D.reuniones || {});
@@ -210,29 +210,98 @@ document.addEventListener('change', e => {
   else if (t.dataset.mem) guardar('mem/' + t.dataset.mem, t.value.trim() || null);
 });
 
-// ─── Anexos oficiales del PROA Andalucía (los rellenan monitores y profesorado) ───
+// ─── Anexos oficiales del PROA Andalucía (copia de los modelos de las Instrucciones de 1/09/2026) ───
 const DIRECTOR = 'Víctor Manuel Única Salas';
+const PREG_XV = ['¿ES PUNTUAL CON EL PROGRAMA?', '¿CÓMO ES SU NIVEL DE PARTICIPACIÓN EN LA REALIZACIÓN DE LAS TAREAS DENTRO DEL GRUPO?', '¿TIENE UN COMPORTAMIENTO ADECUADO CON LA PERSONA RESPONSABLE DEL GRUPO Y CON LOS COMPAÑEROS/AS?', 'SEGÚN LA INFORMACIÓN EXTRAÍDA DE LA SESIÓN DE EVALUACIÓN, ¿CÓMO VALORARÍA LA PARTICIPACIÓN DEL ALUMNO/A EN EL PROGRAMA?', '¿SE HAN OBSERVADO MEJORAS CUALITATIVAS Y/O CUANTITATIVAS EN EL RENDIMIENTO ACADÉMICO DEL ALUMNO/A? (PARTICIPACIÓN DENTRO DE SU GRUPO-CLASE, REALIZACIÓN DE LAS TAREAS, PREPARACIÓN DE LOS EXÁMENES, MEJORA SUS RESULTADOS ACADÉMICOS CON RESPECTO AL TRIMESTRE ANTERIOR)'];
+const ORD = n => n + 'ª';
+function abrirAnexo(titulo, paginas) {
+  const base = location.href.replace(/[^/]*$/, ''), logo = LOGO_FSE.startsWith('data:') ? LOGO_FSE : base + LOGO_FSE;
+  const css = '@page{size:A4;margin:14mm 16mm}*{box-sizing:border-box}body{font-family:"Source Sans 3","Source Sans Pro",Calibri,Arial,sans-serif;color:#000;font-size:10.5pt;margin:0;background:#888}' +
+    '.pag{background:#fff;width:210mm;min-height:297mm;margin:10px auto;padding:12mm 16mm;page-break-after:always;break-after:page}.pag:last-child{page-break-after:auto}' +
+    '.logos{display:block;width:78%;margin:0 auto 14px}h1{font-size:10.5pt;text-align:center;font-weight:700;margin:0 0 14px;line-height:1.35}' +
+    'table{width:100%;border-collapse:collapse;margin:0 0 14px}td,th{border:1px solid #000;padding:2px 5px;vertical-align:top;text-align:left;font-size:10pt}th,.et{background:#d9d9d9;font-weight:700}th{text-align:center;vertical-align:middle}' +
+    '.alto td{height:24px}.muyalto td{height:58px}.c{text-align:center}.b{font-weight:700}.nota{font-weight:700;font-style:italic;margin:6px 0 18px}.lugar{text-align:center;margin:14px 0 34px}.firma{text-align:center;line-height:1.3}' +
+    '.bar{text-align:center;padding:10px;background:#fff}.bar button{font-size:15px;padding:8px 14px;margin:0 4px;cursor:pointer}@media print{body{background:#fff}.pag{margin:0;width:auto;min-height:0;padding:0}.bar{display:none}}';
+  const cuerpo = paginas.map(p => '<div class="pag"><img class="logos" src="' + logo + '" alt="Cofinanciado por la Unión Europea · Ministerio de Trabajo y Economía Social · Fondos Europeos · Junta de Andalucía, Consejería de Educación">' + p + '</div>').join('');
+  const html = '<!doctype html><html lang="es"><head><meta charset="utf-8"><title>' + esc(titulo) + '</title><link href="https://fonts.googleapis.com/css2?family=Source+Sans+3:wght@400;700&display=swap" rel="stylesheet"><style>' + css + '</style></head><body>' + cuerpo + '</body></html>';
+  const w = window.open('', '_blank');
+  if (!w) return toast('Permite las ventanas emergentes para ver el documento', 'err');
+  w.document.write(html.replace('<body>', '<body><div class="bar"><button onclick="print()">🖨️ Imprimir o guardar en PDF</button><button id="bw">📝 Descargar Word</button></div>'));
+  w.document.close();
+  w.document.getElementById('bw').onclick = () => { const b = new Blob(['﻿' + html], { type: 'application/msword' }), a = w.document.createElement('a'); a.href = URL.createObjectURL(b); a.download = titulo.replace(/[^\wáéíóúñÁÉÍÓÚÑ ]+/g, '').replace(/\s+/g, '_') + '.doc'; a.click(); };
+}
+const lugarFecha = () => '<p class="lugar">En Santa Fe, a______ de _________________________ de _______.</p>';
+const firmaDir = sello => '<p class="firma">Fdo.: ' + DIRECTOR + '<br>(Firma de la persona titular de la dirección del centro)' + (sello ? '<br>(Sello oficial del centro en el caso de no usar firma electrónica)' : '') + '</p>';
+const fechaAnexo = f => new Date(f + 'T12:00').toLocaleDateString('es-ES', { day: '2-digit', month: '2-digit', year: 'numeric' });
+function cabeceraGrupo(g, mesTxt, actuacion) {
+  return '<table><colgroup><col style="width:17%"><col style="width:36%"><col style="width:30%"><col style="width:9%"><col style="width:8%"></colgroup>' +
+    '<tr><td class="et">CENTRO</td><td>CEIP Capitulaciones (Santa Fe)</td><td class="et">CÓDIGO</td><td colspan="2">18008853</td></tr>' +
+    (actuacion ? '<tr><td class="et">ACTUACIÓN</td><td>' + (g.act !== 'ALI' ? '☒' : '☐') + ' ACOMPAÑAMIENTO ESCOLAR<br>' + (g.act === 'ALI' ? '☒' : '☐') + ' ACOMPAÑAMIENTO LINGÜÍSTICO PARA ALUMNADO INMIGRANTE</td><td class="et">MES</td><td colspan="2">' + esc(mesTxt) + '</td></tr><tr><td class="et">GRUPO</td><td colspan="4">' + esc(g.nombre) + '</td></tr>'
+      : '<tr><td class="et">GRUPO</td><td>' + esc(g.nombre) + '</td><td class="et">MES</td><td colspan="2">' + esc(mesTxt) + '</td></tr>') +
+    '<tr><td class="et" rowspan="2">MENTOR/A O PROFESOR/A</td><td rowspan="2">' + esc(g.docente || '') + '</td><td class="et" colspan="' + (actuacion ? 1 : 2) + '">' + (actuacion ? 'MENTOR/A' : 'MENTOR/A (MODALIDAD A)') + '</td><td class="c"' + (actuacion ? ' colspan="2"' : '') + '>' + (g.mod === 'A' ? 'X' : '') + '</td></tr>' +
+    '<tr><td class="et" colspan="' + (actuacion ? 1 : 2) + '">' + (actuacion ? 'PROFESOR/A' : 'PROFESOR/A (MODALIDAD B)') + '</td><td class="c"' + (actuacion ? ' colspan="2"' : '') + '>' + (g.mod !== 'A' ? 'X' : '') + '</td></tr></table>';
+}
 function docAnexoX(gid, mes) {
   const g = D.grupos[gid], S = Object.entries((D.sesiones || {})[gid] || {}).filter(([f, x]) => f.startsWith(mes) && x.impartida).sort();
-  const mesTxt = MESES[+mes.slice(5) - 1] + ' de ' + mes.slice(0, 4), tot = S.reduce((a, [, x]) => a + (+x.horas || 0), 0);
-  if (!S.length && !confirm('No hay sesiones impartidas registradas en ' + mesTxt + '. ¿Generar el anexo igualmente?')) return;
-  abrirDoc('ANEXO X · Hoja de firma del empleado', '<p style="text-align:center;margin-top:-6px"><b>Programa de Refuerzo, Orientación y Apoyo (PROA Andalucía) · ' + esc(ACT[g.act] || '') + '</b></p>' +
-    tabla(['Dato', ''], [['Centro', 'CEIP Capitulaciones'], ['Código del centro', '18008853'], ['Localidad', 'Santa Fe (Granada)'], ['Grupo (igual que en Séneca)', '<b>' + esc(g.nombre) + '</b>'],
-      ['Modalidad', (g.mod === 'A' ? '☒' : '☐') + ' A · Mentor/a &nbsp;&nbsp; ' + (g.mod !== 'A' ? '☒' : '☐') + ' B · Profesorado'], ['Mentor/a o profesor/a responsable', '<b>' + esc(g.docente || '') + '</b>'], ['Mes', '<b>' + esc(mesTxt) + '</b>']]) +
-    '<h2>Sesiones impartidas</h2>' + tabla(['N.º', 'Fecha', 'Horario', 'Horas', 'Firma del mentor/a o profesor/a'], S.map(([f, x], i) => [i + 1, esc(new Date(f + 'T12:00').toLocaleDateString('es-ES', { weekday: 'long', day: 'numeric', month: 'long' })), esc((x.hi || g.hi || '') + ' – ' + (x.hf || g.hf || '')), x.horas, '<div class="firma"></div>'])) +
-    '<p><b>Total: ' + S.length + ' sesiones · ' + tot + ' horas.</b> Solo se anotan las sesiones impartidas; no se recuperan las no impartidas.</p>' +
-    '<table style="margin-top:24px"><tr><td style="width:50%;height:110px">Firma del mentor/a o profesor/a:<br><br><br>Fdo.: ' + esc(g.docente || '') + '</td><td>Vº Bº La persona titular de la dirección:<br><br><br>Fdo.: ' + DIRECTOR + '<br>Fecha: ____ / ____ / ________ &nbsp;&nbsp; (Sello del centro)</td></tr></table>' +
-    '<p style="font-size:12px;color:#444">Un Anexo X por mes y por persona. Si se firma por Séneca, basta la firma de la dirección con fecha; si se firma a mano, nombre legible y sello.</p>', 'PROA');
+  const mesTxt = MESES[+mes.slice(5) - 1].toUpperCase() + ' ' + mes.slice(0, 4);
+  if (!S.length && !confirm('No hay sesiones impartidas registradas en ' + mesTxt.toLowerCase() + '. ¿Generar el anexo igualmente?')) return;
+  const n = Math.max(14, S.length), filas = [];
+  for (let i = 0; i < n; i++) { const x = S[i]; filas.push('<tr><td>' + ORD(i + 1) + '</td><td class="c">' + (x ? fechaAnexo(x[0]) : '') + '</td><td class="c">' + (x ? esc((x[1].hi || g.hi || '') + ' - ' + (x[1].hf || g.hf || '')) : '') + '</td><td></td><td>' + (x ? esc(x[1].obs || '') : '') + '</td></tr>'); }
+  abrirAnexo('Anexo X ' + g.nombre + ' ' + mesTxt, ['<h1>ANEXO X. MODELO PARA EL REGISTRO DE LA ASISTENCIA DEL PROFESORADO, MENTORES Y MENTORAS A LAS SESIONES DE ACOMPAÑAMIENTO ESCOLAR Y ACOMPAÑAMIENTO LINGÜÍSTICO PARA ALUMNADO INMIGRANTE.</h1>' +
+    cabeceraGrupo(g, mesTxt, false) +
+    '<table class="alto"><colgroup><col style="width:9%"><col style="width:14%"><col style="width:19%"><col style="width:29%"><col style="width:29%"></colgroup><tr><th>Sesión</th><th>Fecha</th><th>Horario</th><th>Firma del mentor/a o profesor/a</th><th>Observaciones (indicar cualquier incidencia)</th></tr>' + filas.join('') + '</table>' +
+    '<p class="nota">* Este documento debe ser cumplimentado de forma independiente por grupo y mes de servicio.</p>' + lugarFecha() + firmaDir(true)]);
 }
+function docAnexoXII(gid, mes) {
+  const g = D.grupos[gid], al = g.alumnos || {}, S = Object.entries((D.sesiones || {})[gid] || {}).filter(([f, x]) => f.startsWith(mes) && x.impartida).sort();
+  const mesTxt = MESES[+mes.slice(5) - 1].toUpperCase() + ' ' + mes.slice(0, 4);
+  const n = Math.max(14, S.length), filas = [];
+  for (let i = 0; i < n; i++) { const x = S[i]; const aus = x ? Object.entries(x[1].asist || {}).filter(([, v]) => v === 'F' || v === 'J').map(([k, v]) => (al[k] ? al[k].siglas : '?') + (v === 'J' ? ' (justificada)' : '')).join(', ') : ''; filas.push('<tr><td>' + ORD(i + 1) + '</td><td class="c">' + (x ? fechaAnexo(x[0]) : '') + '</td><td>' + esc(x ? (aus || 'Ninguno') : '') + '</td><td></td></tr>'); }
+  abrirAnexo('Anexo XII ' + g.nombre + ' ' + mesTxt, ['<h1>ANEXO XII. MODELO PARA EL REGISTRO DE AUSENCIAS DEL ALUMNADO EN EL DESARROLLO DE LOS PROGRAMAS DE ACOMPAÑAMIENTO IMPARTIDOS EN EL CENTRO DOCENTE.</h1>' +
+    cabeceraGrupo(g, mesTxt, true) +
+    '<table class="muyalto"><colgroup><col style="width:9%"><col style="width:15%"><col style="width:48%"><col style="width:28%"></colgroup><tr><th>Sesión</th><th>Fecha</th><th>Alumnado ausente<br>(nombre y apellidos)</th><th>Firma del mentor/a o profesor/a</th></tr>' + filas.join('') + '</table>' +
+    '<p class="nota">*Entregar a la persona responsable de la coordinación de PROA Andalucía en el centro con carácter mensual.</p>' + lugarFecha() + firmaDir(false)]);
+}
+function contXV(gid, tri) { const c = Object.assign({}, ((((D.informes || {})[gid] || {})._cont || {})['t' + tri]) || {}); c.a1 = c.a1 || 'Lengua Castellana y Literatura'; c.a2 = c.a2 || 'Matemáticas'; return c; }
 function docAnexoXV(gid, tri) {
   const g = D.grupos[gid], A = Object.entries(g.alumnos || {}).sort((a, b) => (a[1].siglas || '').localeCompare(b[1].siglas || ''));
   if (!A.length) return toast('El grupo no tiene alumnado', 'err');
-  abrirDoc('ANEXO XV · Informe de evaluación del alumnado', A.map(([aid, a], i) => {
-    const inf = (((D.informes || {})[gid] || {})[aid] || {})['t' + tri] || {}, r = asistAlumno(gid, aid);
-    return (i ? '<div class="salto"></div><h1 style="font-size:17px">ANEXO XV · Informe de evaluación del alumnado</h1>' : '') + '<p style="text-align:center"><b>PROA Andalucía · ' + esc(ACT[g.act] || '') + ' · Cofinanciado por el FSE+</b></p>' +
-      tabla(['Dato', ''], [['Curso académico', CURSO.replace('-', '/')], ['Trimestre evaluado', tri + '.º trimestre'], ['Grupo', esc(g.nombre)], ['Alumno/a (nombre y apellidos)', '<span style="color:#888">' + esc(a.siglas) + '</span> ______________________________'], ['Nivel educativo', esc(a.curso || '') + ' de Educación Primaria'],
-        ['Mentor/a o profesor/a responsable', esc(g.docente || '')], ['Asistencia en el programa', r.total ? r.pct + ' % (' + r.P + ' de ' + r.total + ' sesiones; ' + r.J + ' faltas justificadas)' : '—'], ['Evolución', esc(inf.evol || '')], ['Hábitos de trabajo', esc(inf.hab || '')]]) +
-      '<h3>Contenidos trabajados y grado de adquisición</h3><p>' + txt(inf.cont) + '</p><h3>Valoración global</h3><p>' + txt(inf.texto) + '</p><h3>Propuestas de mejora</h3><p>' + txt(inf.mejora) + '</p>' +
-      '<p style="margin-top:30px">En Santa Fe, a ____ de ______________ de ' + (tri === 1 ? startY(CURSO) : startY(CURSO) + 1) + '.</p><p style="margin-top:44px">Fdo.: ' + esc(g.docente || '') + '</p>';
-  }).join(''), 'PROA');
+  const C = contXV(gid, tri), y = startY(CURSO), anio = tri === 1 ? y : y + 1;
+  const area = (k, inf) => { const items = (C['c' + k] || '').split('\n').map(x => x.trim()).filter(Boolean); const rows = Math.max(6, items.length), tr = [];
+    for (let i = 0; i < rows; i++) { const e = ((inf.e || {})[k + '_' + i]) || ''; tr.push('<tr><td>' + esc(items[i] || '') + '</td><td class="c">' + (items[i] && e === 'C' ? 'X' : '') + '</td><td class="c">' + (items[i] && e === 'EP' ? 'X' : '') + '</td><td class="c">' + (items[i] && e === 'SI' ? 'X' : '') + '</td></tr>'); }
+    return '<p class="b">ÁREA: ' + esc(C['a' + k] || '') + '</p><table class="alto"><colgroup><col style="width:58%"><col style="width:14%"><col style="width:14%"><col style="width:14%"></colgroup><tr><th style="text-align:left">CONTENIDOS</th><th>CONSEGUIDO</th><th>EN PROCESO</th><th>SIN INICIAR</th></tr>' + tr.join('') + '</table>'; };
+  const pags = [];
+  A.forEach(([aid, a]) => {
+    const inf = ((((D.informes || {})[gid] || {})[aid] || {})['t' + tri]) || {};
+    pags.push('<h1>ANEXO XV. MODELO DE INFORME INDIVIDUALIZADO TRIMESTRAL DEL ALUMNADO.</h1><p class="c b">Curso ' + y + '/' + (y + 1) + '</p>' +
+      '<p class="b" style="line-height:1.5">ALUMNO/A: <span style="font-weight:400">' + esc(a.nombre || a.siglas) + '</span><br>TRIMESTRE: <span style="font-weight:400">' + tri + '.º</span><br>NIVEL: <span style="font-weight:400">' + esc(a.curso || '') + ' Educación Primaria</span><br>MENTOR/A o PROFESOR/A: <span style="font-weight:400">' + esc(g.docente || '') + '</span></p>' +
+      area(1, inf) + '<br>' + area(2, inf));
+    pags.push('<p class="b">VALORACIÓN GLOBAL DEL ALUMNO/A</p><table><colgroup><col style="width:46%"><col></colgroup>' + PREG_XV.map((q, i) => '<tr><td class="b" style="height:' + (i === 4 ? 130 : i === 0 ? 50 : 72) + 'px;text-align:justify">' + q + '</td><td>' + txt(inf['q' + (i + 1)]) + '</td></tr>').join('') + '</table>' +
+      '<p class="b">PROPUESTAS DE MEJORA:</p><table><tr><td style="height:46px">' + txt(inf.mejora) + '</td></tr></table>' +
+      '<p class="lugar">En Santa Fe, a ________ de ______________ de ' + anio + '</p><p class="firma" style="margin-top:40px">Fdo.: ' + esc(g.docente || '') + '<br>(Firma del mentor/a o profesor/a)</p>');
+  });
+  abrirAnexo('Anexo XV ' + g.nombre + ' ' + tri + 'T', pags);
 }
+// Formulario del Anexo XV (informe trimestral) en la app
+function rInformeXV(A, tri) {
+  const C = contXV(grupoSel, tri);
+  const lista = k => (C['c' + k] || '').split('\n').map(x => x.trim()).filter(Boolean);
+  let h = '<div class="card"><div class="card-h"><h2>📝 Informe trimestral (Anexo XV)</h2><select id="triInf" style="width:auto">' + [1, 2, 3].map(t => '<option value="' + t + '"' + (t === tri ? ' selected' : '') + '>' + t + '.º trimestre</option>').join('') + '</select></div>' +
+    '<p class="small muted">Primero escribe las dos áreas y sus contenidos (valen para todo el grupo). Después, en cada alumno/a, marca cómo va en cada contenido y responde a la valoración. Se entrega al final de cada trimestre, firmado.</p>' +
+    '<div class="g2">' + [1, 2].map(k => '<div><label>Área ' + k + '</label><input data-xvc="a' + k + '" value="' + esc(C['a' + k] || (k === 1 ? 'Lengua Castellana y Literatura' : 'Matemáticas')) + '"><label>Contenidos del área ' + k + ' (uno por línea)</label><textarea data-xvc="c' + k + '" rows="5" placeholder="' + (k === 1 ? 'Comprensión lectora\nExpresión escrita' : 'Cálculo\nResolución de problemas') + '">' + esc(C['c' + k] || '') + '</textarea></div>').join('') + '</div>';
+  if (!A.length) return h + '<p class="muted">El grupo no tiene alumnado.</p></div>';
+  h += A.map(([aid, a]) => {
+    const inf = ((((D.informes || {})[grupoSel] || {})[aid] || {})['t' + tri]) || {};
+    const hechas = PREG_XV.filter((_, i) => inf['q' + (i + 1)]).length;
+    return '<details style="margin:10px 0"><summary>' + esc(a.siglas) + ' <span class="muted small">' + esc(a.curso || '') + ' · ' + hechas + '/5 preguntas' + (inf.mejora ? ' · propuestas ✔' : '') + '</span></summary>' +
+      [1, 2].map(k => { const it = lista(k); return it.length ? '<p class="small" style="margin-top:8px"><b>' + esc(C['a' + k] || '') + '</b></p>' + it.map((c, i) => { const v = (inf.e || {})[k + '_' + i] || ''; return '<div style="display:flex;gap:8px;align-items:center;justify-content:space-between;border-bottom:1px solid #edf1f7;padding:4px 0"><span>' + esc(c) + '</span><select data-xve="' + aid + '|' + k + '_' + i + '" style="width:auto"><option value="">—</option><option value="C"' + (v === 'C' ? ' selected' : '') + '>Conseguido</option><option value="EP"' + (v === 'EP' ? ' selected' : '') + '>En proceso</option><option value="SI"' + (v === 'SI' ? ' selected' : '') + '>Sin iniciar</option></select></div>'; }).join('') : ''; }).join('') +
+      PREG_XV.map((q, i) => '<label>' + esc(q.charAt(0) + q.slice(1).toLowerCase()) + '</label><textarea rows="2" data-inf="' + aid + '" data-k="q' + (i + 1) + '">' + esc(inf['q' + (i + 1)] || '') + '</textarea>').join('') +
+      '<label>Propuestas de mejora</label><textarea rows="2" data-inf="' + aid + '" data-k="mejora">' + esc(inf.mejora || '') + '</textarea></details>';
+  }).join('');
+  return h + '<div class="pie" style="justify-content:flex-start"><button class="btn peq" data-acc="anexoXV">📄 Anexo XV del trimestre (PDF)</button></div></div>';
+}
+document.addEventListener('change', e => {
+  const t = e.target, tri = $('triInf') ? $('triInf').value : 1;
+  if (t.dataset.xvc) { guardar('informes/' + grupoSel + '/_cont/t' + tri + '/' + t.dataset.xvc, t.value.trim() || null); if (t.dataset.xvc[0] === 'c') render(); }
+  else if (t.dataset.xve) { const [aid, k] = t.dataset.xve.split('|'); guardar('informes/' + grupoSel + '/' + aid + '/t' + tri + '/e/' + k, t.value || null); }
+});

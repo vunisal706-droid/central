@@ -127,7 +127,7 @@ function pintarCursos() {
   $('selCurso').innerHTML = [i - 1, i, i + 1].map(y => { const c = y + '-' + String(y + 1).slice(2); return '<option value="' + c + '"' + (c === CURSO ? ' selected' : '') + '>' + y + '/' + String(y + 1).slice(2) + '</option>'; }).join('');
   $('selCurso').onchange = () => { CURSO = $('selCurso').value; conectar(); };
 }
-function novedades() { const K = esMon() ? 'programas-nov-mon-v1' : 'programas-nov-v3'; const dlgId = esMon() ? 'novMon' : 'novedades'; try { if (localStorage.getItem(K)) return; localStorage.setItem(K, 1); } catch (e) { } setTimeout(() => { try { $(dlgId).showModal(); } catch (e) { } }, 500); }
+function novedades() { const K = esMon() ? 'programas-nov-mon-v2' : 'programas-nov-v4'; const dlgId = esMon() ? 'novMon' : 'novedades'; try { if (localStorage.getItem(K)) return; localStorage.setItem(K, 1); } catch (e) { } setTimeout(() => { try { $(dlgId).showModal(); } catch (e) { } }, 500); }
 
 // ─── Navegación ───
 $('nav').onclick = e => { const b = e.target.closest('button'); if (b) irA(b.dataset.s); };
@@ -233,7 +233,8 @@ function rAcomp() {
     avisos.map(a => '<div class="aviso rojo">' + esc(a) + '</div>').join('') +
     '<div class="g2"><div><label>¿Se ha impartido?</label><select id="sesImp"><option value="">— Sin registrar —</option><option value="si"' + (s && s.impartida ? ' selected' : '') + '>Sí, se ha impartido</option><option value="noAlumnado"' + (s && s.motivo === 'noAlumnado' ? ' selected' : '') + '>No: no vino ningún alumno/a</option><option value="noDocente"' + (s && s.motivo === 'noDocente' ? ' selected' : '') + '>No: falta del docente o mentor/a</option><option value="festivo"' + (s && s.motivo === 'festivo' ? ' selected' : '') + '>No: festivo u otra causa</option></select></div>' +
     '<div><label>Hora de inicio</label><input type="time" id="sesHi" value="' + esc((s && s.hi) || g.hi || '16:00') + '"></div><div><label>Hora de fin</label><input type="time" id="sesHf" value="' + esc((s && s.hf) || g.hf || '18:00') + '"></div>' +
-    '<div><label>Horas</label><input type="number" id="sesHoras" min="0" max="3" step="0.5" value="' + (s && s.horas != null ? s.horas : (g.horasSesion || 2)) + '"></div></div>';
+    '<div><label>Horas</label><input type="number" id="sesHoras" min="0" max="3" step="0.5" value="' + (s && s.horas != null ? s.horas : (g.horasSesion || 2)) + '"></div></div>' +
+    (s && s.impartida ? '<label>Observaciones (indicar cualquier incidencia)</label><input id="sesObs" value="' + esc(s.obs || '') + '" placeholder="Sale en el Anexo X">' : '');
   if (s && !s.impartida && s.motivo) h += '<div class="aviso">' + ({ noAlumnado: 'En Séneca: deja «Usos del servicio» en blanco; no grabes asistencia de alumnado ni de docente.', noDocente: 'En Séneca: registra la ausencia del docente/mentor y no grabes la asistencia de ese día. Anótala también en el registro auxiliar de firmas.', festivo: 'No se graba ni se recupera.' }[s.motivo]) + '</div>';
   if (s && s.impartida) {
     h += A.length ? '<div class="tabla"><table><tr><th>Alumno/a</th><th>Asistencia</th></tr>' + A.map(([aid, a]) => { const v = (s.asist || {})[aid] || ''; return '<tr><td><b>' + esc(a.siglas) + '</b></td><td><div class="asis" data-asis="' + aid + '">' + ['P', 'F', 'J'].map(k => '<button class="' + k + (v === k ? ' on' : '') + '" data-v="' + k + '" title="' + { P: 'Presente', F: 'Falta', J: 'Falta justificada' }[k] + '">' + k + '</button>').join('') + '</div></td></tr>'; }).join('') + '</table></div>' +
@@ -247,19 +248,10 @@ function rAcomp() {
   h += '<div class="card"><div class="card-h"><h2>📊 Resumen del mes</h2><select id="mesResumen" style="width:auto">' + meses.map(m => '<option value="' + m + '"' + (m === mesResumen ? ' selected' : '') + '>' + MESES[+m.slice(5) - 1] + ' ' + m.slice(0, 4) + '</option>').join('') + '</select></div>' +
     '<div class="kpis"><div class="kpi"><b>' + R.imp + '</b><span>sesiones impartidas</span></div><div class="kpi"><b>' + R.horas + ' h</b><span>horas efectivas</span></div>' + (esMon() ? '' : '<div class="kpi"><b>' + R.euros + ' €</b><span>a ' + EUROS[g.mod || 'B'] + ' €/h</span></div>') + '<div class="kpi"><b>' + R.noImp + '</b><span>no impartidas</span></div></div>' +
     (A.length ? '<div class="tabla"><table><tr><th>Alumno/a</th><th>P</th><th>F</th><th>J</th><th>%</th></tr>' + A.map(([aid, a]) => { const r = R.al[aid] || { P: 0, F: 0, J: 0 }; const t = r.P + r.F + r.J; return '<tr><td>' + esc(a.siglas) + '</td><td>' + r.P + '</td><td>' + r.F + '</td><td>' + r.J + '</td><td>' + (t ? Math.round(100 * r.P / t) + ' %' : '—') + '</td></tr>'; }).join('') + '</table></div>' : '') +
-    '<div class="pie" style="justify-content:flex-start"><button class="btn peq" data-acc="anexoX">📄 Anexo X del mes (PDF)</button>' + (esMon() ? '' : ' <button class="btn sec peq" data-acc="copiarResumen">📋 Copiar resumen para Séneca</button>') + '</div>' +
+    '<div class="pie" style="justify-content:flex-start"><button class="btn peq" data-acc="anexoX">📄 Anexo X del mes (PDF)</button> <button class="btn sec peq" data-acc="anexoXII">📄 Anexo XII · ausencias (PDF)</button>' + (esMon() ? '' : ' <button class="btn sec peq" data-acc="copiarResumen">📋 Copiar resumen para Séneca</button>') + '</div>' +
     '<p class="small muted">Antes de fin de mes: grabar en Séneca la asistencia del alumnado y del docente y subir el registro de firmas (Anexo X o XI).</p></div>';
-  // Informe trimestral
-  const tri = trimestreActual();
-  h += '<div class="card"><div class="card-h"><h2>📝 Informe trimestral de evolución</h2><select id="triInf" style="width:auto">' + [1, 2, 3].map(t => '<option value="' + t + '"' + (t === tri ? ' selected' : '') + '>' + t + '.º trimestre</option>').join('') + '</select></div>' +
-    '<p class="small muted">Anexo XV: se graba en Séneca al final de cada trimestre (uno por alumno/a, firmado) y la coordinación pasa la valoración al equipo docente antes de la sesión de evaluación.</p>' +
-    (A.length ? A.map(([aid, a]) => { const inf = (((D.informes || {})[grupoSel] || {})[aid] || {})['t' + tri] || {}; const r = asistAlumno(grupoSel, aid); return '<details style="margin:8px 0"><summary>' + esc(a.siglas) + ' <span class="muted small">' + esc(a.curso || '') + (inf.texto && inf.cont && inf.mejora ? ' · ✔ completo' : inf.texto || inf.cont ? ' · a medias' : '') + '</span></summary>' +
-      '<div class="g2"><div><label>Asistencia</label><input value="' + (r.total ? r.pct + ' %' : '—') + '" disabled></div><div><label>Evolución</label><select data-inf="' + aid + '" data-k="evol"><option value="">—</option>' + ['Favorable', 'Estable', 'Desfavorable'].map(x => '<option' + (inf.evol === x ? ' selected' : '') + '>' + x + '</option>').join('') + '</select></div>' +
-      '<div><label>Hábitos de trabajo</label><select data-inf="' + aid + '" data-k="hab"><option value="">—</option>' + ['Adecuados', 'En progreso', 'Poco adecuados'].map(x => '<option' + (inf.hab === x ? ' selected' : '') + '>' + x + '</option>').join('') + '</select></div></div>' +
-      '<label>Contenidos trabajados y grado de adquisición</label><textarea data-inf="' + aid + '" data-k="cont" placeholder="Comprensión lectora: adquirido · Cálculo: en proceso…">' + esc(inf.cont || '') + '</textarea>' +
-      '<label>Valoración global (para el equipo docente)</label><textarea data-inf="' + aid + '" data-k="texto">' + esc(inf.texto || '') + '</textarea>' +
-      '<label>Propuestas de mejora</label><textarea data-inf="' + aid + '" data-k="mejora">' + esc(inf.mejora || '') + '</textarea></details>'; }).join('') +
-      '<div class="pie" style="justify-content:flex-start"><button class="btn peq" data-acc="anexoXV">📄 Anexo XV del trimestre (PDF)</button>' + (esMon() ? '' : ' <button class="btn sec peq" data-acc="copiarInforme">📋 Copiar informes del trimestre</button>') + '</div>' : '<p class="muted">Añade alumnado al grupo.</p>') + '</div>';
+  // Informe trimestral (Anexo XV)
+  h += rInformeXV(A, +(($('triInf') || {}).value || trimestreActual()));
   if (!esMon()) h += rCotejo(grupoSel);
   return h;
 }
@@ -465,6 +457,7 @@ document.addEventListener('click', e => {
     else if (a === 'nuevaReu') dlgReunion();
     else if (a === 'todosP') { const al = D.grupos[grupoSel].alumnos || {}; const o = {}; Object.keys(al).forEach(k => o[k] = 'P'); guardar('sesiones/' + grupoSel + '/' + fechaLista + '/asist', o); render(); }
     else if (a === 'anexoX') docAnexoX(grupoSel, mesResumen);
+    else if (a === 'anexoXII') docAnexoXII(grupoSel, mesResumen);
     else if (a === 'anexoXV') docAnexoXV(grupoSel, +$('triInf').value);
     else if (a === 'copiarResumen') {
       const g = D.grupos[grupoSel], R = resumenMes(grupoSel, mesResumen), al = g.alumnos || {};
@@ -484,6 +477,7 @@ document.addEventListener('change', e => {
   else if (t.id === 'fechaLista') { fechaLista = t.value || hoyIso(); render(); }
   else if (t.id === 'mesResumen') { mesResumen = t.value; render(); }
   else if (t.id === 'triInf') render();
+  else if (t.id === 'sesObs') guardar('sesiones/' + grupoSel + '/' + fechaLista + '/obs', t.value.trim() || null);
   else if (t.id === 'sesImp' || t.id === 'sesHoras' || t.id === 'sesHi' || t.id === 'sesHf') {
     const v = $('sesImp').value, ruta = 'sesiones/' + grupoSel + '/' + fechaLista;
     const prev = (D.sesiones[grupoSel] || {})[fechaLista] || {};
@@ -491,7 +485,7 @@ document.addEventListener('change', e => {
     else if (v === 'si') {
       const hi = $('sesHi').value, hf = $('sesHf').value;
       if ((t.id === 'sesHi' || t.id === 'sesHf') && hi && hf) { const m = (+hf.slice(0, 2) * 60 + +hf.slice(3)) - (+hi.slice(0, 2) * 60 + +hi.slice(3)); if (m > 0) $('sesHoras').value = Math.round(m / 30) / 2; }
-      guardar(ruta, { impartida: true, hi, hf, horas: +$('sesHoras').value || 0, asist: prev.asist || {} });
+      guardar(ruta, { impartida: true, hi, hf, horas: +$('sesHoras').value || 0, obs: ($('sesObs') && $('sesObs').value.trim()) || prev.obs || null, asist: prev.asist || {} });
     }
     else guardar(ruta, { impartida: false, motivo: v, horas: 0 });
     render();
