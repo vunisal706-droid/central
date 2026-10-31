@@ -10,9 +10,9 @@ const PALN = c => { const p = PALANCAS.find(x => x.c === c); return p ? p.c + ' 
 function abrirDoc(titulo, cuerpo, prog) {
   const base = location.href.replace(/[^/]*$/, '');
   const fse = prog === 'PROA+' ? 'Programa de Cooperación Territorial de Orientación, Avance y Enriquecimiento Educativo PROA+ Transfórmate, cofinanciado por el Fondo Social Europeo Plus (FSE+).' : 'Actuación cofinanciada por el Fondo Social Europeo Plus (FSE+). Consejería de Educación de la Junta de Andalucía.';
-  const css = 'body{font-family:Calibri,Arial,sans-serif;max-width:820px;margin:24px auto;padding:0 20px;color:#111;line-height:1.45;font-size:14px}h1{font-size:19px;text-align:center;margin:6px 0}h2{font-size:16px;color:#1f3f7a;border-bottom:2px solid #1f3f7a;padding-bottom:2px;margin-top:22px}h3{font-size:14px;margin:12px 0 4px}table{width:100%;border-collapse:collapse;margin:6px 0}td,th{border:1px solid #999;padding:5px 7px;vertical-align:top;text-align:left}th{background:#e8effc}.cab{display:flex;justify-content:space-between;align-items:center}.cab img{height:52px}.sub{text-align:center;color:#444;margin:0 0 10px}.fse{font-size:11px;text-align:center;margin-top:28px;color:#333}.bar{text-align:center;margin:16px}.bar button{font-size:15px;padding:8px 14px;margin:0 4px;cursor:pointer}@media print{.bar{display:none}}';
+  const css = '.salto{page-break-before:always;break-before:page}.firma{height:34px}body{font-family:Calibri,Arial,sans-serif;max-width:820px;margin:24px auto;padding:0 20px;color:#111;line-height:1.45;font-size:14px}h1{font-size:19px;text-align:center;margin:6px 0}h2{font-size:16px;color:#1f3f7a;border-bottom:2px solid #1f3f7a;padding-bottom:2px;margin-top:22px}h3{font-size:14px;margin:12px 0 4px}table{width:100%;border-collapse:collapse;margin:6px 0}td,th{border:1px solid #999;padding:5px 7px;vertical-align:top;text-align:left}th{background:#e8effc}.cab{display:flex;justify-content:space-between;align-items:center}.cab img{height:52px}.sub{text-align:center;color:#444;margin:0 0 10px}.fse{font-size:11px;text-align:center;margin-top:28px;color:#333}.bar{text-align:center;margin:16px}.bar button{font-size:15px;padding:8px 14px;margin:0 4px;cursor:pointer}@media print{.bar{display:none}}';
   const html = '<!doctype html><html lang="es"><head><meta charset="utf-8"><title>' + esc(titulo) + '</title><style>' + css + '</style></head><body>' +
-    '<div class="cab"><img src="' + base + 'img/junta.jpg" alt=""><img src="' + base + 'img/colegio.png" alt=""></div>' +
+    '<div class="cab"><img src="' + base + 'img/junta.jpg" alt=""><img src="' + base + 'img/fse.png" alt="" onerror="this.remove()"><img src="' + base + 'img/colegio.png" alt=""></div>' +
     '<h1>' + esc(titulo) + '</h1><p class="sub">CEIP Capitulaciones (18008853) · Santa Fe (Granada) · Curso ' + CURSO.replace('-', '/') + '</p>' + cuerpo +
     '<p class="fse">' + fse + '</p></body></html>';
   const w = window.open('', '_blank');
@@ -206,3 +206,30 @@ document.addEventListener('change', e => {
   else if (t.dataset.eco) { guardar('eco/' + t.dataset.eco, t.value || null); render(); }
   else if (t.dataset.mem) guardar('mem/' + t.dataset.mem, t.value.trim() || null);
 });
+
+// ─── Anexos oficiales del PROA Andalucía (los rellenan monitores y profesorado) ───
+const DIRECTOR = 'Víctor Manuel Única Salas';
+function docAnexoX(gid, mes) {
+  const g = D.grupos[gid], S = Object.entries((D.sesiones || {})[gid] || {}).filter(([f, x]) => f.startsWith(mes) && x.impartida).sort();
+  const mesTxt = MESES[+mes.slice(5) - 1] + ' de ' + mes.slice(0, 4), tot = S.reduce((a, [, x]) => a + (+x.horas || 0), 0);
+  if (!S.length && !confirm('No hay sesiones impartidas registradas en ' + mesTxt + '. ¿Generar el anexo igualmente?')) return;
+  abrirDoc('ANEXO X · Hoja de firma del empleado', '<p style="text-align:center;margin-top:-6px"><b>Programa de Refuerzo, Orientación y Apoyo (PROA Andalucía) · ' + esc(ACT[g.act] || '') + '</b></p>' +
+    tabla(['Dato', ''], [['Centro', 'CEIP Capitulaciones'], ['Código del centro', '18008853'], ['Localidad', 'Santa Fe (Granada)'], ['Grupo (igual que en Séneca)', '<b>' + esc(g.nombre) + '</b>'],
+      ['Modalidad', (g.mod === 'A' ? '☒' : '☐') + ' A · Mentor/a &nbsp;&nbsp; ' + (g.mod !== 'A' ? '☒' : '☐') + ' B · Profesorado'], ['Mentor/a o profesor/a responsable', '<b>' + esc(g.docente || '') + '</b>'], ['Mes', '<b>' + esc(mesTxt) + '</b>']]) +
+    '<h2>Sesiones impartidas</h2>' + tabla(['N.º', 'Fecha', 'Horario', 'Horas', 'Firma del mentor/a o profesor/a'], S.map(([f, x], i) => [i + 1, esc(new Date(f + 'T12:00').toLocaleDateString('es-ES', { weekday: 'long', day: 'numeric', month: 'long' })), esc((x.hi || g.hi || '') + ' – ' + (x.hf || g.hf || '')), x.horas, '<div class="firma"></div>'])) +
+    '<p><b>Total: ' + S.length + ' sesiones · ' + tot + ' horas.</b> Solo se anotan las sesiones impartidas; no se recuperan las no impartidas.</p>' +
+    '<table style="margin-top:24px"><tr><td style="width:50%;height:110px">Firma del mentor/a o profesor/a:<br><br><br>Fdo.: ' + esc(g.docente || '') + '</td><td>Vº Bº La persona titular de la dirección:<br><br><br>Fdo.: ' + DIRECTOR + '<br>Fecha: ____ / ____ / ________ &nbsp;&nbsp; (Sello del centro)</td></tr></table>' +
+    '<p style="font-size:12px;color:#444">Un Anexo X por mes y por persona. Si se firma por Séneca, basta la firma de la dirección con fecha; si se firma a mano, nombre legible y sello.</p>', 'PROA');
+}
+function docAnexoXV(gid, tri) {
+  const g = D.grupos[gid], A = Object.entries(g.alumnos || {}).sort((a, b) => (a[1].siglas || '').localeCompare(b[1].siglas || ''));
+  if (!A.length) return toast('El grupo no tiene alumnado', 'err');
+  abrirDoc('ANEXO XV · Informe de evaluación del alumnado', A.map(([aid, a], i) => {
+    const inf = (((D.informes || {})[gid] || {})[aid] || {})['t' + tri] || {}, r = asistAlumno(gid, aid);
+    return (i ? '<div class="salto"></div><h1 style="font-size:17px">ANEXO XV · Informe de evaluación del alumnado</h1>' : '') + '<p style="text-align:center"><b>PROA Andalucía · ' + esc(ACT[g.act] || '') + ' · Cofinanciado por el FSE+</b></p>' +
+      tabla(['Dato', ''], [['Curso académico', CURSO.replace('-', '/')], ['Trimestre evaluado', tri + '.º trimestre'], ['Grupo', esc(g.nombre)], ['Alumno/a (nombre y apellidos)', '<span style="color:#888">' + esc(a.siglas) + '</span> ______________________________'], ['Nivel educativo', esc(a.curso || '') + ' de Educación Primaria'],
+        ['Mentor/a o profesor/a responsable', esc(g.docente || '')], ['Asistencia en el programa', r.total ? r.pct + ' % (' + r.P + ' de ' + r.total + ' sesiones; ' + r.J + ' faltas justificadas)' : '—'], ['Evolución', esc(inf.evol || '')], ['Hábitos de trabajo', esc(inf.hab || '')]]) +
+      '<h3>Contenidos trabajados y grado de adquisición</h3><p>' + txt(inf.cont) + '</p><h3>Valoración global</h3><p>' + txt(inf.texto) + '</p><h3>Propuestas de mejora</h3><p>' + txt(inf.mejora) + '</p>' +
+      '<p style="margin-top:30px">En Santa Fe, a ____ de ______________ de ' + (tri === 1 ? startY(CURSO) : startY(CURSO) + 1) + '.</p><p style="margin-top:44px">Fdo.: ' + esc(g.docente || '') + '</p>';
+  }).join(''), 'PROA');
+}

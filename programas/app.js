@@ -21,8 +21,12 @@ const PERFILES = {
   maria:    { nombre: 'María Rodríguez', emoji: '👩‍🏫', idea: 'mrodrod323', rol: 'Jefatura de estudios' },
   encarna:  { nombre: 'Encarna',         emoji: '👩‍🏫', idea: 'emunrom369', rol: 'Equipo directivo' },
   miriam:   { nombre: 'Miriam',          emoji: '🌱', idea: 'mromrod681', rol: 'Coordinación ZTS' },
-  cristina: { nombre: 'Cristina',        emoji: '🌱', idea: 'cmolmar422', rol: 'Maestra ZTS' }
+  cristina: { nombre: 'Cristina',        emoji: '🌱', idea: 'cmolmar422', rol: 'Maestra ZTS' },
+  sandra:   { nombre: 'Sandra',          emoji: '🧑‍🏫', idea: 'proa.sandra', rol: 'Monitora PROA Andalucía', mon: true },
+  nuria:    { nombre: 'Nuria',           emoji: '🧑‍🏫', idea: 'proa.nuria',  rol: 'Monitora PROA Andalucía', mon: true },
+  manolo:   { nombre: 'Manolo',          emoji: '🧑‍🏫', idea: 'proa.manolo', rol: 'PROA Andalucía', mon: true }
 };
+const esMon = () => !!(PERFILES[PERFIL] || {}).mon;
 const DOMINIO = '@capitulaciones.local';
 
 // ─── Firebase (app con nombre propio para no pisar otras sesiones del dominio) ───
@@ -55,6 +59,7 @@ function conectar() {
   D = VACIO();
   try { const c = JSON.parse(localStorage.getItem(ckey())); if (c) D = Object.assign(VACIO(), c); } catch (e) { }
   render();
+  if (esMon()) return conectarMon();
   ref = db.ref(BASE);
   ref.on('value', s => {
     D = Object.assign(VACIO(), s.val() || {});
@@ -63,6 +68,19 @@ function conectar() {
     if (Date.now() - ultimoLocal > 800 && !editando()) render();
     else conectar._t = setTimeout(() => { if (!editando()) render(); }, 1500);
   }, e => { console.warn(e); toast('Sin permiso para leer los datos. Revisa las reglas de Firebase.', 'err'); });
+}
+let refsMon = [];
+function conectarMon() {
+  refsMon.forEach(r => r.off()); refsMon = [];
+  ['grupos', 'sesiones', 'informes'].forEach(k => {
+    const r = db.ref(BASE + '/' + k); refsMon.push(r);
+    r.on('value', s => {
+      D[k] = s.val() || {}; cachear();
+      clearTimeout(conectarMon._t);
+      if (Date.now() - ultimoLocal > 800 && !editando()) render();
+      else conectarMon._t = setTimeout(() => { if (!editando()) render(); }, 1500);
+    }, e => { console.warn(e); toast('Sin permiso para leer los datos. Avisa a dirección.', 'err'); });
+  });
 }
 function editando() { const a = document.activeElement; return a && /INPUT|TEXTAREA|SELECT/.test(a.tagName) && !a.closest('#pantallaAcceso') && a.id !== 'selCurso'; }
 db.ref('.info/connected').on('value', s => { $('dot').className = 'dot ' + (s.val() ? 'ok' : 'off'); $('dot').title = s.val() ? 'Conectado' : 'Sin conexión'; });
@@ -78,21 +96,23 @@ async function entrar() {
   $('accError').style.display = 'none';
   const idea = ($('accIdea').value || '').trim().toLowerCase();
   if (!perfilSel) return accError('Selecciona primero tu perfil.');
-  if (!idea) return accError('Escribe tu usuario IdEA.');
-  if (PERFILES[perfilSel].idea !== idea) return accError('Ese usuario IdEA no corresponde al perfil seleccionado.');
+  if (!idea) return accError('Escribe tu usuario.');
+  if (PERFILES[perfilSel].idea !== idea) return accError('Ese usuario no corresponde al perfil seleccionado.');
   $('accEntrar').disabled = true; $('accEntrar').textContent = 'Comprobando…';
   try { await auth().setPersistence($('accRecordar').checked ? firebase.auth.Auth.Persistence.LOCAL : firebase.auth.Auth.Persistence.SESSION); } catch (e) { }
   try { await auth().signInWithEmailAndPassword(idea + DOMINIO, idea); abrir(perfilSel); }
   catch (e) {
     if (e.code === 'auth/network-request-failed') return accError('Sin conexión. Inténtalo de nuevo.');
     if (e.code === 'auth/too-many-requests') return accError('Demasiados intentos. Espera unos minutos.');
-    accError('El usuario IdEA no es correcto o la cuenta no está dada de alta.');
+    accError('El usuario no es correcto o la cuenta no está dada de alta.');
   }
 }
 function abrir(p) {
   PERFIL = p; try { localStorage.setItem('programas-perfil', p); } catch (e) { }
   $('pantallaAcceso').style.display = 'none';
   $('perfilPill').textContent = PERFILES[p].emoji + ' ' + PERFILES[p].nombre.split(' ')[0];
+  document.body.classList.toggle('mon', esMon());
+  if (esMon()) { $('tituloApp').innerHTML = 'PROA Andalucía<small>Acompañamiento · ' + esc(PERFILES[p].nombre) + '</small>'; seccion = 'acomp'; irA('acomp'); }
   pintarCursos(); conectar(); novedades();
 }
 $('perfilPill').onclick = async () => {
@@ -107,7 +127,7 @@ function pintarCursos() {
   $('selCurso').innerHTML = [i - 1, i, i + 1].map(y => { const c = y + '-' + String(y + 1).slice(2); return '<option value="' + c + '"' + (c === CURSO ? ' selected' : '') + '>' + y + '/' + String(y + 1).slice(2) + '</option>'; }).join('');
   $('selCurso').onchange = () => { CURSO = $('selCurso').value; conectar(); };
 }
-function novedades() { const K = 'programas-nov-v2'; try { if (localStorage.getItem(K)) return; localStorage.setItem(K, 1); } catch (e) { } setTimeout(() => { try { $('novedades').showModal(); } catch (e) { } }, 500); }
+function novedades() { const K = esMon() ? 'programas-nov-mon-v1' : 'programas-nov-v3'; const dlgId = esMon() ? 'novMon' : 'novedades'; try { if (localStorage.getItem(K)) return; localStorage.setItem(K, 1); } catch (e) { } setTimeout(() => { try { $(dlgId).showModal(); } catch (e) { } }, 500); }
 
 // ─── Navegación ───
 $('nav').onclick = e => { const b = e.target.closest('button'); if (b) irA(b.dataset.s); };
@@ -187,20 +207,21 @@ function rPanel() {
 const ACT = { AE: 'Acompañamiento Escolar', ALI: 'Acompañamiento Lingüístico', AED: 'Acompañamiento Escolar Domiciliario' };
 function rangoProg() { const y = startY(CURSO); return { ini: y + '-10-13', fin: (y + 1) + '-05-31' }; }
 function rAcomp() {
-  const G = Object.entries(D.grupos || {}).sort((a, b) => (a[1].nombre || '').localeCompare(b[1].nombre || ''));
-  if (grupoSel && !D.grupos[grupoSel]) grupoSel = null;
+  const G = Object.entries(D.grupos || {}).filter(([, g]) => !esMon() || g.monitor === PERFIL).sort((a, b) => (a[1].nombre || '').localeCompare(b[1].nombre || ''));
+  if (grupoSel && (!D.grupos[grupoSel] || !G.some(x => x[0] === grupoSel))) grupoSel = null;
   if (!grupoSel && G.length) grupoSel = G[0][0];
-  let h = '<div class="card"><div class="card-h"><h2>🧑‍🏫 PROA Andalucía · Acompañamiento</h2><button class="btn" data-acc="nuevoGrupo">＋ Nuevo grupo</button></div>' +
+  let h = '<div class="card"><div class="card-h"><h2>🧑‍🏫 PROA Andalucía · Acompañamiento</h2>' + (esMon() ? '' : '<button class="btn" data-acc="nuevoGrupo">＋ Nuevo grupo</button>') + '</div>' +
+    (esMon() ? '<div class="aviso verde"><b>Cómo se usa:</b> 1) En <b>Pasar lista</b>, elige el día. 2) Indica si se ha dado la clase y el horario. 3) Marca a cada alumno/a: <b>P</b> presente, <b>F</b> falta, <b>J</b> falta justificada. 4) A final de mes pulsa <b>«Anexo X del mes»</b> y avisa a dirección. 5) Al final de cada trimestre rellena el <b>informe</b> de cada alumno/a.</div>' : '') +
     (G.length ? '<div class="chips">' + G.map(([id, g]) => '<button class="chip' + (id === grupoSel ? ' on' : '') + '" data-grupo="' + id + '">' + esc(g.nombre) + '</button>').join('') + '</div>' :
-      '<p class="muted">Aún no hay grupos. Crea uno por cada grupo autorizado en Séneca (docente o mentor, días y alumnado).</p>') +
+      (esMon() ? '<p class="muted">Todavía no tienes ningún grupo asignado. Avisa a dirección.</p>' : '<p class="muted">Aún no hay grupos. Crea uno por cada grupo autorizado en Séneca (docente o mentor, días y alumnado).</p>')) +
     '<p class="small muted">Recuerda: 2 sesiones de 2 h a la semana (o 4 de 1 h), nunca el viernes por la tarde. No se recuperan sesiones ni se cobran las no impartidas. Del 13 de octubre al 31 de mayo.</p></div>';
   if (!grupoSel) return h;
   const g = D.grupos[grupoSel], A = Object.entries(g.alumnos || {}).sort((a, b) => (a[1].siglas || '').localeCompare(b[1].siglas || ''));
   // Datos del grupo
   h += '<div class="card"><div class="card-h"><div><h2>' + esc(g.nombre) + '</h2><p class="small muted">' + esc(ACT[g.act] || '') + ' · ' + (g.mod === 'A' ? 'Mentor/a (modalidad A)' : 'Profesorado (modalidad B)') + ' · ' + esc(g.docente || 'sin docente') + ' · ' + esc(g.horario || '') + '</p></div>' +
-    '<div><button class="btn sec peq" data-acc="editarGrupo">✏️ Editar grupo</button> <button class="btn sec peq" data-acc="nuevoAlumno">＋ Alumno/a</button></div></div>' +
+    (esMon() ? '' : '<div><button class="btn sec peq" data-acc="editarGrupo">✏️ Editar grupo</button> <button class="btn sec peq" data-acc="nuevoAlumno">＋ Alumno/a</button></div>') + '</div>' +
     (A.length ? '<div class="tabla"><table><tr><th>Alumno/a</th><th>Curso</th><th>Tutor/a</th><th>Asistencia</th><th></th></tr>' +
-      A.map(([aid, a]) => { const r = asistAlumno(grupoSel, aid); return '<tr><td><b>' + esc(a.siglas) + '</b></td><td>' + esc(a.curso || '') + '</td><td>' + esc(a.tutor || '') + '</td><td>' + (r.total ? r.pct + ' % <span class="muted small">(' + r.P + '/' + r.total + ', ' + r.J + ' just.)</span>' : '—') + '</td><td><button class="btn sec peq" data-alumno="' + aid + '">✏️</button></td></tr>'; }).join('') + '</table></div>' :
+      A.map(([aid, a]) => { const r = asistAlumno(grupoSel, aid); return '<tr><td><b>' + esc(a.siglas) + '</b></td><td>' + esc(a.curso || '') + '</td><td>' + esc(a.tutor || '') + '</td><td>' + (r.total ? r.pct + ' % <span class="muted small">(' + r.P + '/' + r.total + ', ' + r.J + ' just.)</span>' : '—') + '</td><td>' + (esMon() ? '' : '<button class="btn sec peq" data-alumno="' + aid + '">✏️</button>') + '</td></tr>'; }).join('') + '</table></div>' :
       '<p class="muted">Añade el alumnado del grupo (solo siglas).</p>') + '</div>';
   // Pasar lista
   const rg = rangoProg(), dia = new Date(fechaLista + 'T12:00').getDay(), s = ((D.sesiones || {})[grupoSel] || {})[fechaLista];
@@ -211,6 +232,7 @@ function rAcomp() {
   h += '<div class="card"><div class="card-h"><h2>✅ Pasar lista</h2><input type="date" id="fechaLista" value="' + fechaLista + '" style="width:auto"></div>' +
     avisos.map(a => '<div class="aviso rojo">' + esc(a) + '</div>').join('') +
     '<div class="g2"><div><label>¿Se ha impartido?</label><select id="sesImp"><option value="">— Sin registrar —</option><option value="si"' + (s && s.impartida ? ' selected' : '') + '>Sí, se ha impartido</option><option value="noAlumnado"' + (s && s.motivo === 'noAlumnado' ? ' selected' : '') + '>No: no vino ningún alumno/a</option><option value="noDocente"' + (s && s.motivo === 'noDocente' ? ' selected' : '') + '>No: falta del docente o mentor/a</option><option value="festivo"' + (s && s.motivo === 'festivo' ? ' selected' : '') + '>No: festivo u otra causa</option></select></div>' +
+    '<div><label>Hora de inicio</label><input type="time" id="sesHi" value="' + esc((s && s.hi) || g.hi || '16:00') + '"></div><div><label>Hora de fin</label><input type="time" id="sesHf" value="' + esc((s && s.hf) || g.hf || '18:00') + '"></div>' +
     '<div><label>Horas</label><input type="number" id="sesHoras" min="0" max="3" step="0.5" value="' + (s && s.horas != null ? s.horas : (g.horasSesion || 2)) + '"></div></div>';
   if (s && !s.impartida && s.motivo) h += '<div class="aviso">' + ({ noAlumnado: 'En Séneca: deja «Usos del servicio» en blanco; no grabes asistencia de alumnado ni de docente.', noDocente: 'En Séneca: registra la ausencia del docente/mentor y no grabes la asistencia de ese día. Anótala también en el registro auxiliar de firmas.', festivo: 'No se graba ni se recupera.' }[s.motivo]) + '</div>';
   if (s && s.impartida) {
@@ -223,9 +245,9 @@ function rAcomp() {
   if (!mesResumen || !meses.includes(mesResumen)) mesResumen = meses.includes(hoyIso().slice(0, 7)) ? hoyIso().slice(0, 7) : meses[0];
   const R = resumenMes(grupoSel, mesResumen);
   h += '<div class="card"><div class="card-h"><h2>📊 Resumen del mes</h2><select id="mesResumen" style="width:auto">' + meses.map(m => '<option value="' + m + '"' + (m === mesResumen ? ' selected' : '') + '>' + MESES[+m.slice(5) - 1] + ' ' + m.slice(0, 4) + '</option>').join('') + '</select></div>' +
-    '<div class="kpis"><div class="kpi"><b>' + R.imp + '</b><span>sesiones impartidas</span></div><div class="kpi"><b>' + R.horas + ' h</b><span>horas efectivas</span></div><div class="kpi"><b>' + R.euros + ' €</b><span>a ' + EUROS[g.mod || 'B'] + ' €/h</span></div><div class="kpi"><b>' + R.noImp + '</b><span>no impartidas</span></div></div>' +
+    '<div class="kpis"><div class="kpi"><b>' + R.imp + '</b><span>sesiones impartidas</span></div><div class="kpi"><b>' + R.horas + ' h</b><span>horas efectivas</span></div>' + (esMon() ? '' : '<div class="kpi"><b>' + R.euros + ' €</b><span>a ' + EUROS[g.mod || 'B'] + ' €/h</span></div>') + '<div class="kpi"><b>' + R.noImp + '</b><span>no impartidas</span></div></div>' +
     (A.length ? '<div class="tabla"><table><tr><th>Alumno/a</th><th>P</th><th>F</th><th>J</th><th>%</th></tr>' + A.map(([aid, a]) => { const r = R.al[aid] || { P: 0, F: 0, J: 0 }; const t = r.P + r.F + r.J; return '<tr><td>' + esc(a.siglas) + '</td><td>' + r.P + '</td><td>' + r.F + '</td><td>' + r.J + '</td><td>' + (t ? Math.round(100 * r.P / t) + ' %' : '—') + '</td></tr>'; }).join('') + '</table></div>' : '') +
-    '<div class="pie" style="justify-content:flex-start"><button class="btn sec peq" data-acc="copiarResumen">📋 Copiar resumen para Séneca</button></div>' +
+    '<div class="pie" style="justify-content:flex-start"><button class="btn peq" data-acc="anexoX">📄 Anexo X del mes (PDF)</button>' + (esMon() ? '' : ' <button class="btn sec peq" data-acc="copiarResumen">📋 Copiar resumen para Séneca</button>') + '</div>' +
     '<p class="small muted">Antes de fin de mes: grabar en Séneca la asistencia del alumnado y del docente y subir el registro de firmas (Anexo X o XI).</p></div>';
   // Informe trimestral
   const tri = trimestreActual();
@@ -237,8 +259,8 @@ function rAcomp() {
       '<label>Contenidos trabajados y grado de adquisición</label><textarea data-inf="' + aid + '" data-k="cont" placeholder="Comprensión lectora: adquirido · Cálculo: en proceso…">' + esc(inf.cont || '') + '</textarea>' +
       '<label>Valoración global (para el equipo docente)</label><textarea data-inf="' + aid + '" data-k="texto">' + esc(inf.texto || '') + '</textarea>' +
       '<label>Propuestas de mejora</label><textarea data-inf="' + aid + '" data-k="mejora">' + esc(inf.mejora || '') + '</textarea></details>'; }).join('') +
-      '<div class="pie" style="justify-content:flex-start"><button class="btn sec peq" data-acc="copiarInforme">📋 Copiar informes del trimestre</button></div>' : '<p class="muted">Añade alumnado al grupo.</p>') + '</div>';
-  h += rCotejo(grupoSel);
+      '<div class="pie" style="justify-content:flex-start"><button class="btn peq" data-acc="anexoXV">📄 Anexo XV del trimestre (PDF)</button>' + (esMon() ? '' : ' <button class="btn sec peq" data-acc="copiarInforme">📋 Copiar informes del trimestre</button>') + '</div>' : '<p class="muted">Añade alumnado al grupo.</p>') + '</div>';
+  if (!esMon()) h += rCotejo(grupoSel);
   return h;
 }
 function mesesProg() { const y = startY(CURSO), r = []; for (let m = 10; m <= 17; m++) { const mm = ((m - 1) % 12) + 1, yy = m > 12 ? y + 1 : y; r.push(yy + '-' + pad(mm)); } return r; }
@@ -385,7 +407,8 @@ function dlgGrupo(id) {
     '<label>Nombre del grupo</label><input id="gN" value="' + esc(g.nombre || '') + '" placeholder="Ej.: AE 3.º-4.º">' +
     '<div class="g2"><div><label>Actuación</label><select id="gA">' + Object.entries(ACT).map(([k, t]) => '<option value="' + k + '"' + (g.act === k ? ' selected' : '') + '>' + t + '</option>').join('') + '</select></div>' +
     '<div><label>Modalidad</label><select id="gM"><option value="B"' + (g.mod !== 'A' ? ' selected' : '') + '>B · Profesorado del centro (20 €/h)</option><option value="A"' + (g.mod === 'A' ? ' selected' : '') + '>A · Mentor/a de empresa (23 €/h)</option></select></div></div>' +
-    '<label>Docente o mentor/a</label><input id="gD" value="' + esc(g.docente || '') + '">' +
+    '<div class="g2"><div><label>Docente o mentor/a (nombre y apellidos)</label><input id="gD" value="' + esc(g.docente || '') + '"></div><div><label>Acceso a la app</label><select id="gMon"><option value="">— Nadie —</option>' + Object.entries(PERFILES).filter(([, p]) => p.mon).map(([k, p]) => '<option value="' + k + '"' + (g.monitor === k ? ' selected' : '') + '>' + esc(p.nombre) + '</option>').join('') + '</select></div></div>' +
+    '<div class="g2"><div><label>Hora de inicio habitual</label><input type="time" id="gHi" value="' + esc(g.hi || '16:00') + '"></div><div><label>Hora de fin habitual</label><input type="time" id="gHf" value="' + esc(g.hf || '18:00') + '"></div></div>' +
     '<div class="g2"><div><label>Días y horario</label><input id="gH" value="' + esc(g.horario || '') + '" placeholder="Lunes y miércoles 16:00–18:00"></div><div><label>Horas por sesión</label><input type="number" id="gS" min="1" max="3" step="0.5" value="' + (g.horasSesion || 2) + '"></div></div>' +
     '<div class="pie">' + (id ? '<button class="btn rojo" id="gB">Borrar grupo</button>' : '') + '<button class="btn sec" id="gC">Cancelar</button><button class="btn" id="gOk">Guardar</button></div>';
   $('dlg').showModal();
@@ -394,7 +417,7 @@ function dlgGrupo(id) {
   $('gOk').onclick = () => {
     const n = $('gN').value.trim(); if (!n) return toast('Pon un nombre al grupo', 'err');
     const nid = id || uid();
-    const v = Object.assign({}, g, { nombre: n, act: $('gA').value, mod: $('gM').value, docente: $('gD').value.trim(), horario: $('gH').value.trim(), horasSesion: +$('gS').value || 2 });
+    const v = Object.assign({}, g, { nombre: n, act: $('gA').value, mod: $('gM').value, docente: $('gD').value.trim(), monitor: $('gMon').value || null, hi: $('gHi').value, hf: $('gHf').value, horario: $('gH').value.trim(), horasSesion: +$('gS').value || 2 });
     guardar('grupos/' + nid, v); grupoSel = nid; $('dlg').close(); render();
   };
 }
@@ -441,6 +464,8 @@ document.addEventListener('click', e => {
     else if (a === 'nuevoAlumno') dlgAlumno();
     else if (a === 'nuevaReu') dlgReunion();
     else if (a === 'todosP') { const al = D.grupos[grupoSel].alumnos || {}; const o = {}; Object.keys(al).forEach(k => o[k] = 'P'); guardar('sesiones/' + grupoSel + '/' + fechaLista + '/asist', o); render(); }
+    else if (a === 'anexoX') docAnexoX(grupoSel, mesResumen);
+    else if (a === 'anexoXV') docAnexoXV(grupoSel, +$('triInf').value);
     else if (a === 'copiarResumen') {
       const g = D.grupos[grupoSel], R = resumenMes(grupoSel, mesResumen), al = g.alumnos || {};
       const ses = Object.entries(D.sesiones[grupoSel] || {}).filter(([f]) => f.startsWith(mesResumen)).sort();
@@ -459,11 +484,15 @@ document.addEventListener('change', e => {
   else if (t.id === 'fechaLista') { fechaLista = t.value || hoyIso(); render(); }
   else if (t.id === 'mesResumen') { mesResumen = t.value; render(); }
   else if (t.id === 'triInf') render();
-  else if (t.id === 'sesImp' || t.id === 'sesHoras') {
+  else if (t.id === 'sesImp' || t.id === 'sesHoras' || t.id === 'sesHi' || t.id === 'sesHf') {
     const v = $('sesImp').value, ruta = 'sesiones/' + grupoSel + '/' + fechaLista;
     const prev = (D.sesiones[grupoSel] || {})[fechaLista] || {};
     if (!v) guardar(ruta, null);
-    else if (v === 'si') guardar(ruta, { impartida: true, horas: +$('sesHoras').value || 0, asist: prev.asist || {} });
+    else if (v === 'si') {
+      const hi = $('sesHi').value, hf = $('sesHf').value;
+      if ((t.id === 'sesHi' || t.id === 'sesHf') && hi && hf) { const m = (+hf.slice(0, 2) * 60 + +hf.slice(3)) - (+hi.slice(0, 2) * 60 + +hi.slice(3)); if (m > 0) $('sesHoras').value = Math.round(m / 30) / 2; }
+      guardar(ruta, { impartida: true, hi, hf, horas: +$('sesHoras').value || 0, asist: prev.asist || {} });
+    }
     else guardar(ruta, { impartida: false, motivo: v, horas: 0 });
     render();
   }

@@ -3,14 +3,27 @@
 App en `https://vunisal706-droid.github.io/central/programas/`. Usa el proyecto de Firebase
 `gestorpt-7946b` (las mismas cuentas IdEA que Gestor PT y Refuerzo), en la rama `programas/`.
 
+## Cuentas de monitores (Authentication → Users → Add user)
+| Persona | Correo | Contraseña |
+|---|---|---|
+| Sandra | `proa.sandra@capitulaciones.local` | `proa.sandra` |
+| Nuria | `proa.nuria@capitulaciones.local` | `proa.nuria` |
+| Manolo | `proa.manolo@capitulaciones.local` | `proa.manolo` |
+
+En la app entran con el usuario `proa.sandra`, `proa.nuria` o `proa.manolo`. Cada grupo se asigna a su monitor en «Editar grupo → Acceso a la app».
+
 ## Reglas de Firebase
-Realtime Database → Reglas. **No borres nada**: añade este bloque dentro de `"rules"`,
-junto a `"refuerzo"`, `"gestorpe"`… (cuidado con las comas).
+Realtime Database → Reglas. Sustituye el bloque `"programas"` por este (o añádelo junto a `"refuerzo"`, con su coma):
 
 ```json
 "programas": {
   ".read":  "auth != null && (auth.token.email == 'vunisal706@capitulaciones.local' || auth.token.email == 'mrodrod323@capitulaciones.local' || auth.token.email == 'emunrom369@capitulaciones.local' || auth.token.email == 'mromrod681@capitulaciones.local' || auth.token.email == 'cmolmar422@capitulaciones.local')",
-  ".write": "auth != null && (auth.token.email == 'vunisal706@capitulaciones.local' || auth.token.email == 'mrodrod323@capitulaciones.local' || auth.token.email == 'emunrom369@capitulaciones.local' || auth.token.email == 'mromrod681@capitulaciones.local' || auth.token.email == 'cmolmar422@capitulaciones.local')"
+  ".write": "auth != null && (auth.token.email == 'vunisal706@capitulaciones.local' || auth.token.email == 'mrodrod323@capitulaciones.local' || auth.token.email == 'emunrom369@capitulaciones.local' || auth.token.email == 'mromrod681@capitulaciones.local' || auth.token.email == 'cmolmar422@capitulaciones.local')",
+  "cursos": { "$c": {
+    "grupos":   { ".read": "auth != null && (auth.token.email == 'vunisal706@capitulaciones.local' || auth.token.email == 'mrodrod323@capitulaciones.local' || auth.token.email == 'emunrom369@capitulaciones.local' || auth.token.email == 'mromrod681@capitulaciones.local' || auth.token.email == 'cmolmar422@capitulaciones.local' || auth.token.email == 'proa.sandra@capitulaciones.local' || auth.token.email == 'proa.nuria@capitulaciones.local' || auth.token.email == 'proa.manolo@capitulaciones.local')" },
+    "sesiones": { ".read": "auth != null && (auth.token.email == 'vunisal706@capitulaciones.local' || auth.token.email == 'mrodrod323@capitulaciones.local' || auth.token.email == 'emunrom369@capitulaciones.local' || auth.token.email == 'mromrod681@capitulaciones.local' || auth.token.email == 'cmolmar422@capitulaciones.local' || auth.token.email == 'proa.sandra@capitulaciones.local' || auth.token.email == 'proa.nuria@capitulaciones.local' || auth.token.email == 'proa.manolo@capitulaciones.local')", ".write": "auth != null && (auth.token.email == 'vunisal706@capitulaciones.local' || auth.token.email == 'mrodrod323@capitulaciones.local' || auth.token.email == 'emunrom369@capitulaciones.local' || auth.token.email == 'mromrod681@capitulaciones.local' || auth.token.email == 'cmolmar422@capitulaciones.local' || auth.token.email == 'proa.sandra@capitulaciones.local' || auth.token.email == 'proa.nuria@capitulaciones.local' || auth.token.email == 'proa.manolo@capitulaciones.local')" },
+    "informes": { ".read": "auth != null && (auth.token.email == 'vunisal706@capitulaciones.local' || auth.token.email == 'mrodrod323@capitulaciones.local' || auth.token.email == 'emunrom369@capitulaciones.local' || auth.token.email == 'mromrod681@capitulaciones.local' || auth.token.email == 'cmolmar422@capitulaciones.local' || auth.token.email == 'proa.sandra@capitulaciones.local' || auth.token.email == 'proa.nuria@capitulaciones.local' || auth.token.email == 'proa.manolo@capitulaciones.local')", ".write": "auth != null && (auth.token.email == 'vunisal706@capitulaciones.local' || auth.token.email == 'mrodrod323@capitulaciones.local' || auth.token.email == 'emunrom369@capitulaciones.local' || auth.token.email == 'mromrod681@capitulaciones.local' || auth.token.email == 'cmolmar422@capitulaciones.local' || auth.token.email == 'proa.sandra@capitulaciones.local' || auth.token.email == 'proa.nuria@capitulaciones.local' || auth.token.email == 'proa.manolo@capitulaciones.local')" }
+  } }
 }
 ```
 

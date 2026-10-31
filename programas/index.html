@@ -104,6 +104,7 @@ dialog p{margin:6px 0}
 #toast.err{background:var(--bad)}
 .logos{display:flex;gap:10px;align-items:center;justify-content:center;margin-top:20px;opacity:.85}
 .logos img{height:34px}
+body.mon #nav button:not([data-s=acomp]),body.mon #selCurso{display:none}
 @media (max-width:600px){.header h1{font-size:1rem}.header h1 small{display:none}.fecha{flex-basis:62px}}
 </style>
 </head>
@@ -114,7 +115,7 @@ dialog p{margin:6px 0}
     <h2 style="text-align:center">Programas del cole</h2>
     <p class="muted small" style="text-align:center">ZTS · PROA Andalucía · PROA+ Transfórmate</p>
     <div class="perfiles" id="listaPerfiles"></div>
-    <label for="accIdea">Usuario IdEA</label>
+    <label for="accIdea">Usuario (IdEA, o el que te haya dado dirección)</label>
     <input id="accIdea" autocomplete="username" autocapitalize="off" spellcheck="false">
     <label style="display:flex;gap:8px;align-items:center;font-weight:700"><input type="checkbox" id="accRecordar" checked style="width:auto"> Recordarme en este dispositivo</label>
     <button class="btn" id="accEntrar" style="width:100%;margin-top:10px">Entrar</button>
@@ -162,8 +163,18 @@ dialog p{margin:6px 0}
   🎯 Actividades palanca con ficha imprimible, <b>PEM y revisiones semestrales</b> y <b>datos para la RdC1 y el PAP</b>.<br>
   💶 <b>Gestión económica del PROA+</b>: dotación, gastos y facturas, gasto por palanca y expediente de contratos.<br>
   📄 <b>Memorias</b>: justificativa y económica del PROA+, horas para certificar el PROA Andalucía y apartado para la Memoria de Autoevaluación, en PDF o Word.</p>
+  <p>🧑‍🏫 <b>Acceso para Sandra, Nuria y Manolo</b>: cada uno ve solo su grupo, pasa lista y saca el <b>Anexo X</b> del mes y el <b>Anexo XV</b> del trimestre en PDF.</p>
   <p class="muted small">Los datos se comparten entre el equipo directivo y la coordinación ZTS. El alumnado se guarda solo por siglas.</p>
-  <div class="pie"><button class="btn" onclick="novedades.close()">Entendido</button></div>
+  <div class="pie"><button class="btn" onclick="this.closest('dialog').close()">Entendido</button></div>
+</dialog>
+<dialog id="novMon">
+  <h2>👋 Bienvenida al PROA</h2>
+  <p>Aquí llevas tu grupo de Acompañamiento:</p>
+  <p>✅ <b>Pasar lista</b> cada tarde: el día, si se ha dado la clase, el horario y la asistencia (P, F o J).<br>
+  📄 A final de mes, <b>«Anexo X del mes»</b>: sale la hoja oficial con tus sesiones para que dirección la firme y la suba a Séneca.<br>
+  📝 Al final de cada trimestre, el <b>informe de cada alumno/a</b> y el botón <b>«Anexo XV»</b>.</p>
+  <p class="muted small">Solo ves tu grupo. El alumnado aparece por siglas.</p>
+  <div class="pie"><button class="btn" onclick="this.closest('dialog').close()">Entendido</button></div>
 </dialog>
 <div id="toast"></div>
 
