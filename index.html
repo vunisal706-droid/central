@@ -219,6 +219,7 @@ a.kpi{color:inherit;transition:box-shadow .15s ease}
 .as-nada{background:#fff7e6;border:1px solid #f3d9a4;border-radius:14px;padding:14px;margin-bottom:12px;line-height:1.45}
 .as-cal{background:#eef6ee;border:1px solid #cfe6cf;border-radius:14px;padding:12px 14px;margin-bottom:12px}
 .as-cal ul{margin:6px 0 8px 18px;line-height:1.5}
+.as-agenda{background:#eef4fc;border-color:#cddcf0}.as-agenda details{margin:4px 0 6px;font-size:.92rem;color:var(--gris)}.as-agenda summary{cursor:pointer;color:var(--azul)}
 .as-mejor .as-resto{display:none}.as-mejor.abierta .as-resto{display:block}
 .as-mejor .as-todo{margin-right:16px}
 .as-pie{color:var(--gris-claro);font-size:.8rem;margin-top:14px;text-align:center}
@@ -308,7 +309,7 @@ a.kpi{color:inherit;transition:box-shadow .15s ease}
 
     <button class="as-entrada" id="irAsistente" type="button">
       <span class="ic"><svg class="ico" viewBox="0 0 24 24"><path d="M5 5.5h14a1.5 1.5 0 0 1 1.5 1.5v8a1.5 1.5 0 0 1-1.5 1.5h-7l-4.5 3.5V16.5H5A1.5 1.5 0 0 1 3.5 15V7A1.5 1.5 0 0 1 5 5.5z"/><path d="M10 9.2a2 2 0 1 1 2.8 1.8c-.5.3-.8.7-.8 1.2v.3M12 14.2h.01"/></svg></span>
-      <span class="txt"><b>¿Tienes una duda del cole?</b><span>Pregúntale al asistente: responde con el Plan de Centro y la CapiGuía</span></span>
+      <span class="txt"><b>¿Tienes una duda del cole?</b><span>Plan de Centro, programaciones, criterios de cada curso, Agenda…</span></span>
       <svg class="ico chev" viewBox="0 0 24 24"><path d="m9 6 6 6-6 6"/></svg>
     </button>
 
@@ -345,7 +346,7 @@ a.kpi{color:inherit;transition:box-shadow .15s ease}
   </div>
 
   <div id="vista-asistente" class="vista oculto">
-    <div class="tab-cab"><h2>Asistente del cole</h2><p>Pregunta cualquier duda del centro. Te respondo con el texto del Plan de Centro, la CapiGuía y los protocolos.</p></div>
+    <div class="tab-cab"><h2>Asistente del cole</h2><p>Pregunta cualquier duda del centro. Respondo con el Plan de Centro, las programaciones, los criterios de evaluación de cada curso, la CapiGuía, la Agenda y los protocolos.</p></div>
     <form id="asForm" class="as-form" autocomplete="off">
       <input id="asPregunta" type="search" placeholder="Escribe tu pregunta… (p. ej. ¿qué hago si llueve?)" aria-label="Escribe tu pregunta">
       <button type="submit" class="as-btn" aria-label="Preguntar"><svg class="ico" viewBox="0 0 24 24"><circle cx="10.5" cy="10.5" r="6.5"/><path d="m20 20-4.8-4.8"/></svg></button>
@@ -410,7 +411,7 @@ a.kpi{color:inherit;transition:box-shadow .15s ease}
     <h3 id="titNov">✨ Novedades de Capitoolappciones</h3>
     <p class="sub">Novedades:</p>
     <ul>
-      <li>🆕 <b>Asistente del cole</b> (nueva pestaña abajo): pregunta cualquier duda y te responde con el texto del <b>Plan de Centro</b>, la <b>CapiGuía</b> y los <b>protocolos</b>, con enlace al apartado exacto.</li>
+      <li>🆕 <b>Asistente del cole</b> (pestaña de abajo): pregunta cualquier duda y responde con el texto del <b>Plan de Centro</b>, las <b>programaciones didácticas</b>, los <b>criterios de evaluación y saberes de cada curso</b>, la <b>CapiGuía</b>, la <b>Agenda</b> (reuniones y su orden del día) y los <b>protocolos</b>.</li>
       <li><b>Nuevo orden</b>: Teletrabajo, SDA, Registro de lectura, Parte de convivencia, Evaluación, Ágora, Refuerzo, ConVive, Resolución…</li>
       <li><b>«Acciones rápidas» pasa a ser «Apps del cole»</b> y ahora salen <b>todas</b> las apps, también las que no estaban marcadas.</li>
       <li>Nuevas en la lista: <b>Aula PT</b>, <b>Tablón de Avisos</b> y <b>Agenda</b>, con su propio icono.</li>
@@ -844,7 +845,7 @@ document.getElementById('campana').onclick = ()=>{
 document.getElementById('tablon').addEventListener('click', e=>{ if (e.target.closest('a')) marcarVistos(); });
 
 /* ---------- Novedades (una sola vez por dispositivo) ---------- */
-const NOV = 'capi-novedades-seneca-v13';
+const NOV = 'capi-novedades-seneca-v14';
 const veloNov = document.getElementById('veloNov');
 if(!ls.get(NOV,false)) setTimeout(()=>veloNov.classList.add('abierto'), 500);
 document.getElementById('btnNovOk').onclick = ()=>{ ls.set(NOV,true); veloNov.classList.remove('abierto'); };

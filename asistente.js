@@ -26,7 +26,17 @@
     for (const s of SUF) if (w.endsWith(s) && w.length - s.length >= 4) return w.slice(0, -s.length);
     return w;
   }
-  const palabras = t => norm(t).split(/[^a-z0-9ñ]+/).filter(w => w.length > 1 && !STOP.has(w));
+  const ORD = { primer: 1, primero: 1, segundo: 2, tercer: 3, tercero: 3, cuarto: 4, quinto: 5, sexto: 6 };
+  function cursos(t) {
+    return t
+      .replace(/\b([1-3])\s*\.?\s*[ºo]?\s*ciclo/g, (m, n) => ' ciclo' + n + ' curso' + (2 * n - 1) + ' curso' + (2 * n) + ' ')
+      .replace(/\b(primer|segundo|tercer)\s+ciclo/g, (m, w) => { const n = ORD[w]; return ' ciclo' + n + ' curso' + (2 * n - 1) + ' curso' + (2 * n) + ' '; })
+      .replace(/\b([1-6])\s*(?:\.\s*)?(?:º|ª|o|er|ero)(?![a-z])/g, ' curso$1 ')
+      .replace(/\b(primero|segundo|tercero|cuarto|quinto|sexto)\s+(?:de\s+)?(?:educacion\s+)?(?:primaria|curso)/g, (m, w) => ' curso' + ORD[w] + ' ')
+      .replace(/\bcurso\s+(primero|segundo|tercero|cuarto|quinto|sexto)\b/g, (m, w) => ' curso' + ORD[w] + ' ')
+      .replace(/\b([3-5])\s*anos\b/g, ' infantil$1 ');
+  }
+  const palabras = t => cursos(norm(t)).split(/[^a-z0-9ñ]+/).filter(w => w.length > 1 && !STOP.has(w));
   const raices = t => palabras(t).map(raiz);
 
   // Sinónimos del día a día del cole (se buscan también estas palabras)
@@ -56,7 +66,13 @@
     ['reunion', 'reuniones', 'claustro', 'consejo escolar', 'ciclo', 'etcp'],
     ['tutoria', 'tutor', 'tutora'],
     ['comedor', 'almuerzo', 'desayuno'],
-    ['festivo', 'vacaciones', 'puente', 'no hay cole', 'dia sin cole', 'no lectivo']
+    ['festivo', 'vacaciones', 'puente', 'no hay cole', 'dia sin cole', 'no lectivo'],
+    ['matematicas', 'mates'],
+    ['conocimiento del medio', 'cono', 'naturales', 'sociales'],
+    ['ingles', 'bilingue'],
+    ['programacion', 'programaciones', 'didactica'],
+    ['criterio', 'criterios'],
+    ['saber', 'saberes', 'contenido', 'contenidos', 'temario']
   ].map(g => g.map(x => raices(x).join(' ')));
   // Devuelve término → {w: peso, b: palabra de la pregunta de la que sale}
   function expandir(rs) {
@@ -172,23 +188,66 @@
     return trozos;
   }
 
+  // Programaciones, documentos Word/PDF y currículo oficial (preparados en asistente-datos.json)
+  async function cargarDatosFijos() {
+    const s = await traer('asistente-datos.json');
+    if (!s) return [];
+    try { return JSON.parse(s); } catch (e) { return []; }
+  }
+
+  // Calendario del profesorado de la Agenda (reuniones con su orden del día, días sin cole…)
+  async function cargarCalendario() {
+    const s = await traer(BASE + 'agenda/calendario-profesorado.ics');
+    if (!s) return [];
+    const lineas = s.replace(/\r/g, '').replace(/\n[ \t]/g, '').split('\n');
+    const out = []; let ev = null;
+    const des = v => v.replace(/\\n/g, '\n').replace(/\\,/g, ',').replace(/\\;/g, ';');
+    lineas.forEach(l => {
+      if (l === 'BEGIN:VEVENT') ev = {};
+      else if (l === 'END:VEVENT' && ev) {
+        if (ev.f && ev.t) {
+          const fecha = ev.f.slice(0, 4) + '-' + ev.f.slice(4, 6) + '-' + ev.f.slice(6, 8);
+          const hora = ev.f.length > 8 ? ev.f.slice(9, 11) + ':' + ev.f.slice(11, 13) : '';
+          const bl = des(ev.d || '').split('\n').map(limpio).filter(Boolean);
+          out.push({ fuente: 'Agenda', doc: 'Calendario del profesorado', sec: largo(fecha) + (hora ? ' · ' + hora : ''), sub: ev.t, cab: '', ancla: '', url: BASE + 'agenda/', urlDirecta: true,
+            bloques: [ev.t + ' · ' + largo(fecha) + (hora ? ' a las ' + hora : '')].concat(bl), fecha, peso: 1 });
+        }
+        ev = null;
+      } else if (ev) {
+        const i = l.indexOf(':'); if (i < 0) return;
+        const k = l.slice(0, i).split(';')[0], v = l.slice(i + 1);
+        if (k === 'SUMMARY') ev.t = des(v); else if (k === 'DTSTART') ev.f = v; else if (k === 'DESCRIPTION') ev.d = v;
+      }
+    });
+    return out;
+  }
+  // Las fechas cercanas pesan más que las pasadas
+  function pesoFecha(t) {
+    if (!t.fecha) return 1;
+    const hoy = new Date(); hoy.setHours(12, 0, 0, 0);
+    const dias = Math.round((new Date(t.fecha + 'T12:00') - hoy) / 864e5);
+    if (dias < 0) return 0.45;
+    return 1.6 - Math.min(dias, 150) / 150;
+  }
+
   // ── Índice (BM25) ─────────────────────────────────────────────
   let IDX = null, cargando = null;
   async function preparar() {
     if (IDX) return IDX;
     if (cargando) return cargando;
     cargando = (async () => {
-      const partes = await Promise.all([cargarCapiGuia(), cargarPlanCentro(), cargarProtocolos()]);
+      const partes = await Promise.all([cargarCapiGuia(), cargarPlanCentro(), cargarProtocolos(), cargarDatosFijos(), cargarCalendario()]);
       const T = partes.flat();
       const df = new Map(), docs = [];
       T.forEach((t, i) => {
-        const titulo = raices([t.sec, t.sub].join(' '));
+        const titulo = raices([t.doc, t.sec, t.sub, t.cab].join(' '));
         const cuerpo = raices(t.bloques.join(' '));
         const tf = new Map();
         cuerpo.forEach(r => tf.set(r, (tf.get(r) || 0) + 1));
         titulo.forEach(r => tf.set(r, (tf.get(r) || 0) + 2.5));
         const len = cuerpo.length + titulo.length * 2.5;
-        docs.push({ tf, len, texto: norm(t.bloques.join(' ')) });
+        const cur = new Set(palabras([t.doc, t.sec, t.sub].join(' ')).filter(w => /^curso\d$/.test(w)));
+        docs.push({ tf, len, texto: norm(t.bloques.join(' ')), cur });
         tf.forEach((_, r) => df.set(r, (df.get(r) || 0) + 1));
       });
       const avg = docs.reduce((a, d) => a + d.len, 0) / Math.max(1, docs.length);
@@ -203,6 +262,7 @@
     if (!base.length) return [];
     const terms = expandir(base);
     const frase = palabras(q).filter(w => w.length > 3);
+    const qcur = new Set(palabras(q).filter(w => /^curso\d$/.test(w)));
     const res = [];
     docs.forEach((d, i) => {
       let s = 0; const cubre = new Set();
@@ -215,7 +275,8 @@
       if (!s) return;
       s *= 0.4 + 0.6 * Math.pow(cubre.size / new Set(base).size, 1.5);
       for (let k = 0; k + 1 < frase.length; k++) if (d.texto.includes(norm(frase[k] + ' ' + frase[k + 1]))) s *= 1.25;
-      s *= T[i].peso || 1;
+      s *= (T[i].peso || 1) * pesoFecha(T[i]);
+      if (qcur.size && d.cur.size) s *= [...qcur].some(c => d.cur.has(c)) ? 1.35 : 0.55;
       res.push({ i, s });
     });
     res.sort((a, b) => b.s - a.s);
@@ -250,6 +311,25 @@
     } catch (e) { return ''; }
   }
 
+  // Próximas reuniones o citas de la Agenda que coinciden con la pregunta
+  const GENERICAS = new Set(['cuand', 'proxim', 'fech', 'dia', 'reunion', 'tra', 'trat', 'toc', 'orden', 'sesion', 'cita', 'hor', 'quien', 'ser', 'vien', 'semana', 'mes', 'lun']);
+  function respuestaAgenda(q) {
+    if (!IDX) return '';
+    const evs = IDX.T.filter(t => t.fuente === 'Agenda' && t.fecha);
+    if (!evs.length) return '';
+    const nq = norm(q);
+    const pideFecha = /cuando|proxim|fecha|que dia|orden del dia|se trata|que toca|reunion/.test(nq);
+    const rs = raices(q).filter(r => !GENERICAS.has(r));
+    if (!rs.length) return '';
+    const hoy = new Date().toISOString().slice(0, 10);
+    const coinc = evs.filter(e => e.fecha >= hoy && rs.every(r => raices(e.sub + ' ' + (r.startsWith('curso') ? e.sub : '')).includes(r)))
+      .sort((a, b) => a.fecha.localeCompare(b.fecha));
+    if (!coinc.length || (!pideFecha && coinc.length > 12)) return '';
+    return '<div class="as-cal as-agenda"><b>📅 En la Agenda</b><ul>' + coinc.slice(0, 3).map((e, k) => '<li><b>' + esc(e.sub) + '</b> · ' + esc(e.sec)
+      + (e.bloques.length > 1 ? '<details' + (k === 0 ? ' open' : '') + '><summary>Orden del día y detalles</summary>' + e.bloques.slice(1).map(b => '<div>' + esc(b) + '</div>').join('') + '</details>' : '') + '</li>').join('')
+      + '</ul><a class="enlace" href="' + BASE + 'agenda/" target="_blank" rel="noopener">Abrir la Agenda</a></div>';
+  }
+
   // ── Interfaz ──────────────────────────────────────────────────
   const esc = t => String(t || '').replace(/[&<>"]/g, c => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;' }[c]));
   // Marca las palabras cuya raíz coincide con la pregunta (o sus sinónimos)
@@ -275,10 +355,19 @@
     return [i, Math.min(i + 1, t.bloques.length - 1)];
   }
   const enlaceDe = t => t.urlDirecta ? t.url : t.url + (t.ancla || '');
+  function textoEnlace(t) {
+    if (/\.docx$/i.test(t.url)) return 'Descargar el documento (Word)';
+    if (/\.pdf$/i.test(t.url)) return 'Abrir el PDF';
+    if (t.fuente === 'Agenda') return 'Ver en la Agenda';
+    if (t.fuente === 'Currículo') return 'Ver en la app SDA';
+    if (t.fuente === 'Convive+') return /parteconvivencia/.test(t.url) ? 'Abrir Convive+' : 'Abrir el documento oficial';
+    return 'Leer en ' + t.fuente;
+  }
   const ruta = t => [t.doc, t.sec, t.sub].filter((x, i, a) => x && a.indexOf(x) === i).join(' › ');
 
-  const EJEMPLOS = ['¿Qué hago si llueve a la entrada?', '¿Cómo se organiza la vigilancia del recreo?', '¿Qué hago si un alumno se pone malo?', '¿Qué hacer ante un caso de acoso?',
-    '¿Cómo se trabaja la lectura en clase?', '¿Cómo se comunican las faltas de asistencia?', 'Soy sustituto, ¿qué tengo que saber?', '¿Cuándo es el próximo día sin cole?'];
+  const EJEMPLOS = ['¿Qué hago si llueve a la entrada?', '¿Cuándo es el próximo claustro?', 'Criterios de evaluación de Matemáticas de 3.º', '¿Qué se trabaja en 1.º de Primaria?',
+    '¿Qué hago si un alumno se pone malo?', '¿Qué hacer ante un caso de acoso?', 'Situaciones de aprendizaje de Lengua del segundo ciclo', '¿Cómo se pasa de los niveles de logro a la nota?',
+    'Soy sustituto, ¿qué tengo que saber?', '¿Cuándo es el próximo día sin cole?'];
   const HIST = 'capi-asistente-historial';
   const leerHist = () => { try { return JSON.parse(localStorage.getItem(HIST)) || []; } catch (e) { return []; } };
 
@@ -297,12 +386,14 @@
     if (!IDX) box.innerHTML = '<div class="as-cargando">📚 Leyendo los documentos del centro…</div>';
     try { await preparar(); } catch (e) { }
     if (!IDX || !IDX.N) { box.innerHTML = '<div class="vacio">No he podido leer los documentos. Revisa la conexión e inténtalo de nuevo.</div>'; return; }
-    const cal = await respuestaCalendario(q);
+    const cal = (await respuestaCalendario(q)) + respuestaAgenda(q);
     const res = buscar(q, 6);
     const umbral = 2.2;
     let h = cal;
-    if (cal && (!res.length || res[0].score < umbral * 3)) {
-      // Pregunta de calendario: basta con los próximos días sin cole
+    if (cal) {
+      // Pregunta de calendario o de Agenda: los documentos van solo como apoyo
+      const apoyo = res.filter(x => x.score >= umbral * 3 && x.fuente !== 'Agenda').slice(0, 2);
+      if (apoyo.length) h += '<p class="as-hint">En los documentos del centro:</p>' + apoyo.map(x => filaRes(x, q)).join('');
     } else if (!res.length || res[0].score < umbral) {
       h += cal ? '' : '<div class="as-nada"><b>No he encontrado nada claro sobre eso en los documentos del centro.</b><br>Prueba con otras palabras (por ejemplo «recreo», «faltas», «evaluación») o consúltalo con Jefatura de Estudios.</div>';
       if (res.length) h += '<p class="as-hint">Quizá te sirva:</p>' + res.slice(0, 3).map(t => filaRes(t, q)).join('');
@@ -313,7 +404,7 @@
         + (t.cab && t.cab !== t.sub ? '<h3>' + esc(t.cab) + '</h3>' : '')
         + t.bloques.map((b, k) => '<p class="' + (k >= d && k <= hst ? 'as-clave' : 'as-resto') + '">' + resaltar(b, q) + '</p>').join('')
         + (hay ? '<button class="enlace as-todo">Ver todo el apartado</button> ' : '')
-        + '<a class="enlace" href="' + esc(enlaceDe(t)) + '" target="_blank" rel="noopener">Leer en ' + esc(t.fuente === 'Convive+' && t.urlDirecta && !/parteconvivencia/.test(t.url) ? 'el documento oficial' : t.fuente) + ' →</a></article>';
+        + '<a class="enlace" href="' + esc(enlaceDe(t)) + '" target="_blank" rel="noopener">' + esc(textoEnlace(t)) + ' →</a></article>';
       const otros = res.slice(1).filter(x => x.score > res[0].score * 0.35).slice(0, 3);
       if (otros.length) h += '<p class="as-hint">También puede servirte:</p>' + otros.map(x => filaRes(x, q)).join('');
     }
