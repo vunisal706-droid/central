@@ -263,7 +263,7 @@
     const terms = expandir(base);
     const frase = palabras(q).filter(w => w.length > 3);
     const qcur = new Set(palabras(q).filter(w => /^curso\d$/.test(w)));
-    const pideAgenda = /cuando|proxim|fecha|reunion|orden del dia|claustro|etcp|consejo escolar|equipo docente|ciclo|tutoria|evaluacion inicial|sesion de evaluacion/.test(norm(q));
+    const pideAgenda = /cuando|proxim|fecha|reunion|orden del dia|claustro|etcp|consejo escolar|equipo docente|ciclo|tutoria|evaluacion inicial|sesion de evaluacion|pildora|proa|teams|formacion/.test(norm(q));
     const res = [];
     docs.forEach((d, i) => {
       let s = 0; const cubre = new Set();
@@ -313,22 +313,26 @@
     } catch (e) { return ''; }
   }
 
+  const conEnlaces = html => html.replace(/(https?:\/\/[^\s<]+)/g, u => '<a href="' + u + '" target="_blank" rel="noopener">' + (/teams\.microsoft/.test(u) ? '🔗 Entrar en Teams' : 'Abrir enlace') + '</a>');
   // Próximas reuniones o citas de la Agenda que coinciden con la pregunta
-  const GENERICAS = new Set(['cuand', 'proxim', 'fech', 'dia', 'reunion', 'tra', 'trat', 'toc', 'orden', 'sesion', 'cita', 'hor', 'quien', 'ser', 'vien', 'semana', 'mes', 'lun']);
+  const GENERICAS = new Set(['cuand', 'proxim', 'fech', 'dia', 'reunion', 'tra', 'trat', 'toc', 'orden', 'sesion', 'cita', 'hor', 'quien', 'ser', 'vien', 'semana', 'mes', 'lun', 'enlac', 'link', 'cuales', 'son', 'formacion', 'formativ']);
   function respuestaAgenda(q) {
     if (!IDX) return '';
     const evs = IDX.T.filter(t => t.fuente === 'Agenda' && t.fecha);
     if (!evs.length) return '';
     const nq = norm(q);
-    const pideFecha = /cuando|proxim|fecha|que dia|orden del dia|se trata|que toca|reunion/.test(nq);
+    const pideFecha = /cuando|proxim|fecha|que dia|orden del dia|se trata|que toca|reunion|enlace|teams|pildora|formacion/.test(nq);
     const rs = raices(q).filter(r => !GENERICAS.has(r));
     if (!rs.length) return '';
     const hoy = new Date().toISOString().slice(0, 10);
-    const coinc = evs.filter(e => e.fecha >= hoy && rs.every(r => raices(e.sub + ' ' + (r.startsWith('curso') ? e.sub : '')).includes(r)))
-      .sort((a, b) => a.fecha.localeCompare(b.fecha));
+    const futuros = evs.filter(e => e.fecha >= hoy);
+    let coinc = futuros.filter(e => { const t = raices(e.sub); return rs.every(r => t.includes(r)); });
+    // Si no hay coincidencia en el título, se busca también en los detalles (para «enlace de Teams», etc.)
+    if (!coinc.length) coinc = futuros.filter(e => { const t = raices(e.sub + ' ' + e.bloques.join(' ')); return rs.filter(r => t.includes(r)).length >= Math.max(1, rs.length - 1) && rs.some(r => raices(e.sub).includes(r)); });
+    coinc.sort((a, b) => a.fecha.localeCompare(b.fecha));
     if (!coinc.length || (!pideFecha && coinc.length > 12)) return '';
     return '<div class="as-cal as-agenda"><b>📅 En la Agenda</b><ul>' + coinc.slice(0, 3).map((e, k) => '<li><b>' + esc(e.sub) + '</b> · ' + esc(e.sec)
-      + (e.bloques.length > 1 ? '<details' + (k === 0 ? ' open' : '') + '><summary>Orden del día y detalles</summary>' + e.bloques.slice(1).map(b => '<div>' + esc(b) + '</div>').join('') + '</details>' : '') + '</li>').join('')
+      + (e.bloques.length > 1 ? '<details' + (k === 0 ? ' open' : '') + '><summary>' + (/orden del d/i.test(e.bloques.join(' ')) ? 'Orden del día y detalles' : (/https?:/.test(e.bloques.join(' ')) ? 'Detalles y enlace' : 'Detalles')) + '</summary>' + e.bloques.slice(1).map(b => '<div>' + conEnlaces(esc(b)) + '</div>').join('') + '</details>' : '') + '</li>').join('')
       + '</ul><a class="enlace" href="' + BASE + 'agenda/" target="_blank" rel="noopener">Abrir la Agenda</a></div>';
   }
 
@@ -404,7 +408,7 @@
  const [d, hst] = mejoresBloques(t, q), hay = t.bloques.length > (hst - d + 1);
       h += '<article class="as-mejor' + (hay ? '' : ' abierta') + '"><div class="as-ruta">' + esc(ruta(t)) + '</div>'
         + (t.cab && t.cab !== t.sub ? '<h3>' + esc(t.cab) + '</h3>' : '')
-        + t.bloques.map((b, k) => '<p class="' + (k >= d && k <= hst ? 'as-clave' : 'as-resto') + '">' + resaltar(b, q) + '</p>').join('')
+        + t.bloques.map((b, k) => '<p class="' + (k >= d && k <= hst ? 'as-clave' : 'as-resto') + '">' + conEnlaces(resaltar(b, q)) + '</p>').join('')
         + (hay ? '<button class="enlace as-todo">Ver todo el apartado</button> ' : '')
         + '<a class="enlace" href="' + esc(enlaceDe(t)) + '" target="_blank" rel="noopener">' + esc(textoEnlace(t)) + ' →</a></article>';
       const otros = res.slice(1).filter(x => x.score > res[0].score * 0.35).slice(0, 3);
@@ -419,7 +423,7 @@
     const txt = t.bloques.join(' ');
     return '<div class="as-fila"><div class="as-ruta">' + esc(ruta(t)) + (t.cab && t.cab !== t.sub ? ' › ' + esc(t.cab) : '') + '</div>'
       + '<p class="as-extracto">' + resaltar(txt.length > 260 ? txt.slice(0, 260) + '…' : txt, q) + '</p>'
-      + '<p class="as-completo">' + t.bloques.map(b => resaltar(b, q)).join('<br>') + '</p>'
+      + '<p class="as-completo">' + t.bloques.map(b => conEnlaces(resaltar(b, q))).join('<br>') + '</p>'
       + '<div class="as-acc"><button class="enlace as-mas">Ver más</button><a class="enlace" href="' + esc(enlaceDe(t)) + '" target="_blank" rel="noopener">Abrir →</a></div></div>';
   }
 
