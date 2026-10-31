@@ -263,6 +263,7 @@
     const terms = expandir(base);
     const frase = palabras(q).filter(w => w.length > 3);
     const qcur = new Set(palabras(q).filter(w => /^curso\d$/.test(w)));
+    const pideAgenda = /cuando|proxim|fecha|reunion|orden del dia|claustro|etcp|consejo escolar|equipo docente|ciclo|tutoria|evaluacion inicial|sesion de evaluacion/.test(norm(q));
     const res = [];
     docs.forEach((d, i) => {
       let s = 0; const cubre = new Set();
@@ -276,6 +277,7 @@
       s *= 0.4 + 0.6 * Math.pow(cubre.size / new Set(base).size, 1.5);
       for (let k = 0; k + 1 < frase.length; k++) if (d.texto.includes(norm(frase[k] + ' ' + frase[k + 1]))) s *= 1.25;
       s *= (T[i].peso || 1) * pesoFecha(T[i]);
+      if (T[i].fuente === 'Agenda' && !pideAgenda) s *= 0.45;
       if (qcur.size && d.cur.size) s *= [...qcur].some(c => d.cur.has(c)) ? 1.35 : 0.55;
       res.push({ i, s });
     });
@@ -367,7 +369,7 @@
 
   const EJEMPLOS = ['¿Qué hago si llueve a la entrada?', '¿Cuándo es el próximo claustro?', 'Criterios de evaluación de Matemáticas de 3.º', '¿Qué se trabaja en 1.º de Primaria?',
     '¿Qué hago si un alumno se pone malo?', '¿Qué hacer ante un caso de acoso?', 'Situaciones de aprendizaje de Lengua del segundo ciclo', '¿Cómo se pasa de los niveles de logro a la nota?',
-    'Soy sustituto, ¿qué tengo que saber?', '¿Cuándo es el próximo día sin cole?'];
+    '¿Qué hago con un alumno con dificultades en la lectura?', 'Soy sustituto, ¿qué tengo que saber?', '¿Cuándo es el próximo día sin cole?'];
   const HIST = 'capi-asistente-historial';
   const leerHist = () => { try { return JSON.parse(localStorage.getItem(HIST)) || []; } catch (e) { return []; } };
 

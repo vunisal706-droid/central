@@ -87,7 +87,10 @@ for ruta, fuente, nombre, url in [
     ('proyectocentro/descargas/Propuesta_pedagogica_Infantil.docx', 'Programaciones', 'Propuesta pedagógica de Educación Infantil', GH + 'proyectocentro/descargas/Propuesta_pedagogica_Infantil.docx'),
     ('capiguia/Atencion_a_la_diversidad_en_el_aula.docx', 'CapiGuía', 'Atención a la diversidad en el aula', GH + 'capiguia/Atencion_a_la_diversidad_en_el_aula.docx'),
     ('capiguia/Como_trabajamos_lectura_y_problemas.docx', 'CapiGuía', 'Cómo trabajamos la lectura y los problemas', GH + 'capiguia/Como_trabajamos_lectura_y_problemas.docx'),
-    ('capiguia/descargas/Mapa_progresion_contenidos.docx', 'CapiGuía', 'Mapa de progresión de contenidos', GH + 'capiguia/descargas/Mapa_progresion_contenidos.docx')]:
+    ('capiguia/descargas/Mapa_progresion_contenidos.docx', 'CapiGuía', 'Mapa de progresión de contenidos', GH + 'capiguia/descargas/Mapa_progresion_contenidos.docx'),
+    ('leoresuelvo/Plan_de_Lectura_2026-27_CEIP_Capitulaciones.docx', 'Ágora', 'Plan de Lectura 2026/27', GH + 'leoresuelvo/Plan_de_Lectura_2026-27_CEIP_Capitulaciones.docx'),
+    ('leoresuelvo/Plan_de_Resolucion_de_Problemas_2026-27_CEIP_Capitulaciones.docx', 'Ágora', 'Plan de Resolución de Problemas 2026/27', GH + 'leoresuelvo/Plan_de_Resolucion_de_Problemas_2026-27_CEIP_Capitulaciones.docx'),
+    ('leoresuelvo/Dificultades_en_la_Lectura_2026-27_CEIP_Capitulaciones.docx', 'Ágora', 'Dificultades en la lectura 2026/27', GH + 'leoresuelvo/Dificultades_en_la_Lectura_2026-27_CEIP_Capitulaciones.docx')]:
     p = os.path.join(R, ruta)
     if os.path.exists(p): docx_a_trozos(p, fuente, nombre, url, 1.1)
 
