@@ -411,6 +411,7 @@ a.kpi{color:inherit;transition:box-shadow .15s ease}
     <h3 id="titNov">✨ Novedades de Capitoolappciones</h3>
     <p class="sub">Novedades:</p>
     <ul>
+      <li>🆕 <b>Programas del cole</b> (ZTS, PROA Andalucía y PROA+): plazos con ruta de Séneca, asistencia y horas del Acompañamiento, reuniones quincenales con acta, lista de cotejo de la documentación y las 10 actividades palanca.</li>
       <li>🆕 <b>Asistente del cole</b> (pestaña de abajo): pregunta cualquier duda y responde con el texto del <b>Plan de Centro</b>, las <b>programaciones didácticas</b>, los <b>criterios de evaluación y saberes de cada curso</b>, la <b>CapiGuía</b>, la <b>Agenda</b> (reuniones y su orden del día) y los <b>protocolos</b>.</li>
       <li><b>Nuevo orden</b>: Teletrabajo, SDA, Registro de lectura, Parte de convivencia, Evaluación, Ágora, Refuerzo, ConVive, Resolución…</li>
       <li><b>«Acciones rápidas» pasa a ser «Apps del cole»</b> y ahora salen <b>todas</b> las apps, también las que no estaban marcadas.</li>
@@ -440,6 +441,7 @@ const I = {
   tablon:'<rect x="3" y="4" width="18" height="13" rx="1.5"/><path d="M8 21l2-4M16 21l-2-4"/><path d="M7 8h6M7 11h10M7 14h4"/><circle cx="17" cy="8" r="1"/>',
   aulapt:'<path d="M4 20V9l8-5 8 5v11"/><path d="M9 20v-5h6v5"/><path d="M8.5 11.5h.01M15.5 11.5h.01"/><path d="M12 8.2l.9 1.6 1.8.3-1.3 1.2.3 1.8-1.7-.9-1.6.9.3-1.8-1.3-1.2 1.8-.3z"/>',
   refuerzo:'<path d="M4 19.5V6a1.5 1.5 0 0 1 1.5-1.5H12v15H5.5A1.5 1.5 0 0 0 4 21"/><path d="M12 4.5h6.5A1.5 1.5 0 0 1 20 6v13.5"/><path d="M15 9.5h2.5M16.25 8.25v2.5"/><path d="M7 9h2.5M7 12.5h2.5"/>',
+  programas:'<path d="M12 3l2.5 5 5.5.8-4 3.9.9 5.5L12 15.6 7.1 18.2l.9-5.5-4-3.9 5.5-.8z"/><path d="M4 21h16"/>',
   chev:'<path d="m9 6 6 6-6 6"/>'
 };
 const svg = (k, cls='ico') => `<svg class="${cls}" viewBox="0 0 24 24" aria-hidden="true">${I[k]}</svg>`;
@@ -458,6 +460,8 @@ const APPS = [
    desc:'Registro de calificaciones y seguimiento de la evaluación'},
   {id:'pcentro', nom:'Plan de Centro', corto:'Plan de Centro', ic:'plan', cat:'gestion', url:'https://vunisal706-droid.github.io/proyectocentro/',
    desc:'Acceso directo al Plan de Centro del CEIP Capitulaciones'},
+  {id:'programas', nom:'Programas del cole (ZTS, PROA y PROA+)', corto:'Programas', ic:'programas', cat:'gestion', url:'https://vunisal706-droid.github.io/central/programas/',
+   desc:'Plazos, asistencia del Acompañamiento, reuniones, lista de cotejo y actividades palanca'},
   {id:'sda', nom:'SDA Capitulaciones', corto:'SDA', ic:'sda', cat:'pedagogico', url:'https://vunisal706-droid.github.io/sdacapitulaciones/',
    desc:'Generador de Situaciones de Aprendizaje alineadas con LOMLOE'},
   {id:'resolucion', nom:'Plan de Resolución', corto:'Resolución', ic:'problemas', cat:'pedagogico', url:'https://vunisal706-droid.github.io/Resoluciondeproblemas/',
@@ -504,7 +508,7 @@ function fila(a){
 
 /* ---------- Acciones rápidas ---------- */
 const MAX_RAP = 99;
-const ORDEN_INICIO = ['teletrabajo','sda','registro','parte','gestorevalu','agora','refuerzo','convive','resolucion','aulapt','tablon','agenda','pcentro','capiguia','web','portal'];
+const ORDEN_INICIO = ['teletrabajo','sda','registro','parte','gestorevalu','agora','refuerzo','convive','resolucion','aulapt','tablon','agenda','programas','pcentro','capiguia','web','portal'];
 const POR_DEFECTO = [...ORDEN_INICIO, ...APPS.map(a=>a.id).filter(id=>!ORDEN_INICIO.includes(id))];
 let favoritas = ls.get('capi-rapidas', POR_DEFECTO).filter(id=>porId[id]).slice(0,MAX_RAP);
 // Una sola vez: añadir la Web del cole a quien ya tenía sus acciones guardadas
@@ -845,7 +849,7 @@ document.getElementById('campana').onclick = ()=>{
 document.getElementById('tablon').addEventListener('click', e=>{ if (e.target.closest('a')) marcarVistos(); });
 
 /* ---------- Novedades (una sola vez por dispositivo) ---------- */
-const NOV = 'capi-novedades-seneca-v14';
+const NOV = 'capi-novedades-seneca-v15';
 const veloNov = document.getElementById('veloNov');
 if(!ls.get(NOV,false)) setTimeout(()=>veloNov.classList.add('abierto'), 500);
 document.getElementById('btnNovOk').onclick = ()=>{ ls.set(NOV,true); veloNov.classList.remove('abierto'); };

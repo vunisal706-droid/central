@@ -1,0 +1,173 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<meta name="theme-color" content="#2f5fb3">
+<title>Programas del cole</title>
+<link rel="manifest" href="manifest.json">
+<link rel="icon" type="image/png" sizes="32x32" href="icon-32.png">
+<link rel="apple-touch-icon" href="apple-touch-icon.png">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-title" content="Programas">
+<link rel="preconnect" href="https://fonts.googleapis.com"><link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Bricolage+Grotesque:opsz,wght@12..96,600;12..96,700;12..96,800&family=Nunito+Sans:wght@400;600;700;800&display=swap" rel="stylesheet">
+<style>
+:root{
+  --primary:#2f5fb3;--primary-dark:#1f3f7a;--primary-soft:#e8effc;
+  --text:#1c2638;--muted:#5d6b82;--border:#d9e1ee;--card:#fff;
+  --ok:#1f9d55;--ok-soft:#e3f6ea;--warn:#b86e00;--warn-soft:#fff3d6;--bad:#c93838;--bad-soft:#fde6e6;
+  --zts:#0f8a7e;--zts-soft:#dff4f1;--proa:#7a4fc9;--proa-soft:#efe8fb;--proap:#d9622b;--proap-soft:#fdebe2;
+  --radius:16px;--shadow:0 6px 24px rgba(31,63,122,.10);
+}
+*{box-sizing:border-box;margin:0;padding:0}
+body{font-family:'Nunito Sans',system-ui,sans-serif;color:var(--text);background:#f4f7fc;font-size:15px;line-height:1.45;min-height:100vh}
+body::before{content:"";position:fixed;inset:-20%;z-index:-1;background:radial-gradient(40% 35% at 20% 25%,#dbe8ff 0,transparent 70%),radial-gradient(35% 30% at 80% 20%,#ffe9d6 0,transparent 70%),radial-gradient(40% 35% at 70% 80%,#dff4f1 0,transparent 70%),radial-gradient(35% 35% at 15% 85%,#efe8fb 0,transparent 70%),#f4f7fc}
+h1,h2,h3{font-family:'Bricolage Grotesque',system-ui,sans-serif;letter-spacing:-.01em}
+h2{font-size:1.2rem;color:var(--primary-dark)}h3{font-size:1.02rem}
+button{font-family:inherit;cursor:pointer}
+input,select,textarea{font-family:inherit;font-size:15px;color:var(--text);border:1px solid var(--border);border-radius:10px;padding:9px 11px;background:#fff;width:100%}
+textarea{min-height:70px;resize:vertical}
+label{font-size:.8rem;font-weight:800;color:var(--muted);display:block;margin:8px 0 4px}
+.oculto{display:none!important}
+.header{position:sticky;top:0;z-index:100;background:rgba(255,255,255,.9);backdrop-filter:blur(10px);border-bottom:1px solid var(--border)}
+.header-in{max-width:1200px;margin:0 auto;padding:8px 14px;display:flex;align-items:center;gap:10px}
+.header img{height:38px}
+.header h1{font-size:1.15rem;color:var(--primary-dark);line-height:1.1;cursor:pointer}
+.header h1 small{display:block;font-family:'Nunito Sans';font-size:.78rem;font-weight:700;color:var(--muted)}
+.esp{flex:1}
+.pill{border:1px solid var(--border);background:#fff;border-radius:999px;padding:6px 12px;font-weight:700;font-size:.85rem;color:var(--primary-dark)}
+.dot{width:9px;height:9px;border-radius:50%;background:#f0b429;display:inline-block}.dot.ok{background:var(--ok)}.dot.off{background:var(--bad)}
+.nav{max-width:1200px;margin:0 auto;padding:10px 14px 0;display:flex;gap:8px;overflow-x:auto;scrollbar-width:none}
+.nav button{flex:0 0 auto;border:1px solid var(--border);background:#fff;border-radius:12px;padding:10px 14px;font-weight:800;color:var(--muted);font-size:.92rem;min-height:44px}
+.nav button.on{background:var(--primary);border-color:var(--primary);color:#fff;box-shadow:0 2px 6px rgba(20,30,50,.18)}
+.wrap{max-width:1200px;margin:0 auto;padding:14px}
+.card{background:var(--card);border:1px solid var(--border);border-radius:var(--radius);box-shadow:var(--shadow);padding:16px;margin-bottom:14px}
+.card-h{display:flex;flex-wrap:wrap;align-items:center;justify-content:space-between;gap:10px;margin-bottom:10px}
+.grid{display:grid;gap:14px;grid-template-columns:repeat(auto-fit,minmax(280px,1fr))}
+.g2{display:grid;gap:10px;grid-template-columns:repeat(auto-fit,minmax(170px,1fr))}
+.btn{border:none;background:var(--primary);color:#fff;border-radius:10px;padding:9px 14px;font-weight:800;font-size:.9rem;min-height:40px}
+.btn.sec{background:#fff;color:var(--primary-dark);border:1px solid var(--border)}
+.btn.peq{padding:6px 10px;min-height:32px;font-size:.82rem}
+.btn.rojo{background:var(--bad)}
+.muted{color:var(--muted)}.small{font-size:.84rem}
+.tag{display:inline-block;border-radius:999px;padding:2px 9px;font-size:.8rem;font-weight:800}
+.t-ZTS{background:var(--zts-soft);color:var(--zts)}.t-PROA{background:var(--proa-soft);color:var(--proa)}.t-PROAp{background:var(--proap-soft);color:var(--proap)}
+.st-ok{background:var(--ok-soft);color:var(--ok)}.st-warn{background:var(--warn-soft);color:var(--warn)}.st-bad{background:var(--bad-soft);color:var(--bad)}.st-gris{background:#eef1f6;color:var(--muted)}
+.prog{border-top:5px solid var(--primary)}.prog.ZTS{border-top-color:var(--zts)}.prog.PROA{border-top-color:var(--proa)}.prog.PROAp{border-top-color:var(--proap)}
+.kpis{display:flex;gap:10px;flex-wrap:wrap;margin:8px 0}
+.kpi{flex:1;min-width:80px;background:#f6f8fc;border-radius:12px;padding:8px 10px}
+.kpi b{display:block;font-size:1.35rem;font-family:'Bricolage Grotesque'}.kpi span{font-size:.8rem;color:var(--muted);font-weight:700}
+.item{display:flex;gap:10px;align-items:flex-start;padding:10px 0;border-bottom:1px solid #edf1f7}
+.item:last-child{border-bottom:none}
+.item .cuerpo{flex:1;min-width:0}
+.item .tt{font-weight:800}
+.item .dd{font-size:.86rem;color:var(--muted)}
+.item .ruta{font-size:.8rem;color:#486089;background:#f2f6fd;border-radius:8px;padding:3px 8px;margin-top:4px;display:inline-block}
+.item a{font-size:.84rem;font-weight:800;color:var(--primary);margin-right:10px;text-decoration:none}
+.chk{width:24px;height:24px;flex:0 0 auto;margin-top:2px;accent-color:var(--ok)}
+.fecha{flex:0 0 74px;text-align:center;border-radius:10px;background:#f2f5fa;padding:4px;font-weight:800;font-size:.8rem;color:var(--primary-dark)}
+.chips{display:flex;gap:6px;flex-wrap:wrap;margin-bottom:10px}
+.chip{border:1px solid var(--border);background:#fff;border-radius:999px;padding:6px 12px;font-weight:800;font-size:.82rem;color:var(--muted)}
+.chip.on{background:var(--primary-dark);color:#fff;border-color:var(--primary-dark)}
+table{width:100%;border-collapse:collapse;font-size:.88rem}
+th,td{border-bottom:1px solid #edf1f7;padding:7px 6px;text-align:left;vertical-align:top}
+th{font-size:.78rem;color:var(--muted);text-transform:uppercase;letter-spacing:.03em}
+.tabla{overflow-x:auto}
+.asis{display:flex;gap:4px}
+.asis button{border:1px solid var(--border);background:#fff;border-radius:8px;min-width:38px;min-height:36px;font-weight:800}
+.asis button.on.P{background:var(--ok);color:#fff;border-color:var(--ok)}
+.asis button.on.F{background:var(--bad);color:#fff;border-color:var(--bad)}
+.asis button.on.J{background:var(--warn);color:#fff;border-color:var(--warn)}
+.aviso{background:var(--warn-soft);color:#7a4b00;border-radius:10px;padding:8px 12px;font-size:.86rem;margin:8px 0}
+.aviso.rojo{background:var(--bad-soft);color:#8a1f1f}
+.aviso.verde{background:var(--ok-soft);color:#14663a}
+details summary{cursor:pointer;font-weight:800;color:var(--primary-dark)}
+.pal{border-left:5px solid var(--proap)}
+.barra{height:8px;background:#edf1f7;border-radius:99px;overflow:hidden}.barra i{display:block;height:100%;background:var(--ok)}
+/* Acceso */
+#pantallaAcceso{position:fixed;inset:0;z-index:500;display:flex;align-items:center;justify-content:center;padding:16px;background:#f4f7fc}
+.acc{background:#fff;border-radius:20px;box-shadow:var(--shadow);padding:22px;max-width:420px;width:100%}
+.acc img{height:60px;display:block;margin:0 auto 8px}
+.perfiles{display:grid;gap:8px;margin:12px 0}
+.perfil-btn{display:flex;gap:10px;align-items:center;border:1px solid var(--border);background:#fff;border-radius:12px;padding:10px;text-align:left}
+.perfil-btn.on{border-color:var(--primary);background:var(--primary-soft)}
+.perfil-btn .e{font-size:1.5rem}.perfil-btn small{display:block;color:var(--muted)}
+#accError{display:none;background:var(--bad-soft);color:#8a1f1f;border-radius:10px;padding:8px;margin-top:8px;font-size:.86rem}
+dialog{border:none;border-radius:18px;padding:20px;max-width:560px;width:calc(100% - 24px);box-shadow:0 20px 60px rgba(0,0,0,.25)}
+dialog::backdrop{background:rgba(20,30,50,.45)}
+dialog h2{margin-bottom:8px}
+dialog p{margin:6px 0}
+.pie{display:flex;gap:8px;justify-content:flex-end;margin-top:14px;flex-wrap:wrap}
+#toast{position:fixed;bottom:18px;left:50%;transform:translateX(-50%);background:#1c2638;color:#fff;padding:10px 16px;border-radius:12px;font-weight:700;z-index:900;display:none;max-width:90%}
+#toast.err{background:var(--bad)}
+.logos{display:flex;gap:10px;align-items:center;justify-content:center;margin-top:20px;opacity:.85}
+.logos img{height:34px}
+@media (max-width:600px){.header h1{font-size:1rem}.header h1 small{display:none}.fecha{flex-basis:62px}}
+</style>
+</head>
+<body>
+<div id="pantallaAcceso">
+  <div class="acc">
+    <img src="img/colegio.png" alt="CEIP Capitulaciones">
+    <h2 style="text-align:center">Programas del cole</h2>
+    <p class="muted small" style="text-align:center">ZTS · PROA Andalucía · PROA+ Transfórmate</p>
+    <div class="perfiles" id="listaPerfiles"></div>
+    <label for="accIdea">Usuario IdEA</label>
+    <input id="accIdea" autocomplete="username" autocapitalize="off" spellcheck="false">
+    <label style="display:flex;gap:8px;align-items:center;font-weight:700"><input type="checkbox" id="accRecordar" checked style="width:auto"> Recordarme en este dispositivo</label>
+    <button class="btn" id="accEntrar" style="width:100%;margin-top:10px">Entrar</button>
+    <div id="accError"></div>
+  </div>
+</div>
+
+<header class="header"><div class="header-in">
+  <img src="img/colegio.png" alt="">
+  <h1 id="tituloApp">Programas del cole<small>ZTS · PROA Andalucía · PROA+</small></h1>
+  <div class="esp"></div>
+  <span class="small muted"><span class="dot" id="dot"></span></span>
+  <select id="selCurso" class="pill" style="width:auto"></select>
+  <button class="pill" id="perfilPill">—</button>
+</div></header>
+
+<nav class="nav" id="nav">
+  <button data-s="panel" class="on">🏠 Panel</button>
+  <button data-s="plazos">📅 Plazos</button>
+  <button data-s="acomp">🧑‍🏫 Acompañamiento</button>
+  <button data-s="reuniones">🤝 Reuniones</button>
+  <button data-s="palancas">🎯 PROA+ palancas</button>
+</nav>
+
+<main class="wrap">
+  <section id="sec-panel"></section>
+  <section id="sec-plazos" class="oculto"></section>
+  <section id="sec-acomp" class="oculto"></section>
+  <section id="sec-reuniones" class="oculto"></section>
+  <section id="sec-palancas" class="oculto"></section>
+  <div class="logos"><img src="img/junta.jpg" alt="Junta de Andalucía"></div>
+</main>
+
+<dialog id="dlg"><div id="dlgIn"></div></dialog>
+<dialog id="novedades">
+  <h2>🆕 Novedades</h2>
+  <p>Nueva app <b>Programas del cole</b> para llevar el <b>ZTS</b>, el <b>PROA Andalucía</b> y el <b>PROA+ Transfórmate</b> durante el curso:</p>
+  <p>📅 Plazos de los tres programas con su ruta de Séneca, para marcarlos como hechos.<br>
+  🧑‍🏫 Acompañamiento: grupos, pasar lista, sesiones no impartidas, horas e importe, resumen mensual e informe trimestral.<br>
+  📋 Lista de cotejo de la documentación del PROA: acta de selección, programación, Anexo X de cada mes y Anexo XV de cada trimestre.<br>
+  🤝 Reuniones quincenales acompañante–tutor/a, citas con familias y comisiones de seguimiento, con acta.<br>
+  🎯 Las 10 actividades palanca del plan del centro, con estado, actuaciones y los 3 retos con sus indicadores.</p>
+  <p class="muted small">Los datos se comparten entre el equipo directivo y la coordinación ZTS. El alumnado se guarda solo por siglas.</p>
+  <div class="pie"><button class="btn" onclick="novedades.close()">Entendido</button></div>
+</dialog>
+<div id="toast"></div>
+
+<script src="https://www.gstatic.com/firebasejs/10.7.1/firebase-app-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/10.7.1/firebase-database-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/10.7.1/firebase-auth-compat.js"></script>
+<script src="plazos.js"></script>
+<script src="palancas.js"></script>
+<script src="app.js"></script>
+<script>if('serviceWorker' in navigator)navigator.serviceWorker.register('sw.js').catch(()=>{});</script>
+</body>
+</html>
