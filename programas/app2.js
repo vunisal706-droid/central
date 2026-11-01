@@ -385,11 +385,11 @@ function crearGruposSeneca() {
   const base = { act: 'AE', hi: '16:00', hf: '18:00', horasSesion: 2 };
   const G = [
     { nombre: 'Tercero', dias: [1, 3], mod: 'A', docente: 'Sandra Rodríguez Pérez', monitor: 'sandra', horario: 'Lunes y miércoles 16:00–18:00' },
-    { nombre: 'Cuarto', dias: [2, 4], mod: 'A', docente: '', horario: 'Martes y jueves 16:00–18:00' },
-    { nombre: 'Quinto', dias: [2, 4], mod: 'A', docente: '', horario: 'Martes y jueves 16:00–18:00' },
+    { nombre: 'Cuarto', dias: [2, 4], mod: 'A', docente: 'Nuria', monitor: 'nuria', horario: 'Martes y jueves 16:00–18:00' },
+    { nombre: 'Quinto', dias: [2, 4], mod: 'A', docente: 'Sandra Rodríguez Pérez', monitor: 'sandra', horario: 'Martes y jueves 16:00–18:00' },
     { nombre: 'Sexto', dias: [2, 4], mod: 'B', docente: 'Manuel Lupión Puente', monitor: 'manolo', horario: 'Martes y jueves 16:00–18:00' }];
   G.forEach(g => guardar('grupos/' + uid(), Object.assign({}, base, g)));
-  toast('Grupos creados. En Cuarto y Quinto falta poner el monitor/a (Editar grupo).'); render();
+  toast('Grupos creados. Cuarto queda con Nuria (provisional): pon sus apellidos en «Editar grupo».'); render();
 }
 function rSeneca(g, A) {
   const mes = mesResumen || hoyIso().slice(0, 7), mm = mes.slice(5), S = Object.entries((D.sesiones || {})[grupoSel] || {}).filter(([f]) => f.startsWith(mes)).sort();

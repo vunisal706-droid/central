@@ -156,26 +156,21 @@ body.mon #nav button:not([data-s=acomp]),body.mon #selCurso{display:none}
 <dialog id="dlg"><div id="dlgIn"></div></dialog>
 <dialog id="novedades">
   <h2>🆕 Novedades</h2>
-  <p>App <b>Programas del cole</b> para el <b>ZTS</b>, el <b>PROA Andalucía</b> y el <b>PROA+ Transfórmate</b>:</p>
-  <p>📅 Plazos de los tres programas con su ruta de Séneca.<br>
-  🧑‍🏫 Acompañamiento: grupos, pasar lista, horas e importe, resumen mensual, informe trimestral (Anexo XV) y lista de cotejo de la documentación.<br>
-  🤝 Reuniones quincenales, citas con familias y comisiones, con acta.<br>
-  🎯 Actividades palanca con ficha imprimible, <b>PEM y revisiones semestrales</b> y <b>datos para la RdC1 y el PAP</b>.<br>
-  💶 <b>Gestión económica del PROA+</b>: dotación, gastos y facturas, gasto por palanca y expediente de contratos.<br>
-  📄 <b>Memorias</b>: justificativa y económica del PROA+, horas para certificar el PROA Andalucía y apartado para la Memoria de Autoevaluación, en PDF o Word.</p>
-  <p>🧑‍🏫 <b>Acceso para Sandra, Nuria y Manolo</b>: cada uno ve solo su grupo, pasa lista y saca en PDF los anexos <b>X</b> (asistencia), <b>XII</b> (ausencias) y <b>XV</b> (informe trimestral), copiados de los modelos de las Instrucciones, con los logos oficiales.</p>
-  <p>🟢 <b>Ajustada a Séneca</b>: botón para crear los 4 grupos tal como están en Séneca (Tercero, Cuarto, Quinto y Sexto, con sus días) y, en cada grupo, un apartado <b>«Para grabar en Séneca»</b> con los días que hay que marcar en «Usos del servicio», quién faltó y qué documento subir cada mes, con el nombre puesto.</p>
-  <p>🆕 <b>Conectada con otras apps</b>: las reuniones que registres (quincenales, comisiones, ZTS) salen en el <b>calendario del profesorado</b> y como opción en el <b>correo semanal del Tablón</b>. En «PROA+ palancas», el botón <b>«Traer datos»</b> rellena el reto de Matemáticas con el <b>Gestor de Evaluación</b> y las medias de lectura con el <b>Registro de Lectura</b>. Y el <b>Asistente</b> de la central ya responde a «¿qué toca del PROA este mes?».</p>
-  <p class="muted small">Los datos se comparten entre el equipo directivo y la coordinación ZTS. El alumnado se guarda solo por siglas.</p>
+  <p><b>Acompañamiento ajustado a cómo se trabaja de verdad:</b></p>
+  <p>📥 Los monitores ya <b>no pasan lista en la app</b>. Te entregan el PDF de asistencia y tú lo metes aquí: la app <b>lee las fechas del PDF</b> (si es digital) o las marcas tocando los días previstos, y señalas quién faltó.<br>
+  🟢 Con eso sale «Para grabar en Séneca» (días a marcar en Usos del servicio) y el PDF con su nombre para subirlo.<br>
+  📑 Nuevo apartado <b>Documentos del grupo</b>: <b>programación</b> con una propuesta lista para revisar, <b>acta de selección</b> (Anexo XVI), <b>autorizaciones</b> de las familias (Anexo VI), <b>baja</b> (Anexo VIII) y <b>anexo al acta</b> (XVII), copiados de los modelos oficiales.<br>
+  🖨️ Los monitores descargan su <b>Anexo X con las fechas previstas</b> del mes, el XII y el XIII para imprimir, y rellenan el informe trimestral (Anexo XV).<br>
+  ⚡ Los 4 grupos se crean como en Séneca (Tercero y Quinto: Sandra; Cuarto: Nuria; Sexto: Manolo).</p>
+  <p class="muted small">Los datos se comparten entre el equipo directivo y la coordinación ZTS. En la nube el alumnado va solo por siglas; los nombres completos se quedan en tu dispositivo.</p>
   <div class="pie"><button class="btn" onclick="this.closest('dialog').close()">Entendido</button></div>
 </dialog>
 <dialog id="novMon">
   <h2>👋 Bienvenida al PROA</h2>
-  <p>Aquí llevas tu grupo de Acompañamiento:</p>
-  <p>✅ <b>Pasar lista</b> cada tarde: el día, si se ha dado la clase, el horario y la asistencia (P, F o J).<br>
-  📄 A final de mes, <b>«Anexo X»</b> (tus sesiones) y <b>«Anexo XII»</b> (ausencias): salen los modelos oficiales rellenos para firmarlos y entregarlos a dirección.<br>
-  📝 Al final de cada trimestre, el <b>informe de cada alumno/a</b> (Anexo XV oficial).</p>
-  <p class="muted small">Solo ves tu grupo. El alumnado aparece por siglas.</p>
+  <p>Aquí tienes tu grupo de Acompañamiento:</p>
+  <p>🖨️ Cada mes, descarga e imprime la <b>hoja de asistencia (Anexo X)</b> con las fechas ya puestas y la de <b>ausencias (Anexo XII)</b>. Firma cada sesión, anota quién falta y entrégalas a dirección a final de mes.<br>
+  📝 Al final de cada trimestre, rellena aquí el <b>informe de cada alumno/a</b> y descarga el <b>Anexo XV</b>.</p>
+  <p class="muted small">Solo ves tus grupos. El alumnado aparece por siglas.</p>
   <div class="pie"><button class="btn" onclick="this.closest('dialog').close()">Entendido</button></div>
 </dialog>
 <div id="toast"></div>
@@ -187,6 +182,7 @@ body.mon #nav button:not([data-s=acomp]),body.mon #selCurso{display:none}
 <script src="palancas.js"></script>
 <script src="app.js"></script>
 <script src="app2.js"></script>
+<script src="app3.js"></script>
 <script>if('serviceWorker' in navigator)navigator.serviceWorker.register('sw.js').catch(()=>{});</script>
 </body>
 </html>
