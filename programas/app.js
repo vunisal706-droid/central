@@ -127,7 +127,7 @@ function pintarCursos() {
   $('selCurso').innerHTML = [i - 1, i, i + 1].map(y => { const c = y + '-' + String(y + 1).slice(2); return '<option value="' + c + '"' + (c === CURSO ? ' selected' : '') + '>' + y + '/' + String(y + 1).slice(2) + '</option>'; }).join('');
   $('selCurso').onchange = () => { CURSO = $('selCurso').value; conectar(); };
 }
-function novedades() { const K = esMon() ? 'programas-nov-mon-v3' : 'programas-nov-v7'; const dlgId = esMon() ? 'novMon' : 'novedades'; try { if (localStorage.getItem(K)) return; localStorage.setItem(K, 1); } catch (e) { } setTimeout(() => { try { $(dlgId).showModal(); } catch (e) { } }, 500); }
+function novedades() { const K = esMon() ? 'programas-nov-mon-v3' : 'programas-nov-v8'; const dlgId = esMon() ? 'novMon' : 'novedades'; try { if (localStorage.getItem(K)) return; localStorage.setItem(K, 1); } catch (e) { } setTimeout(() => { try { $(dlgId).showModal(); } catch (e) { } }, 500); }
 
 // ─── Navegación ───
 $('nav').onclick = e => { const b = e.target.closest('button'); if (b) irA(b.dataset.s); };
@@ -260,8 +260,9 @@ function quincenasPendientes() {
   const hoy = new Date(hoyIso() + 'T12:00'), rg = rangoProg();
   if (hoyIso() < rg.ini || hoyIso() > rg.fin) return [];
   return Object.entries(D.grupos || {}).filter(([g]) => {
-    const ult = Object.values(D.reuniones || {}).filter(r => r.tipo === 'quincenal' && r.grupo === g).map(r => r.fecha).sort().pop();
-    return !ult || (hoy - new Date(ult + 'T12:00')) / 864e5 > 15;
+    const ult = Object.values(D.reuniones || {}).filter(r => r.tipo === 'quincenal' && r.grupo === g && !r.prevista && r.fecha <= hoyIso()).map(r => r.fecha).sort().pop();
+    const desde = ult || D.grupos[g].inicio || (startY(CURSO) + '-10-26');
+    return (hoy - new Date(desde + 'T12:00')) / 864e5 > 15;
   }).map(([, g]) => g.nombre);
 }
 
@@ -299,12 +300,17 @@ function rCotejo(g) {
 // ─── Reuniones ───
 const TIPOS = { quincenal: '🤝 Quincenal acompañante – tutor/a (PROA Andalucía)', familia: '👪 Cita con familia', comision: '🎯 Comisión de seguimiento PROA+', zts: '🌱 Coordinación ZTS', otra: '📝 Otra' };
 function rReuniones() {
-  const R = Object.entries(D.reuniones || {}).filter(([, r]) => !filtroReu || r.tipo === filtroReu).sort((a, b) => (b[1].fecha || '').localeCompare(a[1].fecha || ''));
+  const hoy = hoyIso(), todas = Object.entries(D.reuniones || {});
+  const R = todas.filter(([, r]) => !filtroReu || r.tipo === filtroReu).sort((a, b) => {
+    const fa = a[1].fecha || '', fb = b[1].fecha || '', pa = fa >= hoy, pb = fb >= hoy;
+    return pa !== pb ? (pa ? -1 : 1) : pa ? fa.localeCompare(fb) : fb.localeCompare(fa);
+  });
   const q = quincenasPendientes();
   return '<div class="card"><div class="card-h"><h2>🤝 Reuniones</h2><button class="btn" data-acc="nuevaReu">＋ Nueva reunión</button></div>' +
     (q.length ? '<div class="aviso">Hace más de 15 días sin reunión quincenal: ' + q.map(esc).join(', ') + '</div>' : '') +
+    (!todas.some(([, r]) => r.prevista) ? '<div class="aviso verde">¿Empezamos con las reuniones del curso ya previstas (quincenales de cada grupo, reunión con familias, coordinación ZTS y comisiones del PROA+), con su orden del día? Luego las editas o borras. <button class="btn peq" data-acc="reuPrevistas" style="margin-left:6px">📅 Cargar reuniones previstas</button></div>' : '') +
     '<div class="chips"><button class="chip' + (!filtroReu ? ' on' : '') + '" data-freu="">Todas</button>' + Object.entries(TIPOS).map(([k, t]) => '<button class="chip' + (filtroReu === k ? ' on' : '') + '" data-freu="' + k + '">' + t.split(' (')[0] + '</button>').join('') + '</div>' +
-    (R.map(([id, r]) => '<div class="item"><div class="fecha">' + (r.fecha ? fechaCorta(r.fecha) : '') + '</div><div class="cuerpo"><div class="tt">' + esc(TIPOS[r.tipo] || r.tipo) + (r.grupo && D.grupos[r.grupo] ? ' · ' + esc(D.grupos[r.grupo].nombre) : '') + '</div>' +
+    (R.map(([id, r]) => '<div class="item"><div class="fecha">' + (r.fecha ? fechaCorta(r.fecha) : '') + '</div><div class="cuerpo"><div class="tt">' + esc(TIPOS[r.tipo] || r.tipo) + (r.grupo && D.grupos[r.grupo] ? ' · ' + esc(D.grupos[r.grupo].nombre) : '') + (r.hora ? ' · ' + esc(r.hora) : '') + (r.prevista ? ' <span class="tag st-warn">Prevista</span>' : '') + '</div>' +
       '<div class="dd">' + esc(r.asistentes || '') + '</div>' + (r.acuerdos ? '<div class="dd" style="white-space:pre-line;color:var(--text)">' + esc(r.acuerdos) + '</div>' : '') +
       '<div style="margin-top:6px"><button class="btn sec peq" data-reu="' + id + '">✏️ Editar</button> <button class="btn sec peq" data-acta="' + id + '">📄 Acta</button></div></div></div>').join('') || '<p class="muted">Aún no hay reuniones registradas.</p>') +
     '<p class="small muted" style="margin-top:8px">El registro de reuniones quincenales y de citas con familias se guarda con la documentación del PROA Andalucía. Las comisiones de seguimiento del PROA+ llevan acta (modelo nº 12), al menos dos al año.</p></div>';
@@ -318,13 +324,14 @@ function dlgReunion(id) {
     '<label>Asistentes</label><input id="rAsis" value="' + esc(r.asistentes || '') + '" placeholder="Nombres y cargos">' +
     '<label>Alumnado tratado (siglas)</label><input id="rAlum" value="' + esc(r.alumnos || '') + '">' +
     '<label>Temas y acuerdos</label><textarea id="rAcu" rows="5">' + esc(r.acuerdos || '') + '</textarea>' +
+    '<label style="display:flex;gap:8px;align-items:center;font-weight:700;color:var(--text);margin-top:10px"><input type="checkbox" id="rCel" style="width:20px;height:20px"' + (r.prevista ? '' : ' checked') + '> Ya se ha celebrado (si no, queda como «prevista»)</label>' +
     '<label style="display:flex;gap:8px;align-items:center;font-weight:700;color:var(--text);margin-top:10px"><input type="checkbox" id="rPub" style="width:20px;height:20px"' + ((r.publicar != null ? r.publicar : r.tipo !== 'familia' && r.tipo !== 'otra') ? ' checked' : '') + '> Que salga en el calendario del profesorado y en el Tablón (solo fecha, hora y tipo)</label>' +
     '<div class="pie">' + (id ? '<button class="btn rojo" id="rBorrar">Borrar</button>' : '') + '<button class="btn sec" id="rCancel">Cancelar</button><button class="btn" id="rOk">Guardar</button></div>';
   $('dlg').showModal();
   $('rCancel').onclick = () => $('dlg').close();
   if (id) $('rBorrar').onclick = () => { if (confirm('¿Borrar la reunión?')) { guardar('reuniones/' + id, null); publicarCita(id, null); $('dlg').close(); render(); } };
   $('rOk').onclick = () => {
-    const v = { tipo: $('rTipo').value, fecha: $('rFecha').value, hora: $('rHora').value || '', publicar: $('rPub').checked, mod: $('rMod').value, grupo: $('rGrupo').value, asistentes: $('rAsis').value.trim(), alumnos: $('rAlum').value.trim(), acuerdos: $('rAcu').value.trim(), por: PERFIL };
+    const v = { tipo: $('rTipo').value, fecha: $('rFecha').value, hora: $('rHora').value || '', publicar: $('rPub').checked, prevista: !$('rCel').checked || null, mod: $('rMod').value, grupo: $('rGrupo').value, asistentes: $('rAsis').value.trim(), alumnos: $('rAlum').value.trim(), acuerdos: $('rAcu').value.trim(), por: PERFIL };
     if (!v.fecha) return toast('Pon la fecha', 'err');
     const rid = id || uid();
     guardar('reuniones/' + rid, v); publicarCita(rid, v.publicar ? v : null); $('dlg').close(); render(); toast('Reunión guardada');
@@ -336,6 +343,35 @@ function publicarCita(id, r) {
   const g = r && r.grupo && D.grupos[r.grupo];
   db.ref('programas_publico/citas/' + id).set(r ? { fecha: r.fecha, hora: r.hora || '', titulo: (TIT_CITA[r.tipo] || 'Reunión') + (g ? ' (' + g.nombre + ')' : ''), detalle: (r.mod || '') + ' · Programas del cole' } : null)
     .catch(e => toast('La reunión se ha guardado, pero no ha podido salir en el calendario: falta el permiso «programas_publico» en Firebase.', 'err'));
+}
+// Reuniones previstas del curso (editables) para no partir de cero
+async function cargarReunionesPrevistas() {
+  try { cargarCalCole(); for (let i = 0; i < 30 && !(window.CalendarioCole); i++) await new Promise(r => setTimeout(r, 100)); if (window.CalendarioCole && window.CalendarioCole.listo) await Promise.race([window.CalendarioCole.listo, new Promise(r => setTimeout(r, 2500))]); calCole = window.CalendarioCole || calCole; } catch (e) { }
+  const y = startY(CURSO), G = Object.entries(D.grupos || {}), out = [];
+  const add = r => out.push(Object.assign({ prevista: true, publicar: false, mod: 'Telemática', por: PERFIL }, r));
+  const sinC = f => typeof sinCole === 'function' && sinCole(f);
+  // Quincenales acompañante – tutor/a: lunes alternos desde el 9 de noviembre hasta final de mayo
+  for (let d = new Date(y, 10, 9, 12); d <= new Date(y + 1, 4, 31, 12); d.setDate(d.getDate() + 14)) {
+    let f = iso(d); if (sinC(f)) { const e = new Date(d); e.setDate(e.getDate() + 1); f = iso(e); }
+    G.forEach(([gid, g]) => add({ tipo: 'quincenal', fecha: f, hora: '17:00', grupo: gid, asistentes: (g.docente || 'Monitor/a') + ' y tutor/a de ' + (CURSO_G(g) || g.nombre) + '; coordinación del PROA',
+      acuerdos: '1. Asistencia y puntualidad de la quincena.\n2. Tareas y contenidos de clase que conviene reforzar en el Acompañamiento.\n3. Evolución de cada alumno/a: lectura, cálculo, resolución de problemas y hábitos de trabajo.\n4. Comunicación con las familias (faltas, justificantes, citas).\n5. Acuerdos para la próxima quincena.' }));
+  }
+  // Reunión informativa con las familias de cada grupo
+  G.forEach(([gid, g]) => add({ tipo: 'familia', fecha: y + '-11-05', hora: '16:00', mod: 'Presencial', grupo: gid, asistentes: 'Familias del alumnado de ' + g.nombre + ', ' + (g.docente || 'monitor/a') + ' y coordinación del PROA',
+    acuerdos: '1. Presentación del Acompañamiento Escolar (PROA Andalucía), cofinanciado por el FSE+.\n2. Días y horario: ' + (g.horario || '') + '. Asistencia, puntualidad y recogida.\n3. Firma de la autorización familiar (Anexo VI) y teléfonos de contacto.\n4. Justificación de faltas (Anexo XIII) y bajas (Anexo VIII).\n5. Ruegos y preguntas.' }));
+  // Coordinación ZTS: primer lunes lectivo de cada mes
+  for (let m = 10; m <= 17; m++) {
+    const mm = ((m - 1) % 12), yy = m > 11 ? y + 1 : y; let d = new Date(yy, mm, 1, 12);
+    while (d.getDay() !== 1 || sinC(iso(d))) d.setDate(d.getDate() + 1);
+    if (iso(d) < hoyIso()) continue;
+    add({ tipo: 'zts', fecha: iso(d), hora: '13:00', mod: 'Presencial', asistentes: 'Equipo directivo y profesorado ZTS (Miriam N. Romero y Cristina Molina)',
+      acuerdos: '1. Seguimiento de los desdobles de Lengua y Matemáticas en 2.º y 3.º.\n2. Absentismo: casos del mes y llamadas a las familias.\n3. Alumnado recién llegado y plan de acogida.\n4. Seguimiento del Plan de Actuación ZTS.\n5. Acuerdos.' });
+  }
+  // Comisiones de seguimiento del PROA+ (mínimo dos al año)
+  [[y + '-12-14', '1.ª', 'de la 1.ª evaluación'], [(y + 1) + '-05-17', '2.ª', 'de la 2.ª evaluación y previsión de la 3.ª']].forEach(([f, n, ev]) => add({ tipo: 'comision', fecha: f, hora: '13:00', mod: 'Presencial', asistentes: 'Equipo directivo, coordinación del PROA+ y tutores/as del alumnado participante',
+    acuerdos: n + ' comisión de seguimiento del PROA+ Transfórmate (modelo nº 12).\n1. Seguimiento del PEM y de las 10 actividades palanca.\n2. Datos de los indicadores ' + ev + '.\n3. Ejecución económica de la dotación.\n4. Dificultades y propuestas de mejora.\n5. Acuerdos.' }));
+  out.forEach(r => guardar('reuniones/' + uid(), r));
+  toast(out.length + ' reuniones previstas cargadas. Edítalas o bórralas cuando quieras.'); render();
 }
 function acta(id) {
   const r = D.reuniones[id], g = r.grupo && D.grupos[r.grupo];
@@ -457,6 +493,7 @@ document.addEventListener('click', e => {
     else if (a === 'todosP') { const al = D.grupos[grupoSel].alumnos || {}; const o = {}; Object.keys(al).forEach(k => o[k] = 'P'); guardar('sesiones/' + grupoSel + '/' + fechaLista + '/asist', o); render(); }
     else if (a === 'anexoX') docAnexoX(grupoSel, mesResumen);
     else if (a === 'gruposSeneca') crearGruposSeneca();
+    else if (a === 'reuPrevistas') cargarReunionesPrevistas();
     else if (a === 'traerDatos') traerDatos(t);
     else if (a === 'anexoXII') docAnexoXII(grupoSel, mesResumen);
     else if (a === 'anexoXV') docAnexoXV(grupoSel, +$('triInf').value);
