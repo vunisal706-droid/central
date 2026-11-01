@@ -221,6 +221,42 @@
     });
     return out;
   }
+  // Programas del cole (ZTS, PROA Andalucía y PROA+): plazos y actividades palanca (archivos públicos de la app)
+  let PLZ = [];
+  async function cargarProgramas() {
+    const [a, b] = await Promise.all([traer(BASE + 'central/programas/plazos.js'), traer(BASE + 'central/programas/palancas.js')]);
+    const w = {};
+    try { if (a) new Function('window', a)(w); } catch (e) { }
+    try { if (b) new Function('window', b)(w); } catch (e) { }
+    const out = [], hoy = new Date(), y0 = hoy.getMonth() >= 8 ? hoy.getFullYear() : hoy.getFullYear() - 1;
+    const pad = n => String(n).padStart(2, '0'), NP = { ZTS: 'Programa ZTS', PROA: 'PROA Andalucía', 'PROA+': 'PROA+ Transfórmate' };
+    PLZ = (w.PLAZOS || []).map(p => {
+      const y = p.m >= 9 ? y0 : y0 + 1, dim = new Date(y, p.m, 0).getDate();
+      const fin = y + '-' + pad(p.m) + '-' + pad(p.s ? Math.min(p.e || p.s, dim) : dim);
+      return Object.assign({}, p, { y, fin, prog: NP[p.p] || p.p });
+    });
+    PLZ.forEach(p => out.push({ fuente: 'Programas', doc: 'Programas del cole', sec: p.prog, sub: p.t, cab: '', ancla: '', url: BASE + 'central/programas/', urlDirecta: true,
+      bloques: [p.t + ' · ' + (p.f ? p.f + ' · ' : '') + MESES[p.m - 1] + ' ' + p.y].concat([p.d, p.r ? 'Séneca: ' + p.r : ''].filter(Boolean)), fecha: p.fin, peso: 1 }));
+    (w.PALANCAS || []).forEach(p => out.push({ fuente: 'Programas', doc: 'PROA+ · Plan de actividades palanca', sec: p.c + ' · ' + p.t, sub: p.bloque, cab: '', ancla: '', url: BASE + 'central/programas/', urlDirecta: true,
+      bloques: [p.c + ' · ' + p.t + ' (' + p.tipo + ', reto: ' + p.reto + ')', 'Objetivo: ' + p.obj].concat(p.acc, ['Indicadores: ' + p.ind]), peso: 1.1 }));
+    (w.RETOS || []).forEach(r => out.push({ fuente: 'Programas', doc: 'PROA+ · Retos e indicadores', sec: 'Reto ' + r.n, sub: r.t, cab: '', ancla: '', url: BASE + 'central/programas/', urlDirecta: true,
+      bloques: ['Reto ' + r.n + ': ' + r.t, 'Por qué: ' + r.por, 'Indicador: ' + r.ind, 'Meta 26/27: ' + r.meta], peso: 1.05 }));
+    return out;
+  }
+  // «¿Qué toca del PROA este mes?»: tareas del mes y vencidas de los programas
+  function respuestaProgramas(q) {
+    const nq = norm(q);
+    if (!PLZ.length || !/proa|zts|transformate|acompanamiento|programa|palanca/.test(nq)) return '';
+    if (!/este mes|que toca|que hay que hacer|pendiente|plazo|tarea|que tengo|proxim|cuando/.test(nq)) return '';
+    const pr = /proa\+|proa mas|transformate|palanca/.test(nq) ? 'PROA+' : /zts|transformacion social/.test(nq) ? 'ZTS' : /proa|acompanamiento/.test(nq) ? 'PROA' : '';
+    const hoy = new Date(), mes = hoy.getMonth() + 1, hoyS = hoy.toISOString().slice(0, 10);
+    let L = PLZ.filter(p => (!pr || p.p === pr) && p.m === mes);
+    if (/proxim|cuando/.test(nq)) L = PLZ.filter(p => (!pr || p.p === pr) && p.fin >= hoyS).sort((a, b) => a.fin.localeCompare(b.fin)).slice(0, 6);
+    if (!L.length) return '';
+    return '<div class="as-cal as-agenda"><b>🗂️ Programas del cole' + (pr ? ' · ' + esc({ ZTS: 'ZTS', PROA: 'PROA Andalucía', 'PROA+': 'PROA+' }[pr]) : '') + (/proxim|cuando/.test(nq) ? ' · próximos plazos' : ' · ' + MESES[mes - 1]) + '</b><ul>'
+      + L.map(p => '<li><b>' + esc(p.t) + '</b> · ' + esc(p.f || '') + (p.fin ? ' (hasta el ' + esc(largo(p.fin)) + ')' : '') + (p.d || p.r ? '<details><summary>Detalles</summary>' + (p.d ? '<div>' + esc(p.d) + '</div>' : '') + (p.r ? '<div>Séneca: ' + esc(p.r) + '</div>' : '') + '</details>' : '') + '</li>').join('')
+      + '</ul><a class="enlace" href="' + BASE + 'central/programas/" target="_blank" rel="noopener">Abrir Programas del cole</a></div>';
+  }
   // Las fechas cercanas pesan más que las pasadas
   function pesoFecha(t) {
     if (!t.fecha) return 1;
@@ -236,7 +272,7 @@
     if (IDX) return IDX;
     if (cargando) return cargando;
     cargando = (async () => {
-      const partes = await Promise.all([cargarCapiGuia(), cargarPlanCentro(), cargarProtocolos(), cargarDatosFijos(), cargarCalendario()]);
+      const partes = await Promise.all([cargarCapiGuia(), cargarPlanCentro(), cargarProtocolos(), cargarDatosFijos(), cargarCalendario(), cargarProgramas()]);
       const T = partes.flat();
       const df = new Map(), docs = [];
       T.forEach((t, i) => {
@@ -278,6 +314,7 @@
       for (let k = 0; k + 1 < frase.length; k++) if (d.texto.includes(norm(frase[k] + ' ' + frase[k + 1]))) s *= 1.25;
       s *= (T[i].peso || 1) * pesoFecha(T[i]);
       if (T[i].fuente === 'Agenda' && !pideAgenda) s *= 0.45;
+      if (T[i].fuente === 'Programas' && T[i].fecha && !/proa|zts|programa|palanca|transformate|acompanamiento|plazo|seneca/.test(norm(q))) s *= 0.4;
       if (qcur.size && d.cur.size) s *= [...qcur].some(c => d.cur.has(c)) ? 1.35 : 0.55;
       res.push({ i, s });
     });
@@ -365,6 +402,7 @@
     if (/\.docx$/i.test(t.url)) return 'Descargar el documento (Word)';
     if (/\.pdf$/i.test(t.url)) return 'Abrir el PDF';
     if (t.fuente === 'Agenda') return 'Ver en la Agenda';
+    if (t.fuente === 'Programas') return 'Abrir Programas del cole';
     if (t.fuente === 'Currículo') return 'Ver en la app SDA';
     if (t.fuente === 'Convive+') return /parteconvivencia/.test(t.url) ? 'Abrir Convive+' : 'Abrir el documento oficial';
     return 'Leer en ' + t.fuente;
@@ -373,7 +411,7 @@
 
   const EJEMPLOS = ['¿Qué hago si llueve a la entrada?', '¿Cuándo es el próximo claustro?', 'Criterios de evaluación de Matemáticas de 3.º', '¿Qué se trabaja en 1.º de Primaria?',
     '¿Qué hago si un alumno se pone malo?', '¿Qué hacer ante un caso de acoso?', 'Situaciones de aprendizaje de Lengua del segundo ciclo', '¿Cómo se pasa de los niveles de logro a la nota?',
-    '¿Qué hago con un alumno con dificultades en la lectura?', 'Soy sustituto, ¿qué tengo que saber?', '¿Cuándo es el próximo día sin cole?'];
+    '¿Qué hago con un alumno con dificultades en la lectura?', 'Soy sustituto, ¿qué tengo que saber?', '¿Cuándo es el próximo día sin cole?', '¿Qué toca del PROA este mes?'];
   const HIST = 'capi-asistente-historial';
   const leerHist = () => { try { return JSON.parse(localStorage.getItem(HIST)) || []; } catch (e) { return []; } };
 
@@ -392,7 +430,7 @@
     if (!IDX) box.innerHTML = '<div class="as-cargando">📚 Leyendo los documentos del centro…</div>';
     try { await preparar(); } catch (e) { }
     if (!IDX || !IDX.N) { box.innerHTML = '<div class="vacio">No he podido leer los documentos. Revisa la conexión e inténtalo de nuevo.</div>'; return; }
-    const cal = (await respuestaCalendario(q)) + respuestaAgenda(q);
+    const cal = (await respuestaCalendario(q)) + (respuestaProgramas(q) || respuestaAgenda(q));
     const res = buscar(q, 6);
     const umbral = 2.2;
     let h = cal;

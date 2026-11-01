@@ -62,6 +62,7 @@ function docRdC() {
     '<h2>3. Seguimiento</h2>' + tabla(['Actuación', 'Fechas'], [['Comisiones de seguimiento', esc(com.map(r => fechaCorta(r.fecha)).join(', ') || '—')],
       ['Revisión del PEM (enero)', esc(ORG.map(([o, n]) => ((P.rev || {}).s1 || {})[o] ? n + ' ' + fechaCorta(P.rev.s1[o]) : '').filter(Boolean).join(' · ') || '—')],
       ['Revisión y evaluación del PEM (junio)', esc(ORG.map(([o, n]) => ((P.rev || {}).s2 || {})[o] ? n + ' ' + fechaCorta(P.rev.s2[o]) : '').filter(Boolean).join(' · ') || '—')]]) +
+    '<h2>Datos de lectura (Registro de Lectura, A413)</h2>' + tabla(['Trimestre', 'Velocidad lectora (media /10)', 'Comprensión lectora (media /10)'], ['t1', 't2', 't3'].filter(t => ((D.datos || {}).lectura || {})[t]).map(t => { const x = D.datos.lectura[t]; return [t[1] + '.º', x.vl ?? '—', x.cl ?? '—']; })) +
     '<h2>4. Ejecución económica</h2>' + tabla(['Concepto', 'Importe'], [['Dotación', eur(ecoDot())], ['Gastado', eur(ecoTot().total)], ['Pagado', eur(ecoTot().pagado)], ['Sin gastar', eur(ecoDot() - ecoTot().total)]]), 'PROA+');
 }
 
@@ -305,3 +306,72 @@ document.addEventListener('change', e => {
   if (t.dataset.xvc) { guardar('informes/' + grupoSel + '/_cont/t' + tri + '/' + t.dataset.xvc, t.value.trim() || null); if (t.dataset.xvc[0] === 'c') render(); }
   else if (t.dataset.xve) { const [aid, k] = t.dataset.xve.split('|'); guardar('informes/' + grupoSel + '/' + aid + '/t' + tri + '/e/' + k, t.value || null); }
 });
+
+// ─── Datos de otras apps del cole (Gestor de Evaluación y Registro de Lectura) ───
+const CFG_EVAL = { apiKey: 'AIzaSyAiPUQqT5nUi5Sme4N6N2_cTsKP5-u44Us', authDomain: 'capitulaciones-b377a.firebaseapp.com', databaseURL: 'https://capitulaciones-b377a-default-rtdb.europe-west1.firebasedatabase.app', projectId: 'capitulaciones-b377a', storageBucket: 'capitulaciones-b377a.firebasestorage.app', messagingSenderId: '1057770341975', appId: '1:1057770341975:web:9320daeca26839753a4512' };
+const CFG_LECT = { apiKey: 'AIzaSyApxbTH_SHEbDa610HEfdrGS1TRLF3m_ro', authDomain: 'seguimientolecres.firebaseapp.com', projectId: 'seguimientolecres', storageBucket: 'seguimientolecres.firebasestorage.app', messagingSenderId: '867043568083', appId: '1:867043568083:web:63ce523973e4745dbea726' };
+function cargarScript(src) { return new Promise((ok, ko) => { if ([...document.scripts].some(s => s.src === src)) return ok(); const s = document.createElement('script'); s.src = src; s.onload = ok; s.onerror = ko; document.head.appendChild(s); }); }
+async function entrarOtra(nombre, cfg) {
+  const app = firebase.apps.find(a => a.name === nombre) || firebase.initializeApp(cfg, nombre);
+  const idea = PERFILES[PERFIL].idea;
+  try { await app.auth().setPersistence(firebase.auth.Auth.Persistence.NONE); } catch (e) { }
+  if (!app.auth().currentUser) await app.auth().signInWithEmailAndPassword(idea + DOMINIO, idea);
+  return app;
+}
+async function datosEvaluacion() {
+  const app = await entrarOtra('evalu-ro', CFG_EVAL);
+  const v = (await app.database().ref('evaluaciones').once('value')).val() || {};
+  const pre = startY(CURSO) + '-' + (startY(CURSO) + 1) + '_T', out = {};
+  Object.entries(v).forEach(([k, r]) => {
+    if (!k.startsWith(pre) || !r || !/^[1-6]ep$/.test(r.cursoId || '')) return;
+    const ms = ((r.stats || {}).matStats || {}).MAT; if (!ms) return;
+    const t = 't' + r.trimestre; out[t] = out[t] || { pos: 0, tot: 0, cursos: 0 };
+    let pos = 0, tot = 0; Object.entries(ms).forEach(([g, n]) => { tot += n; if (['SB', 'NT', 'BI', 'SU'].includes(g)) pos += n; });
+    out[t].pos += pos; out[t].tot += tot; out[t].cursos++;
+  });
+  return out;
+}
+async function datosLectura() {
+  await cargarScript('https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore-compat.js');
+  const app = await entrarOtra('registro-ro', CFG_LECT);
+  const snap = await app.firestore().collection('cursos').get();
+  const pre = startY(CURSO) + '-' + String(startY(CURSO) + 1).slice(2) + '__', acc = [0, 1, 2].map(() => ({ vl: [], cl: [] }));
+  snap.forEach(d => {
+    if (!d.id.startsWith(pre) || /demo/i.test(d.id)) return;
+    const c = d.data(), notas = c.notas || {};
+    Object.values(notas).forEach(arr => (Array.isArray(arr) ? arr : Object.values(arr || {})).forEach((n, ti) => {
+      if (!n || ti > 2) return;
+      ['vl', 'cl'].forEach(k => { const x = parseFloat(n[k]); if (!isNaN(x)) acc[ti][k].push(x); });
+    }));
+  });
+  const media = a => a.length ? Math.round(10 * a.reduce((x, y) => x + y, 0) / a.length) / 10 : null, out = {};
+  acc.forEach((a, i) => { if (a.vl.length || a.cl.length) out['t' + (i + 1)] = { vl: media(a.vl), cl: media(a.cl), n: Math.max(a.vl.length, a.cl.length) }; });
+  return out;
+}
+async function traerDatos(btn) {
+  const o = btn.textContent; btn.disabled = true; btn.textContent = '⏳ Leyendo las otras apps…';
+  const msg = [];
+  try {
+    const E = await datosEvaluacion(); const ts = Object.keys(E);
+    ts.forEach(t => { const x = E[t]; if (x.tot) guardar('retos/r1/' + t, Math.round(100 * x.pos / x.tot) + ' %'); });
+    guardar('datos/eval', E);
+    msg.push(ts.length ? '✔ Evaluación: % de aprobados en Matemáticas de ' + ts.length + ' evaluación(es)' : 'Evaluación: todavía no hay notas de este curso');
+  } catch (e) { console.warn(e); msg.push('✖ Gestor de Evaluación: no he podido entrar con tu usuario (' + (e.code || e.message || 'error') + ')'); }
+  try {
+    const L = await datosLectura(); guardar('datos/lectura', L);
+    msg.push(Object.keys(L).length ? '✔ Registro de Lectura: medias de velocidad y comprensión de ' + Object.keys(L).length + ' trimestre(s)' : 'Registro de Lectura: todavía no hay notas de este curso');
+  } catch (e) { console.warn(e); msg.push('✖ Registro de Lectura: no he podido entrar con tu usuario (' + (e.code || e.message || 'error') + ')'); }
+  guardar('datos/actualizado', new Date().toISOString());
+  btn.disabled = false; btn.textContent = o; render(); toast(msg.join(' · '));
+}
+function rDatosOtras() {
+  const Dt = D.datos || {}, E = Dt.eval || {}, L = Dt.lectura || {};
+  if (!Dt.actualizado) return '<p class="small muted">Rellena solo el reto 1 (% de aprobados en Matemáticas de 1.º a 6.º, del Gestor de Evaluación) y trae las medias de lectura para la A413.</p>';
+  return '<p class="small muted">Última lectura: ' + esc(new Date(Dt.actualizado).toLocaleString('es-ES')) + '. ' +
+    ['t1', 't2', 't3'].filter(t => E[t] && E[t].tot).map(t => t[1] + '.ª ev.: ' + Math.round(100 * E[t].pos / E[t].tot) + ' % aprobados en Matemáticas (' + E[t].cursos + ' cursos)').join(' · ') + '</p>';
+}
+function rLecturaA413() {
+  const L = (D.datos || {}).lectura || {}, ts = ['t1', 't2', 't3'].filter(t => L[t]);
+  if (!ts.length) return '';
+  return '<div class="aviso verde small"><b>Registro de Lectura (media del centro, sobre 10):</b> ' + ts.map(t => t[1] + '.º trim.: velocidad ' + (L[t].vl ?? '—') + ' · comprensión ' + (L[t].cl ?? '—')).join(' | ') + '</div>';
+}

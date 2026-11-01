@@ -127,7 +127,7 @@ function pintarCursos() {
   $('selCurso').innerHTML = [i - 1, i, i + 1].map(y => { const c = y + '-' + String(y + 1).slice(2); return '<option value="' + c + '"' + (c === CURSO ? ' selected' : '') + '>' + y + '/' + String(y + 1).slice(2) + '</option>'; }).join('');
   $('selCurso').onchange = () => { CURSO = $('selCurso').value; conectar(); };
 }
-function novedades() { const K = esMon() ? 'programas-nov-mon-v2' : 'programas-nov-v4'; const dlgId = esMon() ? 'novMon' : 'novedades'; try { if (localStorage.getItem(K)) return; localStorage.setItem(K, 1); } catch (e) { } setTimeout(() => { try { $(dlgId).showModal(); } catch (e) { } }, 500); }
+function novedades() { const K = esMon() ? 'programas-nov-mon-v2' : 'programas-nov-v5'; const dlgId = esMon() ? 'novMon' : 'novedades'; try { if (localStorage.getItem(K)) return; localStorage.setItem(K, 1); } catch (e) { } setTimeout(() => { try { $(dlgId).showModal(); } catch (e) { } }, 500); }
 
 // ─── Navegación ───
 $('nav').onclick = e => { const b = e.target.closest('button'); if (b) irA(b.dataset.s); };
@@ -325,20 +325,29 @@ function dlgReunion(id) {
   const r = id ? D.reuniones[id] : { tipo: 'quincenal', fecha: hoyIso() };
   $('dlgIn').innerHTML = '<h2>' + (id ? 'Editar reunión' : 'Nueva reunión') + '</h2>' +
     '<label>Tipo</label><select id="rTipo">' + Object.entries(TIPOS).map(([k, t]) => '<option value="' + k + '"' + (r.tipo === k ? ' selected' : '') + '>' + t + '</option>').join('') + '</select>' +
-    '<div class="g2"><div><label>Fecha</label><input type="date" id="rFecha" value="' + esc(r.fecha || '') + '"></div><div><label>Modalidad</label><select id="rMod">' + ['Telemática', 'Presencial'].map(x => '<option' + (r.mod === x ? ' selected' : '') + '>' + x + '</option>').join('') + '</select></div></div>' +
+    '<div class="g2"><div><label>Fecha</label><input type="date" id="rFecha" value="' + esc(r.fecha || '') + '"></div><div><label>Hora</label><input type="time" id="rHora" value="' + esc(r.hora || '') + '"></div><div><label>Modalidad</label><select id="rMod">' + ['Telemática', 'Presencial'].map(x => '<option' + (r.mod === x ? ' selected' : '') + '>' + x + '</option>').join('') + '</select></div></div>' +
     '<label>Grupo de acompañamiento (si procede)</label><select id="rGrupo"><option value="">—</option>' + Object.entries(D.grupos || {}).map(([g, x]) => '<option value="' + g + '"' + (r.grupo === g ? ' selected' : '') + '>' + esc(x.nombre) + '</option>').join('') + '</select>' +
     '<label>Asistentes</label><input id="rAsis" value="' + esc(r.asistentes || '') + '" placeholder="Nombres y cargos">' +
     '<label>Alumnado tratado (siglas)</label><input id="rAlum" value="' + esc(r.alumnos || '') + '">' +
     '<label>Temas y acuerdos</label><textarea id="rAcu" rows="5">' + esc(r.acuerdos || '') + '</textarea>' +
+    '<label style="display:flex;gap:8px;align-items:center;font-weight:700;color:var(--text);margin-top:10px"><input type="checkbox" id="rPub" style="width:20px;height:20px"' + ((r.publicar != null ? r.publicar : r.tipo !== 'familia' && r.tipo !== 'otra') ? ' checked' : '') + '> Que salga en el calendario del profesorado y en el Tablón (solo fecha, hora y tipo)</label>' +
     '<div class="pie">' + (id ? '<button class="btn rojo" id="rBorrar">Borrar</button>' : '') + '<button class="btn sec" id="rCancel">Cancelar</button><button class="btn" id="rOk">Guardar</button></div>';
   $('dlg').showModal();
   $('rCancel').onclick = () => $('dlg').close();
-  if (id) $('rBorrar').onclick = () => { if (confirm('¿Borrar la reunión?')) { guardar('reuniones/' + id, null); $('dlg').close(); render(); } };
+  if (id) $('rBorrar').onclick = () => { if (confirm('¿Borrar la reunión?')) { guardar('reuniones/' + id, null); publicarCita(id, null); $('dlg').close(); render(); } };
   $('rOk').onclick = () => {
-    const v = { tipo: $('rTipo').value, fecha: $('rFecha').value, mod: $('rMod').value, grupo: $('rGrupo').value, asistentes: $('rAsis').value.trim(), alumnos: $('rAlum').value.trim(), acuerdos: $('rAcu').value.trim(), por: PERFIL };
+    const v = { tipo: $('rTipo').value, fecha: $('rFecha').value, hora: $('rHora').value || '', publicar: $('rPub').checked, mod: $('rMod').value, grupo: $('rGrupo').value, asistentes: $('rAsis').value.trim(), alumnos: $('rAlum').value.trim(), acuerdos: $('rAcu').value.trim(), por: PERFIL };
     if (!v.fecha) return toast('Pon la fecha', 'err');
-    guardar('reuniones/' + (id || uid()), v); $('dlg').close(); render(); toast('Reunión guardada');
+    const rid = id || uid();
+    guardar('reuniones/' + rid, v); publicarCita(rid, v.publicar ? v : null); $('dlg').close(); render(); toast('Reunión guardada');
   };
+}
+// Copia pública (solo fecha, hora y tipo) para el calendario del profesorado y el Tablón
+const TIT_CITA = { quincenal: 'PROA Andalucía · Reunión quincenal acompañante–tutor/a', comision: 'PROA+ · Comisión de seguimiento', zts: 'ZTS · Reunión de coordinación', familia: 'PROA · Cita con familia', otra: 'Programas · Reunión' };
+function publicarCita(id, r) {
+  const g = r && r.grupo && D.grupos[r.grupo];
+  db.ref('programas_publico/citas/' + id).set(r ? { fecha: r.fecha, hora: r.hora || '', titulo: (TIT_CITA[r.tipo] || 'Reunión') + (g ? ' (' + g.nombre + ')' : ''), detalle: (r.mod || '') + ' · Programas del cole' } : null)
+    .catch(e => toast('La reunión se ha guardado, pero no ha podido salir en el calendario: falta el permiso «programas_publico» en Firebase.', 'err'));
 }
 function acta(id) {
   const r = D.reuniones[id], g = r.grupo && D.grupos[r.grupo];
@@ -366,13 +375,14 @@ function rPalancas() {
     '<p class="small muted">7 obligatorias de la Adenda y 3 de libre elección (opciones A, B y C de Séneca). Firma de la Adenda en Séneca hasta el 30/11.</p></div>';
   h += '<div class="card"><h2>📈 Retos e indicadores</h2><div class="tabla"><table><tr><th>Reto</th><th>Indicador</th><th>Meta</th><th>Inicial</th><th>1.ª ev.</th><th>2.ª ev.</th><th>3.ª ev.</th></tr>' +
     RETOS.map(r => { const v = RT[r.id] || {}; return '<tr><td><b>' + r.n + '. ' + esc(r.t) + '</b></td><td class="small">' + esc(r.ind) + '</td><td class="small">' + esc(r.meta) + '</td>' + ['ini', 't1', 't2', 't3'].map(k => '<td><input data-reto="' + r.id + '" data-k="' + k + '" value="' + esc(v[k] || '') + '" style="min-width:64px;padding:6px"></td>').join('') + '</tr>'; }).join('') +
-    '</table></div><p class="small muted">Ajustad las metas con los datos de la evaluación inicial. Estos datos sirven para la RdC1 y la memoria.</p></div>';
+    '</table></div><p class="small muted">Ajustad las metas con los datos de la evaluación inicial. Estos datos sirven para la RdC1 y la memoria.</p>' +
+    '<div class="pie" style="justify-content:flex-start"><button class="btn peq" data-acc="traerDatos">📥 Traer datos de Evaluación y del Registro de Lectura</button></div>' + (typeof rDatosOtras === 'function' ? rDatosOtras() : '') + '</div>';
   h += PALANCAS.map(p => {
     const v = PAL[p.c] || {}, e = EST[v.estado || ''], ev = Object.entries(v.evid || {}).sort((a, b) => (a[1].fecha || '').localeCompare(b[1].fecha || ''));
     return '<div class="card pal"><div class="card-h"><div><h3>' + p.n + '. ' + esc(p.c) + ' · ' + esc(p.t) + '</h3><p class="small muted">' + esc(p.bloque) + ' · ' + esc(p.tipo) + ' · Reto: ' + esc(p.reto) + '</p></div>' +
       '<select data-estado="' + p.c + '" style="width:auto"><option value="">⏳ Pendiente</option><option value="marcha"' + (v.estado === 'marcha' ? ' selected' : '') + '>🚀 En marcha</option><option value="hecha"' + (v.estado === 'hecha' ? ' selected' : '') + '>✅ Completada</option></select></div>' +
       '<p><b>Objetivo:</b> ' + esc(p.obj) + '</p>' +
-      '<details><summary>Actuaciones previstas e indicadores</summary><ul style="margin:6px 0 6px 20px">' + p.acc.map(a => '<li>' + esc(a) + '</li>').join('') + '</ul><p class="small"><b>Indicadores:</b> ' + esc(p.ind) + '</p></details>' +
+      '<details><summary>Actuaciones previstas e indicadores</summary><ul style="margin:6px 0 6px 20px">' + p.acc.map(a => '<li>' + esc(a) + '</li>').join('') + '</ul><p class="small"><b>Indicadores:</b> ' + esc(p.ind) + '</p></details>' + (p.c === 'A413' && typeof rLecturaA413 === 'function' ? rLecturaA413() : '') +
       '<div style="margin-top:8px"><b class="small">Actuaciones realizadas y evidencias (' + ev.length + ')</b>' +
       ev.map(([eid, x]) => '<div class="item"><div class="fecha">' + (x.fecha ? fechaCorta(x.fecha) : '') + '</div><div class="cuerpo"><div>' + esc(x.texto) + '</div>' + (x.part ? '<div class="dd">Participantes: ' + esc(x.part) + '</div>' : '') + '</div><button class="btn sec peq" data-delev="' + p.c + '|' + eid + '" aria-label="Borrar">🗑️</button></div>').join('') +
       '<div style="margin-top:6px"><button class="btn sec peq" data-nuevaev="' + p.c + '">＋ Añadir actuación</button> <button class="btn sec peq" data-ficha="' + p.c + '">📄 Ficha</button></div></div></div>';
@@ -457,6 +467,7 @@ document.addEventListener('click', e => {
     else if (a === 'nuevaReu') dlgReunion();
     else if (a === 'todosP') { const al = D.grupos[grupoSel].alumnos || {}; const o = {}; Object.keys(al).forEach(k => o[k] = 'P'); guardar('sesiones/' + grupoSel + '/' + fechaLista + '/asist', o); render(); }
     else if (a === 'anexoX') docAnexoX(grupoSel, mesResumen);
+    else if (a === 'traerDatos') traerDatos(t);
     else if (a === 'anexoXII') docAnexoXII(grupoSel, mesResumen);
     else if (a === 'anexoXV') docAnexoXV(grupoSel, +$('triInf').value);
     else if (a === 'copiarResumen') {

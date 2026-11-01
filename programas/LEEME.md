@@ -27,6 +27,16 @@ Realtime Database → Reglas. Sustituye el bloque `"programas"` por este (o añ�
 }
 ```
 
+## Reuniones públicas (calendario y Tablón)
+Añade también este bloque junto a `"programas"` para que las reuniones marcadas salgan en el calendario del profesorado y en el Tablón (solo fecha, hora y tipo; sin alumnado ni acuerdos):
+
+```json
+"programas_publico": {
+  ".read": true,
+  ".write": "auth != null && (auth.token.email == 'vunisal706@capitulaciones.local' || auth.token.email == 'mrodrod323@capitulaciones.local' || auth.token.email == 'emunrom369@capitulaciones.local' || auth.token.email == 'mromrod681@capitulaciones.local' || auth.token.email == 'cmolmar422@capitulaciones.local')"
+}
+```
+
 ## Datos
 `programas/cursos/<2026-27>/` → hechos (plazos), grupos, sesiones, reuniones, palancas, retos, informes y cotejo.
 El alumnado se guarda solo por siglas.

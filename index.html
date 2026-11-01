@@ -194,6 +194,9 @@ a.kpi{color:inherit;transition:box-shadow .15s ease}
 .as-entrada .ic svg{width:26px;height:26px;color:#fff}
 .as-entrada .txt{flex:1;min-width:0}.as-entrada b{display:block;font-size:1.08rem;font-weight:600}
 .as-entrada .txt span{display:block;font-size:.9rem;opacity:.9;margin-top:2px}
+.as-entrada .ic{background:#fff}.as-entrada .ic img.robot{width:40px;height:40px;border-radius:50%;object-fit:cover}
+.robot-pest{width:26px;height:26px;border-radius:50%;object-fit:cover;display:block;margin:0 auto 2px}
+.robot-tit{width:36px;height:36px;border-radius:50%;object-fit:cover;vertical-align:middle;margin-right:8px}
 .as-entrada .chev{width:22px;height:22px;color:#fff;opacity:.8}
 .as-form{display:flex;gap:8px;margin-top:16px}
 .as-form input{flex:1;min-width:0;border:1.5px solid #cfd6df;border-radius:14px;padding:13px 14px;font:inherit;font-size:1.05rem;background:#fff;color:var(--tinta)}
@@ -308,7 +311,7 @@ a.kpi{color:inherit;transition:box-shadow .15s ease}
     </section>
 
     <button class="as-entrada" id="irAsistente" type="button">
-      <span class="ic"><svg class="ico" viewBox="0 0 24 24"><path d="M5 5.5h14a1.5 1.5 0 0 1 1.5 1.5v8a1.5 1.5 0 0 1-1.5 1.5h-7l-4.5 3.5V16.5H5A1.5 1.5 0 0 1 3.5 15V7A1.5 1.5 0 0 1 5 5.5z"/><path d="M10 9.2a2 2 0 1 1 2.8 1.8c-.5.3-.8.7-.8 1.2v.3M12 14.2h.01"/></svg></span>
+      <span class="ic"><img src="asistente-robot.png" alt="" class="robot"></span>
       <span class="txt"><b>¿Tienes una duda del cole?</b><span>Plan de Centro, programaciones, criterios de cada curso, Agenda…</span></span>
       <svg class="ico chev" viewBox="0 0 24 24"><path d="m9 6 6 6-6 6"/></svg>
     </button>
@@ -346,7 +349,7 @@ a.kpi{color:inherit;transition:box-shadow .15s ease}
   </div>
 
   <div id="vista-asistente" class="vista oculto">
-    <div class="tab-cab"><h2>Asistente del cole</h2><p>Pregunta cualquier duda del centro. Respondo con el Plan de Centro, las programaciones, los criterios de cada curso, los planes de lectura y de resolución de problemas, la atención a la diversidad, la CapiGuía, la Agenda y los protocolos.</p></div>
+    <div class="tab-cab"><h2><img src="asistente-robot.png" alt="" class="robot-tit">Asistente del cole</h2><p>Pregunta cualquier duda del centro. Respondo con el Plan de Centro, las programaciones, los criterios de cada curso, los planes de lectura y de resolución de problemas, la atención a la diversidad, la CapiGuía, la Agenda y los protocolos.</p></div>
     <form id="asForm" class="as-form" autocomplete="off">
       <input id="asPregunta" type="search" placeholder="Escribe tu pregunta… (p. ej. ¿qué hago si llueve?)" aria-label="Escribe tu pregunta">
       <button type="submit" class="as-btn" aria-label="Preguntar"><svg class="ico" viewBox="0 0 24 24"><circle cx="10.5" cy="10.5" r="6.5"/><path d="m20 20-4.8-4.8"/></svg></button>
@@ -376,7 +379,7 @@ a.kpi{color:inherit;transition:box-shadow .15s ease}
       <svg class="ico" viewBox="0 0 24 24"><path d="M3.5 11 12 4l8.5 7"/><path d="M5.5 9.5V20h13V9.5"/><path d="M10 20v-5h4v5"/></svg>Inicio<i class="raya"></i>
     </button>
     <button class="pest" data-vista="asistente">
-      <svg class="ico" viewBox="0 0 24 24"><path d="M5 5.5h14a1.5 1.5 0 0 1 1.5 1.5v8a1.5 1.5 0 0 1-1.5 1.5h-7l-4.5 3.5V16.5H5A1.5 1.5 0 0 1 3.5 15V7A1.5 1.5 0 0 1 5 5.5z"/><path d="M10 9.2a2 2 0 1 1 2.8 1.8c-.5.3-.8.7-.8 1.2v.3M12 14.2h.01"/></svg>Asistente<i class="raya"></i>
+      <img src="asistente-robot.png" alt="" class="robot-pest">Asistente<i class="raya"></i>
     </button>
     <button class="pest" data-vista="gestion">
       <svg class="ico" viewBox="0 0 24 24"><rect x="3" y="7" width="18" height="13" rx="2"/><path d="M9 7V5a1 1 0 0 1 1-1h4a1 1 0 0 1 1 1v2M3 12.5h18"/><path d="M11 12.5v2h2v-2"/></svg>Gestión<i class="raya"></i>
@@ -411,6 +414,7 @@ a.kpi{color:inherit;transition:box-shadow .15s ease}
     <h3 id="titNov">✨ Novedades de Capitoolappciones</h3>
     <p class="sub">Novedades:</p>
     <ul>
+      <li>🤖 El <b>Asistente</b> tiene ya la <b>cabeza de robot</b> de la web y responde también sobre <b>Programas del cole</b>: prueba «¿Qué toca del PROA este mes?» o «próximos plazos del ZTS».</li>
       <li>🆕 <b>Programas del cole</b> (ZTS, PROA Andalucía y PROA+): plazos con ruta de Séneca, asistencia y horas del Acompañamiento, reuniones quincenales con acta, lista de cotejo de la documentación y las 10 actividades palanca.</li>
       <li>🆕 <b>Asistente del cole</b> (pestaña de abajo): pregunta cualquier duda y responde con el texto del <b>Plan de Centro</b>, las <b>programaciones didácticas</b>, los <b>criterios de evaluación y saberes de cada curso</b>, la <b>CapiGuía</b>, la <b>Agenda</b> (reuniones y su orden del día) y los <b>protocolos</b>.</li>
       <li><b>Nuevo orden</b>: Teletrabajo, SDA, Registro de lectura, Parte de convivencia, Evaluación, Ágora, Refuerzo, ConVive, Resolución…</li>
@@ -849,7 +853,7 @@ document.getElementById('campana').onclick = ()=>{
 document.getElementById('tablon').addEventListener('click', e=>{ if (e.target.closest('a')) marcarVistos(); });
 
 /* ---------- Novedades (una sola vez por dispositivo) ---------- */
-const NOV = 'capi-novedades-seneca-v15';
+const NOV = 'capi-novedades-seneca-v16';
 const veloNov = document.getElementById('veloNov');
 if(!ls.get(NOV,false)) setTimeout(()=>veloNov.classList.add('abierto'), 500);
 document.getElementById('btnNovOk').onclick = ()=>{ ls.set(NOV,true); veloNov.classList.remove('abierto'); };
