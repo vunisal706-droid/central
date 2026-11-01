@@ -248,7 +248,7 @@ function docAnexoX(gid, mes) {
   if (!S.length && !confirm('No hay sesiones impartidas registradas en ' + mesTxt.toLowerCase() + '. ¿Generar el anexo igualmente?')) return;
   const n = Math.max(14, S.length), filas = [];
   for (let i = 0; i < n; i++) { const x = S[i]; filas.push('<tr><td>' + ORD(i + 1) + '</td><td class="c">' + (x ? fechaAnexo(x[0]) : '') + '</td><td class="c">' + (x ? esc((x[1].hi || g.hi || '') + ' - ' + (x[1].hf || g.hf || '')) : '') + '</td><td></td><td>' + (x ? esc(x[1].obs || '') : '') + '</td></tr>'); }
-  abrirAnexo('Anexo X ' + g.nombre + ' ' + mesTxt, ['<h1>ANEXO X. MODELO PARA EL REGISTRO DE LA ASISTENCIA DEL PROFESORADO, MENTORES Y MENTORAS A LAS SESIONES DE ACOMPAÑAMIENTO ESCOLAR Y ACOMPAÑAMIENTO LINGÜÍSTICO PARA ALUMNADO INMIGRANTE.</h1>' +
+  abrirAnexo(g.nombre + ' - Hoja de asistencia de empleado (' + (DOC_MES[mes.slice(5)] || mesTxt) + ')', ['<h1>ANEXO X. MODELO PARA EL REGISTRO DE LA ASISTENCIA DEL PROFESORADO, MENTORES Y MENTORAS A LAS SESIONES DE ACOMPAÑAMIENTO ESCOLAR Y ACOMPAÑAMIENTO LINGÜÍSTICO PARA ALUMNADO INMIGRANTE.</h1>' +
     cabeceraGrupo(g, mesTxt, false) +
     '<table class="alto"><colgroup><col style="width:9%"><col style="width:14%"><col style="width:19%"><col style="width:29%"><col style="width:29%"></colgroup><tr><th>Sesión</th><th>Fecha</th><th>Horario</th><th>Firma del mentor/a o profesor/a</th><th>Observaciones (indicar cualquier incidencia)</th></tr>' + filas.join('') + '</table>' +
     '<p class="nota">* Este documento debe ser cumplimentado de forma independiente por grupo y mes de servicio.</p>' + lugarFecha() + firmaDir(true)]);
@@ -258,7 +258,7 @@ function docAnexoXII(gid, mes) {
   const mesTxt = MESES[+mes.slice(5) - 1].toUpperCase() + ' ' + mes.slice(0, 4);
   const n = Math.max(14, S.length), filas = [];
   for (let i = 0; i < n; i++) { const x = S[i]; const aus = x ? Object.entries(x[1].asist || {}).filter(([, v]) => v === 'F' || v === 'J').map(([k, v]) => (al[k] ? al[k].siglas : '?') + (v === 'J' ? ' (justificada)' : '')).join(', ') : ''; filas.push('<tr><td>' + ORD(i + 1) + '</td><td class="c">' + (x ? fechaAnexo(x[0]) : '') + '</td><td>' + esc(x ? (aus || 'Ninguno') : '') + '</td><td></td></tr>'); }
-  abrirAnexo('Anexo XII ' + g.nombre + ' ' + mesTxt, ['<h1>ANEXO XII. MODELO PARA EL REGISTRO DE AUSENCIAS DEL ALUMNADO EN EL DESARROLLO DE LOS PROGRAMAS DE ACOMPAÑAMIENTO IMPARTIDOS EN EL CENTRO DOCENTE.</h1>' +
+  abrirAnexo(g.nombre + ' - Anexo XII ausencias ' + mesTxt, ['<h1>ANEXO XII. MODELO PARA EL REGISTRO DE AUSENCIAS DEL ALUMNADO EN EL DESARROLLO DE LOS PROGRAMAS DE ACOMPAÑAMIENTO IMPARTIDOS EN EL CENTRO DOCENTE.</h1>' +
     cabeceraGrupo(g, mesTxt, true) +
     '<table class="muyalto"><colgroup><col style="width:9%"><col style="width:15%"><col style="width:48%"><col style="width:28%"></colgroup><tr><th>Sesión</th><th>Fecha</th><th>Alumnado ausente<br>(nombre y apellidos)</th><th>Firma del mentor/a o profesor/a</th></tr>' + filas.join('') + '</table>' +
     '<p class="nota">*Entregar a la persona responsable de la coordinación de PROA Andalucía en el centro con carácter mensual.</p>' + lugarFecha() + firmaDir(false)]);
@@ -281,7 +281,7 @@ function docAnexoXV(gid, tri) {
       '<p class="b">PROPUESTAS DE MEJORA:</p><table><tr><td style="height:46px">' + txt(inf.mejora) + '</td></tr></table>' +
       '<p class="lugar">En Santa Fe, a ________ de ______________ de ' + anio + '</p><p class="firma" style="margin-top:40px">Fdo.: ' + esc(g.docente || '') + '<br>(Firma del mentor/a o profesor/a)</p>');
   });
-  abrirAnexo('Anexo XV ' + g.nombre + ' ' + tri + 'T', pags);
+  abrirAnexo(g.nombre + ' - Informe de evaluacion ' + tri + 'º trimestre', pags);
 }
 // Formulario del Anexo XV (informe trimestral) en la app
 function rInformeXV(A, tri) {
@@ -301,6 +301,7 @@ function rInformeXV(A, tri) {
   }).join('');
   return h + '<div class="pie" style="justify-content:flex-start"><button class="btn peq" data-acc="anexoXV">📄 Anexo XV del trimestre (PDF)</button></div></div>';
 }
+document.addEventListener('click', e => { const b = e.target.closest('[data-copiar]'); if (b) copiar(b.dataset.copiar); });
 document.addEventListener('change', e => {
   const t = e.target, tri = $('triInf') ? $('triInf').value : 1;
   if (t.dataset.xvc) { guardar('informes/' + grupoSel + '/_cont/t' + tri + '/' + t.dataset.xvc, t.value.trim() || null); if (t.dataset.xvc[0] === 'c') render(); }
@@ -374,4 +375,43 @@ function rLecturaA413() {
   const L = (D.datos || {}).lectura || {}, ts = ['t1', 't2', 't3'].filter(t => L[t]);
   if (!ts.length) return '';
   return '<div class="aviso verde small"><b>Registro de Lectura (media del centro, sobre 10):</b> ' + ts.map(t => t[1] + '.º trim.: velocidad ' + (L[t].vl ?? '—') + ' · comprensión ' + (L[t].cl ?? '—')).join(' | ') + '</div>';
+}
+
+// ─── Grabar en Séneca: lo que pide cada grupo de Acompañamiento ───
+// Séneca (Centro → Planes y Programas → PROA → grupo): Detalle y programación (horario + documentos), Usuarios/as,
+// Usos del servicio (calendario por mes: días que asiste cada alumno/a + asistencia del empleado/a) y Empleados/as.
+const DOC_MES = { '10': 'OCTUBRE', '11': 'NOVIEMBRE', '12': 'DICIEMBRE', '01': 'ENERO', '02': 'FEBRERO', '03': 'MARZO', '04': 'ABRIL', '05': 'MAYO' };
+function crearGruposSeneca() {
+  const base = { act: 'AE', hi: '16:00', hf: '18:00', horasSesion: 2 };
+  const G = [
+    { nombre: 'Tercero', dias: [1, 3], mod: 'A', docente: 'Sandra Rodríguez Pérez', monitor: 'sandra', horario: 'Lunes y miércoles 16:00–18:00' },
+    { nombre: 'Cuarto', dias: [2, 4], mod: 'A', docente: '', horario: 'Martes y jueves 16:00–18:00' },
+    { nombre: 'Quinto', dias: [2, 4], mod: 'A', docente: '', horario: 'Martes y jueves 16:00–18:00' },
+    { nombre: 'Sexto', dias: [2, 4], mod: 'B', docente: 'Manuel Lupión Puente', monitor: 'manolo', horario: 'Martes y jueves 16:00–18:00' }];
+  G.forEach(g => guardar('grupos/' + uid(), Object.assign({}, base, g)));
+  toast('Grupos creados. En Cuarto y Quinto falta poner el monitor/a (Editar grupo).'); render();
+}
+function rSeneca(g, A) {
+  const mes = mesResumen || hoyIso().slice(0, 7), mm = mes.slice(5), S = Object.entries((D.sesiones || {})[grupoSel] || {}).filter(([f]) => f.startsWith(mes)).sort();
+  const imp = S.filter(([, x]) => x.impartida), dia = f => +f.slice(8);
+  const diasImp = imp.map(([f]) => dia(f));
+  const faltas = A.map(([aid, a]) => ({ a, f: imp.filter(([, x]) => (x.asist || {})[aid] && x.asist[aid] !== 'P').map(([f]) => dia(f)) })).filter(x => x.f.length);
+  const sinLista = imp.filter(([, x]) => !x.asist || !Object.keys(x.asist).length).map(([f]) => dia(f));
+  const docM = DOC_MES[mm];
+  return '<div class="card" style="border-left:5px solid var(--ok)"><div class="card-h"><h2>🟢 Para grabar en Séneca · ' + esc(MESES[+mm - 1]) + '</h2><span class="small muted">Grupo «' + esc(g.nombre) + '»</span></div>' +
+    '<p class="small"><b>Ruta:</b> Centro → Planes y Programas Educativos → PROA → grupo «' + esc(g.nombre) + '» (pulsa el nombre).</p>' +
+    '<h3 style="margin-top:10px">1 · Usos del servicio (mes ' + esc(MESES[+mm - 1]) + ')</h3>' +
+    (imp.length ? '<ol class="small" style="margin:6px 0 6px 20px;line-height:1.6"><li>En la plantilla del mes, marca estos días: <b style="font-size:1.05rem">' + diasImp.join(', ') + '</b> <button class="btn sec peq" data-copiar="' + diasImp.join(', ') + '">Copiar</button></li>' +
+      '<li>Pulsa «Aplicar a todos/as los/as alumnos/as de esta página».</li>' +
+      (faltas.length ? '<li>Después <b>quita</b> estos días a quien faltó:<ul style="margin:4px 0 0 18px">' + faltas.map(x => '<li><b>' + esc(x.a.siglas) + '</b>: ' + x.f.join(', ') + '</li>').join('') + '</ul></li>' : '<li>No faltó nadie: no hay que quitar ningún día.</li>') +
+      '<li>En «Asistencia del empleado/a» (' + esc(g.docente || 'monitor/a') + '), marca los mismos días: <b>' + diasImp.join(', ') + '</b>.</li><li>Guarda con ✔.</li></ol>' +
+      (sinLista.length ? '<div class="aviso">Días sin pasar lista en la app: ' + sinLista.join(', ') + '. Complétalos para que el dato sea exacto.</div>' : '') +
+      (S.some(([, x]) => !x.impartida) ? '<div class="aviso">No impartidas (no se marcan): ' + S.filter(([, x]) => !x.impartida).map(([f, x]) => dia(f) + ' (' + ({ noAlumnado: 'sin alumnado', noDocente: 'falta del docente', festivo: 'festivo' }[x.motivo] || '') + ')').join(', ') + '</div>' : '')
+      : '<p class="small muted">Todavía no hay sesiones impartidas registradas este mes.</p>') +
+    '<h3 style="margin-top:10px">2 · Documentos (Detalle y programación → «Archivo a importar»)</h3><div class="small" style="line-height:1.9">' +
+    (docM ? '📄 Tipo «<b>Hoja de asistencia de empleado (' + docM + ')</b>» → <button class="btn peq" data-acc="anexoX">Generar Anexo X</button><br>' : '') +
+    '📄 Tipo «<b>Informe de evaluación ' + trimestreActual() + 'º trimestre.</b>» (al acabar el trimestre) → <button class="btn sec peq" data-acc="anexoXV">Generar Anexo XV</button><br>' +
+    '📄 Tipos «Programación» y «Acta de selección del alumnado»: una vez al principio.<br>' +
+    '<span class="muted">Al guardar el PDF, el nombre ya viene puesto. El Anexo XII (ausencias) es para la coordinación: no se sube.</span></div>' +
+    '<h3 style="margin-top:10px">3 · Usuarios/as</h3><p class="small">«Usuarios/as» → icono de añadir → curso ' + esc((A[0] && A[0][1].curso) || g.nombre) + ' → marca a: <b>' + (A.map(([, a]) => esc(a.siglas)).join(', ') || '—') + '</b>.</p></div>';
 }

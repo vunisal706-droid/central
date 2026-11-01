@@ -127,7 +127,7 @@ function pintarCursos() {
   $('selCurso').innerHTML = [i - 1, i, i + 1].map(y => { const c = y + '-' + String(y + 1).slice(2); return '<option value="' + c + '"' + (c === CURSO ? ' selected' : '') + '>' + y + '/' + String(y + 1).slice(2) + '</option>'; }).join('');
   $('selCurso').onchange = () => { CURSO = $('selCurso').value; conectar(); };
 }
-function novedades() { const K = esMon() ? 'programas-nov-mon-v2' : 'programas-nov-v5'; const dlgId = esMon() ? 'novMon' : 'novedades'; try { if (localStorage.getItem(K)) return; localStorage.setItem(K, 1); } catch (e) { } setTimeout(() => { try { $(dlgId).showModal(); } catch (e) { } }, 500); }
+function novedades() { const K = esMon() ? 'programas-nov-mon-v2' : 'programas-nov-v6'; const dlgId = esMon() ? 'novMon' : 'novedades'; try { if (localStorage.getItem(K)) return; localStorage.setItem(K, 1); } catch (e) { } setTimeout(() => { try { $(dlgId).showModal(); } catch (e) { } }, 500); }
 
 // ─── Navegación ───
 $('nav').onclick = e => { const b = e.target.closest('button'); if (b) irA(b.dataset.s); };
@@ -213,7 +213,7 @@ function rAcomp() {
   let h = '<div class="card"><div class="card-h"><h2>🧑‍🏫 PROA Andalucía · Acompañamiento</h2>' + (esMon() ? '' : '<button class="btn" data-acc="nuevoGrupo">＋ Nuevo grupo</button>') + '</div>' +
     (esMon() ? '<div class="aviso verde"><b>Cómo se usa:</b> 1) En <b>Pasar lista</b>, elige el día. 2) Indica si se ha dado la clase y el horario. 3) Marca a cada alumno/a: <b>P</b> presente, <b>F</b> falta, <b>J</b> falta justificada. 4) A final de mes pulsa <b>«Anexo X del mes»</b> y avisa a dirección. 5) Al final de cada trimestre rellena el <b>informe</b> de cada alumno/a.</div>' : '') +
     (G.length ? '<div class="chips">' + G.map(([id, g]) => '<button class="chip' + (id === grupoSel ? ' on' : '') + '" data-grupo="' + id + '">' + esc(g.nombre) + '</button>').join('') + '</div>' :
-      (esMon() ? '<p class="muted">Todavía no tienes ningún grupo asignado. Avisa a dirección.</p>' : '<p class="muted">Aún no hay grupos. Crea uno por cada grupo autorizado en Séneca (docente o mentor, días y alumnado).</p>')) +
+      (esMon() ? '<p class="muted">Todavía no tienes ningún grupo asignado. Avisa a dirección.</p>' : '<p class="muted">Aún no hay grupos.</p><button class="btn" data-acc="gruposSeneca">⚡ Crear los 4 grupos como están en Séneca</button> <span class="small muted">Tercero (L y X), Cuarto, Quinto y Sexto (M y J), de 16:00 a 18:00</span>')) +
     '<p class="small muted">Recuerda: 2 sesiones de 2 h a la semana (o 4 de 1 h), nunca el viernes por la tarde. No se recuperan sesiones ni se cobran las no impartidas. Del 13 de octubre al 31 de mayo.</p></div>';
   if (!grupoSel) return h;
   const g = D.grupos[grupoSel], A = Object.entries(g.alumnos || {}).sort((a, b) => (a[1].siglas || '').localeCompare(b[1].siglas || ''));
@@ -226,6 +226,7 @@ function rAcomp() {
   // Pasar lista
   const rg = rangoProg(), dia = new Date(fechaLista + 'T12:00').getDay(), s = ((D.sesiones || {})[grupoSel] || {})[fechaLista];
   const avisos = [];
+  if (g.dias && g.dias.length && !g.dias.includes(dia) && dia > 0 && dia < 6) avisos.push('Este grupo no tiene sesión ese día en Séneca (sus días: ' + g.dias.map(d => ['', 'lunes', 'martes', 'miércoles', 'jueves', 'viernes'][d]).join(' y ') + '). Séneca no deja marcarlo.');
   if (dia === 5) avisos.push('Es viernes: las sesiones no se pueden impartir el viernes por la tarde.');
   if (dia === 0 || dia === 6) avisos.push('Es fin de semana.');
   if (fechaLista < rg.ini || fechaLista > rg.fin) avisos.push('Fuera de las fechas del programa (13/10 – 31/05): no se abona.');
@@ -250,6 +251,7 @@ function rAcomp() {
     (A.length ? '<div class="tabla"><table><tr><th>Alumno/a</th><th>P</th><th>F</th><th>J</th><th>%</th></tr>' + A.map(([aid, a]) => { const r = R.al[aid] || { P: 0, F: 0, J: 0 }; const t = r.P + r.F + r.J; return '<tr><td>' + esc(a.siglas) + '</td><td>' + r.P + '</td><td>' + r.F + '</td><td>' + r.J + '</td><td>' + (t ? Math.round(100 * r.P / t) + ' %' : '—') + '</td></tr>'; }).join('') + '</table></div>' : '') +
     '<div class="pie" style="justify-content:flex-start"><button class="btn peq" data-acc="anexoX">📄 Anexo X del mes (PDF)</button> <button class="btn sec peq" data-acc="anexoXII">📄 Anexo XII · ausencias (PDF)</button>' + (esMon() ? '' : ' <button class="btn sec peq" data-acc="copiarResumen">📋 Copiar resumen para Séneca</button>') + '</div>' +
     '<p class="small muted">Antes de fin de mes: grabar en Séneca la asistencia del alumnado y del docente y subir el registro de firmas (Anexo X o XI).</p></div>';
+  if (typeof rSeneca === 'function' && !esMon()) h += rSeneca(g, A);
   // Informe trimestral (Anexo XV)
   h += rInformeXV(A, +(($('triInf') || {}).value || trimestreActual()));
   if (!esMon()) h += rCotejo(grupoSel);
@@ -411,6 +413,7 @@ function dlgGrupo(id) {
     '<div><label>Modalidad</label><select id="gM"><option value="B"' + (g.mod !== 'A' ? ' selected' : '') + '>B · Profesorado del centro (20 €/h)</option><option value="A"' + (g.mod === 'A' ? ' selected' : '') + '>A · Mentor/a de empresa (23 €/h)</option></select></div></div>' +
     '<div class="g2"><div><label>Docente o mentor/a (nombre y apellidos)</label><input id="gD" value="' + esc(g.docente || '') + '"></div><div><label>Acceso a la app</label><select id="gMon"><option value="">— Nadie —</option>' + Object.entries(PERFILES).filter(([, p]) => p.mon).map(([k, p]) => '<option value="' + k + '"' + (g.monitor === k ? ' selected' : '') + '>' + esc(p.nombre) + '</option>').join('') + '</select></div></div>' +
     '<div class="g2"><div><label>Hora de inicio habitual</label><input type="time" id="gHi" value="' + esc(g.hi || '16:00') + '"></div><div><label>Hora de fin habitual</label><input type="time" id="gHf" value="' + esc(g.hf || '18:00') + '"></div></div>' +
+    '<label>Días de sesión (como en Séneca)</label><div style="display:flex;gap:12px;flex-wrap:wrap">' + ['L', 'M', 'X', 'J'].map((d, i) => '<label style="display:flex;gap:4px;align-items:center;color:var(--text);margin:0"><input type="checkbox" class="gDia" value="' + (i + 1) + '"' + ((g.dias || []).includes(i + 1) ? ' checked' : '') + ' style="width:20px;height:20px">' + d + '</label>').join('') + '</div>' +
     '<div class="g2"><div><label>Días y horario</label><input id="gH" value="' + esc(g.horario || '') + '" placeholder="Lunes y miércoles 16:00–18:00"></div><div><label>Horas por sesión</label><input type="number" id="gS" min="1" max="3" step="0.5" value="' + (g.horasSesion || 2) + '"></div></div>' +
     '<div class="pie">' + (id ? '<button class="btn rojo" id="gB">Borrar grupo</button>' : '') + '<button class="btn sec" id="gC">Cancelar</button><button class="btn" id="gOk">Guardar</button></div>';
   $('dlg').showModal();
@@ -419,7 +422,7 @@ function dlgGrupo(id) {
   $('gOk').onclick = () => {
     const n = $('gN').value.trim(); if (!n) return toast('Pon un nombre al grupo', 'err');
     const nid = id || uid();
-    const v = Object.assign({}, g, { nombre: n, act: $('gA').value, mod: $('gM').value, docente: $('gD').value.trim(), monitor: $('gMon').value || null, hi: $('gHi').value, hf: $('gHf').value, horario: $('gH').value.trim(), horasSesion: +$('gS').value || 2 });
+    const v = Object.assign({}, g, { nombre: n, act: $('gA').value, mod: $('gM').value, docente: $('gD').value.trim(), monitor: $('gMon').value || null, hi: $('gHi').value, hf: $('gHf').value, horario: $('gH').value.trim(), dias: [...document.querySelectorAll('.gDia:checked')].map(x => +x.value), horasSesion: +$('gS').value || 2 });
     guardar('grupos/' + nid, v); grupoSel = nid; $('dlg').close(); render();
   };
 }
@@ -467,6 +470,7 @@ document.addEventListener('click', e => {
     else if (a === 'nuevaReu') dlgReunion();
     else if (a === 'todosP') { const al = D.grupos[grupoSel].alumnos || {}; const o = {}; Object.keys(al).forEach(k => o[k] = 'P'); guardar('sesiones/' + grupoSel + '/' + fechaLista + '/asist', o); render(); }
     else if (a === 'anexoX') docAnexoX(grupoSel, mesResumen);
+    else if (a === 'gruposSeneca') crearGruposSeneca();
     else if (a === 'traerDatos') traerDatos(t);
     else if (a === 'anexoXII') docAnexoXII(grupoSel, mesResumen);
     else if (a === 'anexoXV') docAnexoXV(grupoSel, +$('triInf').value);
