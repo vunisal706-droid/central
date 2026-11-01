@@ -178,7 +178,7 @@ function dlgActa() {
   const g = D.grupos[grupoSel], A = Object.entries(g.alumnos || {}), C = Object.assign({}, COMISION_DEF, (D.comision || {})); if (!C.eoe) C.eoe = COMISION_DEF.eoe; if (!/Sáez Guerrero/.test(C.ciclos)) C.ciclos += '; María Noelia Sáez Guerrero (Equipo de Orientación)';
   const N = nombres(grupoSel), a0 = g.acta || {};
   $('dlgIn').innerHTML = '<h2>Acta de selección · ' + esc(g.nombre) + '</h2>' +
-    '<div class="g2"><div><label>Fecha de la reunión</label><input type="date" id="acF" value="' + esc(a0.fecha || '') + '"></div><div><label>Hora</label><input type="time" id="acH" value="' + esc(a0.hora || '') + '"></div></div>' +
+    '<div class="g2"><div><label>Fecha de la reunión</label><input type="date" id="acF" value="' + esc(a0.fecha || hoyIso()) + '"></div><div><label>Hora</label><input type="time" id="acH" value="' + esc(a0.hora || '13:00') + '"></div></div>' +
     '<label>Jefe/a de Estudios</label><input id="acJe" value="' + esc(C.je) + '"><label>Coordinador/a del Programa</label><input id="acCo" value="' + esc(C.co) + '">' +
     '<label>Coordinadores/as de los ciclos (incluido el del Equipo de Orientación del centro)</label><input id="acCi" value="' + esc(C.ciclos) + '"><label>Orientador/a de referencia del E.O.E.</label><input id="acEoe" value="' + esc(C.eoe) + '">' +
     '<label>Nombre y apellidos del alumnado seleccionado <span class="muted">(solo en este dispositivo)</span></label>' + (A.map(([aid, a]) => '<div style="display:flex;gap:8px;align-items:center;margin:3px 0"><b style="min-width:60px">' + esc(a.siglas) + '</b><input data-nom="' + aid + '" value="' + esc(N[aid] || '') + '" placeholder="Nombre y apellidos"><span class="small muted">' + esc(a.curso || '') + '</span></div>').join('') || '<p class="small muted">Añade primero el alumnado del grupo.</p>') +
@@ -187,6 +187,7 @@ function dlgActa() {
   $('dlg').showModal();
   $('acC').onclick = () => $('dlg').close();
   $('acOk').onclick = () => {
+    if (!$('acF').value || !$('acH').value) { toast('Pon la fecha y la hora de la reunión de la comisión', 'err'); return; }
     const n = {}; document.querySelectorAll('[data-nom]').forEach(i => { if (i.value.trim()) n[i.dataset.nom] = i.value.trim(); });
     try { localStorage.setItem(NKEY(grupoSel), JSON.stringify(Object.assign(nombres(grupoSel), n))); localStorage.setItem(NKEY(grupoSel) + '-sup', $('acSup').value); } catch (e) { }
     const com = { je: $('acJe').value.trim(), co: $('acCo').value.trim(), ciclos: $('acCi').value.trim(), eoe: $('acEoe').value.trim() };
