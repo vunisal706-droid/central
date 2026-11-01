@@ -385,11 +385,11 @@ function crearGruposSeneca() {
   const base = { act: 'AE', hi: '16:00', hf: '18:00', horasSesion: 2 };
   const G = [
     { nombre: 'Tercero', dias: [1, 3], mod: 'A', docente: 'Sandra Rodríguez Pérez', monitor: 'sandra', horario: 'Lunes y miércoles 16:00–18:00' },
-    { nombre: 'Cuarto', dias: [2, 4], mod: 'A', docente: 'Nuria', monitor: 'nuria', horario: 'Martes y jueves 16:00–18:00' },
+    { nombre: 'Cuarto', dias: [2, 4], mod: 'A', docente: 'Nuria Márquez Fernández', monitor: 'nuria', horario: 'Martes y jueves 16:00–18:00' },
     { nombre: 'Quinto', dias: [2, 4], mod: 'A', docente: 'Sandra Rodríguez Pérez', monitor: 'sandra', horario: 'Martes y jueves 16:00–18:00' },
     { nombre: 'Sexto', dias: [2, 4], mod: 'B', docente: 'Manuel Lupión Puente', monitor: 'manolo', horario: 'Martes y jueves 16:00–18:00' }];
   G.forEach(g => guardar('grupos/' + uid(), Object.assign({}, base, g)));
-  toast('Grupos creados. Cuarto queda con Nuria (provisional): pon sus apellidos en «Editar grupo».'); render();
+  toast('Grupos creados. Cuarto queda con Nuria (provisional): si cambia, edítalo en «Editar grupo».'); render();
 }
 function rSeneca(g, A) {
   const mes = mesResumen || hoyIso().slice(0, 7), mm = mes.slice(5), S = Object.entries((D.sesiones || {})[grupoSel] || {}).filter(([f]) => f.startsWith(mes)).sort();
@@ -415,3 +415,6 @@ function rSeneca(g, A) {
     '<span class="muted">Al guardar el PDF, el nombre ya viene puesto. El Anexo XII (ausencias) es para la coordinación: no se sube.</span></div>' +
     '<h3 style="margin-top:10px">3 · Usuarios/as</h3><p class="small">«Usuarios/as» → icono de añadir → curso ' + esc((A[0] && A[0][1].curso) || g.nombre) + ' → marca a: <b>' + (A.map(([, a]) => esc(a.siglas)).join(', ') || '—') + '</b>.</p></div>';
 }
+
+// Nombre completo de Nuria en los grupos ya creados
+setInterval(() => { if (!PERFIL || esMon()) return; Object.entries(D.grupos || {}).forEach(([gid, g]) => { if (g.monitor === 'nuria' && (g.docente || '').trim() === 'Nuria') guardar('grupos/' + gid + '/docente', 'Nuria Márquez Fernández'); }); }, 5000);
