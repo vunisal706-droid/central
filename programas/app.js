@@ -70,7 +70,7 @@ function conectar() {
   ref.on('value', s => {
     D = Object.assign(VACIO(), s.val() || {});
     cachear();
-    if (!conectar._sync) { conectar._sync = true; Object.entries(D.reuniones || {}).forEach(([k, r]) => { if (r && r.tipo === 'quincenal' && r.fecha) publicarCita(k, r); }); }
+    if (!conectar._sync) { conectar._sync = true; Object.entries(D.reuniones || {}).forEach(([k, r]) => { if (r && r.fecha) publicarCita(k, r); }); }
     clearTimeout(conectar._t);
     if (Date.now() - ultimoLocal > 800 && !editando()) render();
     else conectar._t = setTimeout(() => { if (!editando()) render(); }, 1500);
@@ -143,7 +143,7 @@ function pintarCursos() {
   $('selCurso').innerHTML = [i - 1, i, i + 1].map(y => { const c = y + '-' + String(y + 1).slice(2); return '<option value="' + c + '"' + (c === CURSO ? ' selected' : '') + '>' + y + '/' + String(y + 1).slice(2) + '</option>'; }).join('');
   $('selCurso').onchange = () => { CURSO = $('selCurso').value; conectar(); };
 }
-function novedades() { const K = esMon() ? 'programas-nov-mon-v6' : 'programas-nov-v15'; const dlgId = esMon() ? 'novMon' : 'novedades'; try { if (localStorage.getItem(K)) return; localStorage.setItem(K, 1); } catch (e) { } setTimeout(() => { try { $(dlgId).showModal(); } catch (e) { } }, 500); }
+function novedades() { const K = esMon() ? 'programas-nov-mon-v6' : 'programas-nov-v16'; const dlgId = esMon() ? 'novMon' : 'novedades'; try { if (localStorage.getItem(K)) return; localStorage.setItem(K, 1); } catch (e) { } setTimeout(() => { try { $(dlgId).showModal(); } catch (e) { } }, 500); }
 
 // ─── Navegación ───
 $('nav').onclick = e => { const b = e.target.closest('button'); if (b) irA(b.dataset.s); };
@@ -337,23 +337,23 @@ function dlgReunion(id) {
     '<label>Alumnado tratado (siglas)</label><input id="rAlum" value="' + esc(r.alumnos || '') + '">' +
     '<label>Temas y acuerdos</label><textarea id="rAcu" rows="5">' + esc(r.acuerdos || '') + '</textarea>' +
     '<label style="display:flex;gap:8px;align-items:center;font-weight:700;color:var(--text);margin-top:10px"><input type="checkbox" id="rCel" style="width:20px;height:20px"' + (r.prevista ? '' : ' checked') + '> Ya se ha celebrado (si no, queda como «prevista»)</label>' +
-    '<label style="display:flex;gap:8px;align-items:center;font-weight:700;color:var(--text);margin-top:10px"><input type="checkbox" id="rPub" style="width:20px;height:20px"' + ((r.publicar != null ? r.publicar : r.tipo !== 'familia' && r.tipo !== 'otra') ? ' checked' : '') + '> Que salga en el calendario del profesorado y en el Tablón (solo fecha, hora y tipo)</label>' +
+    '<p class="small muted" style="margin-top:10px">📅 Sale en la Agenda y en el Tablón (solo fecha, hora y tipo).</p>' +
     '<div class="pie">' + (id ? '<button class="btn rojo" id="rBorrar">Borrar</button>' : '') + '<button class="btn sec" id="rCancel">Cancelar</button><button class="btn" id="rOk">Guardar</button></div>';
   $('dlg').showModal();
   $('rCancel').onclick = () => $('dlg').close();
   if (id) $('rBorrar').onclick = () => { if (confirm('¿Borrar la reunión?')) { guardar('reuniones/' + id, null); publicarCita(id, null); $('dlg').close(); render(); } };
   $('rOk').onclick = () => {
-    const v = { tipo: $('rTipo').value, fecha: $('rFecha').value, hora: $('rHora').value || '', publicar: $('rPub').checked, prevista: !$('rCel').checked || null, mod: $('rMod').value, grupo: $('rGrupo').value, asistentes: $('rAsis').value.trim(), alumnos: $('rAlum').value.trim(), acuerdos: $('rAcu').value.trim(), por: PERFIL };
+    const v = { tipo: $('rTipo').value, fecha: $('rFecha').value, hora: $('rHora').value || '', prevista: !$('rCel').checked || null, mod: $('rMod').value, grupo: $('rGrupo').value, asistentes: $('rAsis').value.trim(), alumnos: $('rAlum').value.trim(), acuerdos: $('rAcu').value.trim(), por: PERFIL };
     if (!v.fecha) return toast('Pon la fecha', 'err');
     const rid = id || uid();
-    guardar('reuniones/' + rid, v); publicarCita(rid, v.publicar || v.tipo === 'quincenal' ? v : null); $('dlg').close(); render(); toast('Reunión guardada');
+    guardar('reuniones/' + rid, v); publicarCita(rid, v); $('dlg').close(); render(); toast('Reunión guardada');
   };
 }
 // Copia pública (solo fecha, hora y tipo) para el calendario del profesorado y el Tablón
 const TIT_CITA = { quincenal: 'PROA Andalucía · Reunión quincenal acompañante–tutor/a', comision: 'PROA+ · Comisión de seguimiento', zts: 'ZTS · Reunión de coordinación', familia: 'PROA · Cita con familia', otra: 'Programas · Reunión' };
 function publicarCita(id, r) {
   const g = r && r.grupo && D.grupos[r.grupo];
-  db.ref('programas_publico/citas/' + id).set(r ? { fecha: r.fecha, hora: r.hora || '', titulo: (TIT_CITA[r.tipo] || 'Reunión') + (g ? ' (' + g.nombre + ')' : ''), detalle: (r.mod || '') + ' · Programas del cole', fijo: r.tipo === 'quincenal' || null } : null)
+  db.ref('programas_publico/citas/' + id).set(r ? { fecha: r.fecha, hora: r.hora || '', titulo: (TIT_CITA[r.tipo] || 'Reunión') + (g ? ' (' + g.nombre + ')' : ''), detalle: (r.mod || '') + ' · Programas del cole', fijo: ['quincenal', 'comision', 'zts'].includes(r.tipo) || null } : null)
     .catch(e => toast('La reunión se ha guardado, pero no ha podido salir en el calendario: falta el permiso «programas_publico» en Firebase.', 'err'));
 }
 // Reuniones previstas del curso (editables) para no partir de cero
@@ -382,7 +382,7 @@ async function cargarReunionesPrevistas() {
   // Comisiones de seguimiento del PROA+ (mínimo dos al año)
   [[y + '-12-14', '1.ª', 'de la 1.ª evaluación'], [(y + 1) + '-05-17', '2.ª', 'de la 2.ª evaluación y previsión de la 3.ª']].forEach(([f, n, ev]) => add({ tipo: 'comision', fecha: f, hora: '13:00', mod: 'Presencial', asistentes: 'Equipo directivo, coordinación del PROA+ y tutores/as del alumnado participante',
     acuerdos: n + ' comisión de seguimiento del PROA+ Transfórmate (modelo nº 12).\n1. Seguimiento del PEM y de las 10 actividades palanca.\n2. Datos de los indicadores ' + ev + '.\n3. Ejecución económica de la dotación.\n4. Dificultades y propuestas de mejora.\n5. Acuerdos.' }));
-  out.forEach(r => { const k = uid(); guardar('reuniones/' + k, r); if (r.tipo === 'quincenal') publicarCita(k, r); });
+  out.forEach(r => { const k = uid(); guardar('reuniones/' + k, r); publicarCita(k, r); });
   toast(out.length + ' reuniones previstas cargadas. Edítalas o bórralas cuando quieras.'); render();
 }
 function acta(id) {
