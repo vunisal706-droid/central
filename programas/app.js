@@ -25,9 +25,9 @@ const PERFILES = {
   sandra:    { nombre: 'Sandra',          emoji: '🧑‍🏫', idea: 'proa.sandra', rol: 'Monitora (Tercero y Quinto)', mon: true, prog: ['PROA'] },
   nuria:     { nombre: 'Nuria',           emoji: '🧑‍🏫', idea: 'proa.nuria',  rol: 'Monitora (Cuarto)', mon: true, prog: ['PROA'] },
   manolo:    { nombre: 'Manolo',          emoji: '🧑‍🏫', idea: 'proa.manolo', rol: 'Profesor del grupo y tutor de 6.º', mon: true, tut: 'Sexto', prog: ['PROA'] },
-  beatriz:   { nombre: 'Beatriz',         emoji: '👩‍🏫', idea: 'proa.beatriz',   rol: 'Tutora de 3.º', tut: 'Tercero', prog: ['PROA'] },
-  silvia:    { nombre: 'Silvia',          emoji: '👩‍🏫', idea: 'proa.silvia',    rol: 'Tutora de 4.º', tut: 'Cuarto', prog: ['PROA'] },
-  alejandra: { nombre: 'Alejandra',       emoji: '👩‍🏫', idea: 'proa.alejandra', rol: 'Tutora de 5.º', tut: 'Quinto', prog: ['PROA'] }
+  beatriz:   { nombre: 'Beatriz',         emoji: '👩‍🏫', idea: 'bgaljim320',   rol: 'Tutora de 3.º', tut: 'Tercero', prog: ['PROA'] },
+  silvia:    { nombre: 'Silvia',          emoji: '👩‍🏫', idea: 'storesp740',  rol: 'Tutora de 4.º', tut: 'Cuarto', prog: ['PROA'] },
+  alejandra: { nombre: 'Alejandra',       emoji: '👩‍🏫', idea: 'agarjim730', rol: 'Tutora de 5.º', tut: 'Quinto', prog: ['PROA'] }
 };
 const esMon = () => { const p = PERFILES[PERFIL] || {}; return !!(p.mon || p.tut); };
 const esMonitor = () => !!(PERFILES[PERFIL] || {}).mon;
@@ -70,6 +70,7 @@ function conectar() {
   ref.on('value', s => {
     D = Object.assign(VACIO(), s.val() || {});
     cachear();
+    if (!conectar._sync) { conectar._sync = true; Object.entries(D.reuniones || {}).forEach(([k, r]) => { if (r && r.tipo === 'quincenal' && r.fecha) publicarCita(k, r); }); }
     clearTimeout(conectar._t);
     if (Date.now() - ultimoLocal > 800 && !editando()) render();
     else conectar._t = setTimeout(() => { if (!editando()) render(); }, 1500);
@@ -142,7 +143,7 @@ function pintarCursos() {
   $('selCurso').innerHTML = [i - 1, i, i + 1].map(y => { const c = y + '-' + String(y + 1).slice(2); return '<option value="' + c + '"' + (c === CURSO ? ' selected' : '') + '>' + y + '/' + String(y + 1).slice(2) + '</option>'; }).join('');
   $('selCurso').onchange = () => { CURSO = $('selCurso').value; conectar(); };
 }
-function novedades() { const K = esMon() ? 'programas-nov-mon-v6' : 'programas-nov-v14'; const dlgId = esMon() ? 'novMon' : 'novedades'; try { if (localStorage.getItem(K)) return; localStorage.setItem(K, 1); } catch (e) { } setTimeout(() => { try { $(dlgId).showModal(); } catch (e) { } }, 500); }
+function novedades() { const K = esMon() ? 'programas-nov-mon-v6' : 'programas-nov-v15'; const dlgId = esMon() ? 'novMon' : 'novedades'; try { if (localStorage.getItem(K)) return; localStorage.setItem(K, 1); } catch (e) { } setTimeout(() => { try { $(dlgId).showModal(); } catch (e) { } }, 500); }
 
 // ─── Navegación ───
 $('nav').onclick = e => { const b = e.target.closest('button'); if (b) irA(b.dataset.s); };
@@ -345,14 +346,14 @@ function dlgReunion(id) {
     const v = { tipo: $('rTipo').value, fecha: $('rFecha').value, hora: $('rHora').value || '', publicar: $('rPub').checked, prevista: !$('rCel').checked || null, mod: $('rMod').value, grupo: $('rGrupo').value, asistentes: $('rAsis').value.trim(), alumnos: $('rAlum').value.trim(), acuerdos: $('rAcu').value.trim(), por: PERFIL };
     if (!v.fecha) return toast('Pon la fecha', 'err');
     const rid = id || uid();
-    guardar('reuniones/' + rid, v); publicarCita(rid, v.publicar ? v : null); $('dlg').close(); render(); toast('Reunión guardada');
+    guardar('reuniones/' + rid, v); publicarCita(rid, v.publicar || v.tipo === 'quincenal' ? v : null); $('dlg').close(); render(); toast('Reunión guardada');
   };
 }
 // Copia pública (solo fecha, hora y tipo) para el calendario del profesorado y el Tablón
 const TIT_CITA = { quincenal: 'PROA Andalucía · Reunión quincenal acompañante–tutor/a', comision: 'PROA+ · Comisión de seguimiento', zts: 'ZTS · Reunión de coordinación', familia: 'PROA · Cita con familia', otra: 'Programas · Reunión' };
 function publicarCita(id, r) {
   const g = r && r.grupo && D.grupos[r.grupo];
-  db.ref('programas_publico/citas/' + id).set(r ? { fecha: r.fecha, hora: r.hora || '', titulo: (TIT_CITA[r.tipo] || 'Reunión') + (g ? ' (' + g.nombre + ')' : ''), detalle: (r.mod || '') + ' · Programas del cole' } : null)
+  db.ref('programas_publico/citas/' + id).set(r ? { fecha: r.fecha, hora: r.hora || '', titulo: (TIT_CITA[r.tipo] || 'Reunión') + (g ? ' (' + g.nombre + ')' : ''), detalle: (r.mod || '') + ' · Programas del cole', fijo: r.tipo === 'quincenal' || null } : null)
     .catch(e => toast('La reunión se ha guardado, pero no ha podido salir en el calendario: falta el permiso «programas_publico» en Firebase.', 'err'));
 }
 // Reuniones previstas del curso (editables) para no partir de cero
@@ -381,7 +382,7 @@ async function cargarReunionesPrevistas() {
   // Comisiones de seguimiento del PROA+ (mínimo dos al año)
   [[y + '-12-14', '1.ª', 'de la 1.ª evaluación'], [(y + 1) + '-05-17', '2.ª', 'de la 2.ª evaluación y previsión de la 3.ª']].forEach(([f, n, ev]) => add({ tipo: 'comision', fecha: f, hora: '13:00', mod: 'Presencial', asistentes: 'Equipo directivo, coordinación del PROA+ y tutores/as del alumnado participante',
     acuerdos: n + ' comisión de seguimiento del PROA+ Transfórmate (modelo nº 12).\n1. Seguimiento del PEM y de las 10 actividades palanca.\n2. Datos de los indicadores ' + ev + '.\n3. Ejecución económica de la dotación.\n4. Dificultades y propuestas de mejora.\n5. Acuerdos.' }));
-  out.forEach(r => guardar('reuniones/' + uid(), r));
+  out.forEach(r => { const k = uid(); guardar('reuniones/' + k, r); if (r.tipo === 'quincenal') publicarCita(k, r); });
   toast(out.length + ' reuniones previstas cargadas. Edítalas o bórralas cuando quieras.'); render();
 }
 function acta(id) {
