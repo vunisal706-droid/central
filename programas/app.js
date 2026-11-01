@@ -127,7 +127,7 @@ function pintarCursos() {
   $('selCurso').innerHTML = [i - 1, i, i + 1].map(y => { const c = y + '-' + String(y + 1).slice(2); return '<option value="' + c + '"' + (c === CURSO ? ' selected' : '') + '>' + y + '/' + String(y + 1).slice(2) + '</option>'; }).join('');
   $('selCurso').onchange = () => { CURSO = $('selCurso').value; conectar(); };
 }
-function novedades() { const K = esMon() ? 'programas-nov-mon-v5' : 'programas-nov-v12'; const dlgId = esMon() ? 'novMon' : 'novedades'; try { if (localStorage.getItem(K)) return; localStorage.setItem(K, 1); } catch (e) { } setTimeout(() => { try { $(dlgId).showModal(); } catch (e) { } }, 500); }
+function novedades() { const K = esMon() ? 'programas-nov-mon-v5' : 'programas-nov-v13'; const dlgId = esMon() ? 'novMon' : 'novedades'; try { if (localStorage.getItem(K)) return; localStorage.setItem(K, 1); } catch (e) { } setTimeout(() => { try { $(dlgId).showModal(); } catch (e) { } }, 500); }
 
 // ─── Navegación ───
 $('nav').onclick = e => { const b = e.target.closest('button'); if (b) irA(b.dataset.s); };
@@ -307,7 +307,7 @@ function rReuniones() {
     '<div class="chips"><button class="chip' + (!filtroReu ? ' on' : '') + '" data-freu="">Todas</button>' + Object.entries(TIPOS).map(([k, t]) => '<button class="chip' + (filtroReu === k ? ' on' : '') + '" data-freu="' + k + '">' + t.split(' (')[0] + '</button>').join('') + '</div>' +
     (R.map(([id, r]) => '<div class="item"><div class="fecha">' + (r.fecha ? fechaCorta(r.fecha) : '') + '</div><div class="cuerpo"><div class="tt">' + esc(TIPOS[r.tipo] || r.tipo) + (r.grupo && D.grupos[r.grupo] ? ' · ' + esc(D.grupos[r.grupo].nombre) : '') + (r.hora ? ' · ' + esc(r.hora) : '') + (r.prevista ? ' <span class="tag st-warn">Prevista</span>' : '') + '</div>' +
       '<div class="dd">' + esc(r.asistentes || '') + '</div>' + (r.acuerdos ? '<div class="dd" style="white-space:pre-line;color:var(--text)">' + esc(r.acuerdos) + '</div>' : '') +
-      '<div style="margin-top:6px"><button class="btn sec peq" data-reu="' + id + '">✏️ Editar</button> <button class="btn sec peq" data-acta="' + id + '">📄 Acta</button></div></div></div>').join('') || '<p class="muted">Aún no hay reuniones registradas.</p>') +
+      '<div style="margin-top:6px"><button class="btn sec peq" data-reu="' + id + '">✏️ Editar</button> <button class="btn sec peq" data-sala="' + id + '">🎥 Reunión telemática' + (r.sala ? (r.salaAport ? ' ✔' : ' · abierta') : '') + '</button> <button class="btn sec peq" data-acta="' + id + '">📄 Acta</button></div></div></div>').join('') || '<p class="muted">Aún no hay reuniones registradas.</p>') +
     '<p class="small muted" style="margin-top:8px">El registro de reuniones quincenales y de citas con familias se guarda con la documentación del PROA Andalucía. Las comisiones de seguimiento del PROA+ llevan acta (modelo nº 12), al menos dos al año.</p></div>';
 }
 function dlgReunion(id) {

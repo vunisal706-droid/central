@@ -175,7 +175,8 @@ function docProg(gid, P) {
 // Acta de selección (Anexo XVI)
 const COMISION_DEF = { je: 'María Rodríguez Rodríguez', co: 'Víctor Manuel Única Salas', ciclos: 'Silvia Tatiana Tortosa Espínola (2.º ciclo) y Manuel Lupión Puente (3.er ciclo); María Noelia Sáez Guerrero (Equipo de Orientación)', eoe: 'Bianca Ruiz Muñoz' };
 function dlgActa() {
-  const g = D.grupos[grupoSel], A = Object.entries(g.alumnos || {}), C = Object.assign({}, COMISION_DEF, (D.comision || {})); if (!C.eoe) C.eoe = COMISION_DEF.eoe; if (!/Sáez Guerrero/.test(C.ciclos)) C.ciclos += '; María Noelia Sáez Guerrero (Equipo de Orientación)', N = nombres(grupoSel), a0 = g.acta || {};
+  const g = D.grupos[grupoSel], A = Object.entries(g.alumnos || {}), C = Object.assign({}, COMISION_DEF, (D.comision || {})); if (!C.eoe) C.eoe = COMISION_DEF.eoe; if (!/Sáez Guerrero/.test(C.ciclos)) C.ciclos += '; María Noelia Sáez Guerrero (Equipo de Orientación)';
+  const N = nombres(grupoSel), a0 = g.acta || {};
   $('dlgIn').innerHTML = '<h2>Acta de selección · ' + esc(g.nombre) + '</h2>' +
     '<div class="g2"><div><label>Fecha de la reunión</label><input type="date" id="acF" value="' + esc(a0.fecha || '') + '"></div><div><label>Hora</label><input type="time" id="acH" value="' + esc(a0.hora || '') + '"></div></div>' +
     '<label>Jefe/a de Estudios</label><input id="acJe" value="' + esc(C.je) + '"><label>Coordinador/a del Programa</label><input id="acCo" value="' + esc(C.co) + '">' +

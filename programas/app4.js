@@ -223,20 +223,22 @@ function acta(id) {
   const r = D.reuniones[id], g = r.grupo && D.grupos[r.grupo], T = DESARROLLO[r.tipo] || [];
   const prog = r.tipo === 'comision' ? 'PROA+ Transfórmate' : r.tipo === 'zts' ? 'Programa de Atención Socioeducativa en ZTS' : 'PROA Andalucía';
   const lineas = (r.acuerdos || '').split('\n').map(x => x.trim()).filter(Boolean), cab = lineas.length && !/^\d+\./.test(lineas[0]) ? lineas.shift() : '';
-  const puntos = lineas.map(l => { const t = l.replace(/^\d+\.\s*/, ''), m = T.find(d => t.toLowerCase().includes(d[0].toLowerCase())); return { t, des: m ? m[1] : '', acu: m ? m[2] : '' }; });
+  const AP = r.salaAport || {}, usaSala = Object.keys(AP).length > 0;
+  const puntos = lineas.map((l, i) => { const t = l.replace(/^\d+\.\s*/, ''), m = T.find(d => t.toLowerCase().includes(d[0].toLowerCase())), ap = Object.values(AP[i] || {}).filter(x => x && x.t && x.t.trim()).sort((a, b) => (a.ts || 0) - (b.ts || 0)); return { t, des: m ? m[1] : '', acu: m ? m[2] : '', ap, esAcu: /acuerdo/i.test(t) }; });
+  const acuSala = usaSala ? puntos.filter(p => p.esAcu).flatMap(p => p.ap.flatMap(x => x.t.split('\n').map(y => y.replace(/^[-•\d.\s]+/, '').trim()).filter(Boolean))) : [];
   const fechaL = r.fecha ? new Date(r.fecha + 'T12:00').toLocaleDateString('es-ES', { weekday: 'long', day: 'numeric', month: 'long', year: 'numeric' }) : '';
   const raya = '<p style="border-bottom:1px dotted #777;height:20px;margin:4px 0"></p>';
-  const F = firmantesActa(r, g);
+  const F = firmantesActa(r, g); if (r.salaPart) { const P = Object.values(r.salaPart), tu = P.find(x => /tutor/i.test(x.rol)), ac = P.find(x => /acompa/i.test(x.rol)); F.forEach(f => { if (tu && /^Tutor/.test(f[1]) && !f[0]) f[0] = tu.n; if (ac && /acompa/i.test(f[1]) && !f[0]) f[0] = ac.n; }); }
   const html = '<h1>ACTA DE REUNIÓN · ' + esc(prog.toUpperCase()) + '</h1>' + (cab ? '<p class="c b">' + esc(cab) + '</p>' : '') +
     '<table><tr><td class="et" style="width:26%">Centro</td><td>CEIP Capitulaciones (18008853) · Santa Fe (Granada) · Curso ' + esc(CURSO.replace('-', '/')) + '</td></tr>' +
     '<tr><td class="et">Tipo de reunión</td><td>' + esc((TIPOS[r.tipo] || '').replace(/^\S+\s/, '')) + '</td></tr>' +
     '<tr><td class="et">Fecha y hora</td><td>' + esc(fechaL) + (r.hora ? ', a las ' + esc(r.hora) + ' horas' : '') + '</td></tr><tr><td class="et">Modalidad</td><td>' + esc(r.mod || '') + '</td></tr>' +
     (g ? '<tr><td class="et">Grupo</td><td>' + esc(g.nombre) + ' · ' + esc(ACT[g.act] || '') + ' · ' + esc(g.horario || '') + '</td></tr>' : '') +
-    '<tr><td class="et">Asistentes</td><td>' + esc(r.asistentes || '') + '</td></tr>' + (r.alumnos ? '<tr><td class="et">Alumnado</td><td>' + esc(r.alumnos) + '</td></tr>' : '') + '</table>' +
+    '<tr><td class="et">Asistentes</td><td>' + (r.salaPart ? esc(Object.values(r.salaPart).map(x => x.n + ' (' + x.rol + ')').join('; ')) : esc(r.asistentes || '')) + '</td></tr>' + (r.alumnos ? '<tr><td class="et">Alumnado</td><td>' + esc(r.alumnos) + '</td></tr>' : '') + '</table>' +
     '<p>Reunidas las personas arriba indicadas, en la fecha y hora señaladas, se celebra la reunión con el siguiente</p>' +
     '<p class="b">ORDEN DEL DÍA</p><ol>' + puntos.map(p => '<li>' + esc(p.t) + '</li>').join('') + '</ol>' +
-    '<p class="b">DESARROLLO DE LA SESIÓN</p>' + puntos.map((p, i) => '<p><b>' + (i + 1) + '. ' + esc(p.t) + '</b><br>' + (p.des ? esc(p.des) : '') + '</p>' + raya + raya).join('') +
-    '<p class="b">ACUERDOS ADOPTADOS</p><ol>' + puntos.filter(p => p.acu).map(p => '<li>' + esc(p.acu) + '</li>').join('') + '<li>&nbsp;</li></ol>' +
+    '<p class="b">DESARROLLO DE LA SESIÓN</p>' + puntos.map((p, i) => '<p><b>' + (i + 1) + '. ' + esc(p.t) + '</b><br>' + (p.ap.length ? p.ap.map(x => '<i>' + esc(x.rol) + ' (' + esc(x.n) + '):</i> ' + esc(x.t).replace(/\n/g, '<br>')).join('<br>') : usaSala ? 'Sin aportaciones en este punto.' : esc(p.des)) + '</p>' + (usaSala ? '' : raya + raya)).join('') +
+    '<p class="b">ACUERDOS ADOPTADOS</p><ol>' + (acuSala.length ? acuSala.map(a => '<li>' + esc(a) + '</li>').join('') : puntos.filter(p => p.acu).map(p => '<li>' + esc(p.acu) + '</li>').join('') + '<li>&nbsp;</li>') + '</ol>' +
     '<p>Sin más asuntos que tratar, se levanta la sesión a las ______ horas, de lo que se extiende la presente acta.</p>' +
     '<p class="lugar">En Santa Fe, a ' + esc(r.fecha ? new Date(r.fecha + 'T12:00').toLocaleDateString('es-ES', { day: 'numeric', month: 'long', year: 'numeric' }) : '______________') + '.</p>' +
     '<table style="border:none"><tr>' + F.map(([n, c]) => '<td style="border:none;text-align:center;width:' + Math.floor(100 / F.length) + '%;padding-top:50px">Fdo.: ' + (n ? esc(n) : '______________________') + '<br><span style="font-size:9pt">' + esc(c) + '</span></td>').join('') + '</tr></table>';
@@ -251,3 +253,45 @@ function abrirActa(titulo, cuerpo, fse) {
   w.document.close();
   w.document.getElementById('bw').onclick = () => { const b = new Blob(['﻿<html><head><meta charset="utf-8"><style>' + css + '</style></head><body>' + w.document.querySelector('.pag').outerHTML + '</body></html>'], { type: 'application/msword' }), a = w.document.createElement('a'); a.href = URL.createObjectURL(b); a.download = titulo.replace(/[^\wáéíóúñÁÉÍÓÚÑ ]+/g, '').replace(/\s+/g, '_') + '.doc'; a.click(); };
 }
+
+// ─── Reunión telemática integrada: puntos del orden del día que escribe cada parte + chat (el chat no va al acta) ───
+function puntosReunion(r) {
+  const L = (r.acuerdos || '').split('\n').map(x => x.trim()).filter(Boolean); if (L.length && !/^\d+\./.test(L[0])) L.shift();
+  const T = DESARROLLO[r.tipo] || [];
+  return L.map(l => { const t = l.replace(/^\d+\.\s*/, ''), m = T.find(d => t.toLowerCase().includes(d[0].toLowerCase())); return { t, hint: m ? m[1] : '' }; });
+}
+function urlSala(id) { return location.href.replace(/[^/]*$/, '') + 'sala.html?s=' + id; }
+async function dlgSala(id) {
+  const r = D.reuniones[id], g = r.grupo && D.grupos[r.grupo];
+  if (!r.sala) {
+    const P = puntosReunion(r); if (!P.length) return toast('Escribe primero el orden del día de la reunión (Editar)', 'err');
+    const sid = [...crypto.getRandomValues(new Uint8Array(16))].map(b => (b % 36).toString(36)).join('');
+    const fl = r.fecha ? new Date(r.fecha + 'T12:00').toLocaleDateString('es-ES', { weekday: 'long', day: 'numeric', month: 'long' }) : '';
+    try {
+      await db.ref('programas_salas/' + sid).set({ titulo: (TIPOS[r.tipo] || '').replace(/^\S+\s/, '') + (g ? ' · ' + g.nombre : ''), cuando: fl + (r.hora ? ' · ' + r.hora : ''), puntos: P.map(p => p.t), hints: P.map(p => p.hint), abierta: true, creada: Date.now() });
+    } catch (e) { console.warn(e); return toast('Falta el permiso «programas_salas» en las reglas de Firebase', 'err'); }
+    guardar('reuniones/' + id + '/sala', sid); r.sala = sid;
+  }
+  const u = urlSala(r.sala), msg = 'Reunión telemática del PROA (' + (g ? g.nombre + ', ' : '') + (r.fecha ? fechaCorta(r.fecha) : '') + (r.hora ? ' ' + r.hora : '') + '). Entra aquí: ' + u;
+  $('dlgIn').innerHTML = '<h2>🎥 Reunión telemática</h2><p class="small muted">' + esc((TIPOS[r.tipo] || '') + (g ? ' · ' + g.nombre : '')) + '</p>' +
+    '<p class="small" style="margin:8px 0">Envía este enlace a la persona acompañante y al tutor/a. No hace falta usuario: ponen su nombre y entran. Cada una escribe en los puntos del orden del día; el chat sirve para hablar y <b>no pasa al acta</b>.</p>' +
+    '<input readonly value="' + esc(u) + '" onclick="this.select()">' +
+    '<div class="pie" style="justify-content:flex-start;flex-wrap:wrap"><button class="btn" id="sAbrir">Entrar en la reunión</button><button class="btn sec" id="sCop">📋 Copiar enlace</button><a class="btn sec" style="text-decoration:none" target="_blank" rel="noopener" href="https://wa.me/?text=' + encodeURIComponent(msg) + '">WhatsApp</a></div>' +
+    '<div class="card" style="box-shadow:none;margin-top:10px"><b>Al terminar</b><p class="small muted">Pasa al acta lo escrito en los puntos y los participantes. La reunión se cierra y se borra el chat.</p><button class="btn" id="sActa">✅ Cerrar y pasar al acta</button></div>' +
+    '<div class="pie"><button class="btn sec" id="sC">Cerrar</button></div>';
+  $('dlg').showModal();
+  $('sC').onclick = () => $('dlg').close();
+  $('sAbrir').onclick = () => window.open(u, '_blank');
+  $('sCop').onclick = () => { copiar(msg); };
+  $('sActa').onclick = async () => {
+    try {
+      const s = (await db.ref('programas_salas/' + r.sala).once('value')).val() || {};
+      const ap = s.aport || {}, part = s.part || {}, n = Object.values(ap).reduce((k, x) => k + Object.keys(x || {}).length, 0);
+      if (!n && !confirm('Nadie ha escrito en los puntos. ¿Cerrar igualmente?')) return;
+      guardar('reuniones/' + id + '/salaAport', ap); guardar('reuniones/' + id + '/salaPart', part); guardar('reuniones/' + id + '/prevista', null);
+      await db.ref('programas_salas/' + r.sala).update({ abierta: false, chat: null });
+      $('dlg').close(); toast('Pasado al acta. Ya puedes generar el acta.'); render();
+    } catch (e) { console.warn(e); toast('No se ha podido leer la reunión', 'err'); }
+  };
+}
+document.addEventListener('click', e => { const b = e.target.closest('[data-sala]'); if (b) { e.stopPropagation(); dlgSala(b.dataset.sala); } }, true);
