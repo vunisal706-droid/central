@@ -173,3 +173,81 @@ document.addEventListener('change', e => {
   else if (t.dataset.subido) guardar('subidos/' + grupoSel + '/' + t.dataset.subido, t.checked ? hoyIso() : null);
   else if (t.id === 'mesResumen') Object.keys(BORR2).forEach(k => { if (!BORR2[k].cambiado) delete BORR2[k]; });
 });
+
+// ─── Actas de reunión desarrolladas, editables y con quién firma ───
+const JEFA_EST = 'María Rodríguez Rodríguez', SECRETARIA = 'Encarnación Muñoz Romero';
+const DESARROLLO = {
+  quincenal: [
+    ['Asistencia', 'La persona acompañante informa de la asistencia y la puntualidad del alumnado durante la quincena. Se revisan las faltas producidas, si están justificadas (Anexo XIII) y los casos que requieren seguimiento. Se recuerda que la asistencia regular es condición para la permanencia en el programa.',
+      'Comunicar a las familias las faltas no justificadas y, en su caso, valorar con la coordinación la continuidad del alumno/a.'],
+    ['Tareas y contenidos', 'El tutor/a informa de los contenidos que se están trabajando en clase en las áreas de Lengua Castellana y Literatura y Matemáticas, así como de las tareas, controles y trabajos previstos para las próximas semanas, para que el Acompañamiento refuerce esos mismos aprendizajes.',
+      'Reforzar en las sesiones de Acompañamiento los contenidos y tareas acordados con el tutor/a para la próxima quincena.'],
+    ['Evolución', 'Se analiza la evolución de cada alumno/a en lectura (fluidez y comprensión), cálculo, resolución de problemas y hábitos de trabajo (organización, uso de la agenda, autonomía y esfuerzo). Se destacan los avances observados y las dificultades que persisten.',
+      'Mantener la lectura diaria y el trabajo de cálculo mental y resolución de problemas con el esquema común del centro, atendiendo de forma individual a las dificultades detectadas.'],
+    ['Comunicación con las familias', 'Se revisa la comunicación con las familias: faltas, justificantes, autorizaciones pendientes y citas necesarias. Se acuerda quién contacta con cada familia y por qué medio (iPasen, teléfono o tutoría).',
+      'Contactar con las familias que lo necesiten y anotar la comunicación realizada.'],
+    ['Acuerdos para la próxima', 'Se resumen los compromisos alcanzados y se fija la siguiente reunión de coordinación a los quince días.',
+      'Celebrar la próxima reunión quincenal de coordinación en la fecha prevista.']
+  ],
+  familia: [
+    ['Presentación', 'La coordinación del programa da la bienvenida a las familias y presenta el Programa de Acompañamiento Escolar (PROA Andalucía), cofinanciado por el Fondo Social Europeo Plus (FSE+). Se explica su finalidad: mejorar los resultados del alumnado en las áreas instrumentales y sus hábitos de estudio, y se presenta a la persona responsable del grupo.', ''],
+    ['Días y horario', 'Se informa de los días y el horario de las sesiones, de la importancia de la asistencia diaria y la puntualidad, y de las normas de entrada y recogida del alumnado al finalizar cada sesión.', 'Las familias se comprometen a garantizar la asistencia y la puntualidad de sus hijos e hijas y a recogerlos a la hora de salida.'],
+    ['autorización', 'Se entrega a cada familia la autorización para la participación en el programa (Anexo VI) y se actualizan los teléfonos de contacto.', 'Devolver firmada la autorización (Anexo VI) en los próximos días.'],
+    ['Justificación de faltas', 'Se explica el procedimiento para justificar las faltas de asistencia (Anexo XIII) y que, si se acumulan faltas sin justificar, el alumno/a podrá causar baja en el programa (Anexo VIII) para dar la plaza a otro alumno/a.', 'Justificar por escrito cualquier falta de asistencia.'],
+    ['Ruegos', 'Se abre un turno de ruegos y preguntas en el que las familias plantean sus dudas, que son atendidas por la coordinación y la persona acompañante.', '']
+  ],
+  zts: [
+    ['desdobles', 'Se revisa el funcionamiento de los desdobles de Lengua Castellana y Literatura y Matemáticas: agrupamientos, horario, materiales y evolución del alumnado atendido.', 'Mantener los desdobles y ajustar los agrupamientos según la evolución del alumnado.'],
+    ['Absentismo', 'Se analizan los casos de absentismo del mes, las llamadas y citas realizadas con las familias y, en su caso, las derivaciones a la Comisión de Absentismo y a los Servicios Sociales.', 'Continuar el protocolo de absentismo con las familias de los casos detectados.'],
+    ['recién llegado', 'Se informa del alumnado incorporado recientemente y de las medidas del plan de acogida (tutor/a de acogida, evaluación inicial, apoyo lingüístico si es necesario).', 'Aplicar el plan de acogida al alumnado de nueva incorporación.'],
+    ['Plan de Actuación', 'Se revisa el grado de desarrollo de las actuaciones del Plan de Actuación ZTS previstas para el trimestre y las evidencias recogidas.', 'Recoger las evidencias de las actuaciones realizadas para la memoria.'],
+    ['Acuerdos', 'Se resumen los acuerdos y se fija la siguiente reunión de coordinación.', '']
+  ],
+  comision: [
+    ['PEM', 'Se revisa el desarrollo del Plan Estratégico de Mejora (PEM) y de cada una de las actividades palanca: grado de ejecución, responsables, evidencias y dificultades encontradas.', 'Continuar con las actividades palanca según la planificación y recoger sus evidencias.'],
+    ['indicadores', 'Se analizan los datos de los indicadores de los retos del programa tras la evaluación y se comparan con los datos iniciales y las metas fijadas.', 'Ajustar las actuaciones en los retos en los que no se avanza según lo previsto.'],
+    ['económica', 'Se informa del estado de ejecución de la dotación económica del programa y de los gastos previstos.', 'Ejecutar el gasto previsto dentro de los plazos establecidos.'],
+    ['Dificultades', 'Se recogen las dificultades detectadas y las propuestas de mejora de los miembros de la comisión.', 'Incorporar las propuestas de mejora a la planificación del siguiente periodo.'],
+    ['Acuerdos', 'Se resumen los acuerdos y se fija la fecha de la siguiente comisión de seguimiento.', '']
+  ]
+};
+function firmantesActa(r, g) {
+  const tutor = g ? [...new Set(Object.values(g.alumnos || {}).map(a => a.tutor).filter(Boolean))].join(' / ') : '';
+  if (r.tipo === 'quincenal') return [[g && g.docente || '', 'Persona acompañante (' + (g ? g.nombre : '') + ')'], [tutor, 'Tutor/a de ' + (g ? CURSO_G(g) || g.nombre : '')], [DIRECTOR, 'Coordinador del PROA Andalucía']];
+  if (r.tipo === 'familia') return [[g && g.docente || '', 'Persona acompañante'], [DIRECTOR, 'Coordinador del PROA Andalucía']];
+  if (r.tipo === 'zts') return [[SECRETARIA, 'Secretaria'], [JEFA_EST, 'Jefa de Estudios'], [DIRECTOR, 'Director (Vº Bº)']];
+  if (r.tipo === 'comision') return [[SECRETARIA, 'Secretaria de la comisión'], [DIRECTOR, 'Presidente de la comisión (Director)']];
+  return [['', 'Secretario/a de la reunión'], [DIRECTOR, 'Director (Vº Bº)']];
+}
+function acta(id) {
+  const r = D.reuniones[id], g = r.grupo && D.grupos[r.grupo], T = DESARROLLO[r.tipo] || [];
+  const prog = r.tipo === 'comision' ? 'PROA+ Transfórmate' : r.tipo === 'zts' ? 'Programa de Atención Socioeducativa en ZTS' : 'PROA Andalucía';
+  const lineas = (r.acuerdos || '').split('\n').map(x => x.trim()).filter(Boolean), cab = lineas.length && !/^\d+\./.test(lineas[0]) ? lineas.shift() : '';
+  const puntos = lineas.map(l => { const t = l.replace(/^\d+\.\s*/, ''), m = T.find(d => t.toLowerCase().includes(d[0].toLowerCase())); return { t, des: m ? m[1] : '', acu: m ? m[2] : '' }; });
+  const fechaL = r.fecha ? new Date(r.fecha + 'T12:00').toLocaleDateString('es-ES', { weekday: 'long', day: 'numeric', month: 'long', year: 'numeric' }) : '';
+  const raya = '<p style="border-bottom:1px dotted #777;height:20px;margin:4px 0"></p>';
+  const F = firmantesActa(r, g);
+  const html = '<h1>ACTA DE REUNIÓN · ' + esc(prog.toUpperCase()) + '</h1>' + (cab ? '<p class="c b">' + esc(cab) + '</p>' : '') +
+    '<table><tr><td class="et" style="width:26%">Centro</td><td>CEIP Capitulaciones (18008853) · Santa Fe (Granada) · Curso ' + esc(CURSO.replace('-', '/')) + '</td></tr>' +
+    '<tr><td class="et">Tipo de reunión</td><td>' + esc((TIPOS[r.tipo] || '').replace(/^\S+\s/, '')) + '</td></tr>' +
+    '<tr><td class="et">Fecha y hora</td><td>' + esc(fechaL) + (r.hora ? ', a las ' + esc(r.hora) + ' horas' : '') + '</td></tr><tr><td class="et">Modalidad</td><td>' + esc(r.mod || '') + '</td></tr>' +
+    (g ? '<tr><td class="et">Grupo</td><td>' + esc(g.nombre) + ' · ' + esc(ACT[g.act] || '') + ' · ' + esc(g.horario || '') + '</td></tr>' : '') +
+    '<tr><td class="et">Asistentes</td><td>' + esc(r.asistentes || '') + '</td></tr>' + (r.alumnos ? '<tr><td class="et">Alumnado</td><td>' + esc(r.alumnos) + '</td></tr>' : '') + '</table>' +
+    '<p>Reunidas las personas arriba indicadas, en la fecha y hora señaladas, se celebra la reunión con el siguiente</p>' +
+    '<p class="b">ORDEN DEL DÍA</p><ol>' + puntos.map(p => '<li>' + esc(p.t) + '</li>').join('') + '</ol>' +
+    '<p class="b">DESARROLLO DE LA SESIÓN</p>' + puntos.map((p, i) => '<p><b>' + (i + 1) + '. ' + esc(p.t) + '</b><br>' + (p.des ? esc(p.des) : '') + '</p>' + raya + raya).join('') +
+    '<p class="b">ACUERDOS ADOPTADOS</p><ol>' + puntos.filter(p => p.acu).map(p => '<li>' + esc(p.acu) + '</li>').join('') + '<li>&nbsp;</li></ol>' +
+    '<p>Sin más asuntos que tratar, se levanta la sesión a las ______ horas, de lo que se extiende la presente acta.</p>' +
+    '<p class="lugar">En Santa Fe, a ' + esc(r.fecha ? new Date(r.fecha + 'T12:00').toLocaleDateString('es-ES', { day: 'numeric', month: 'long', year: 'numeric' }) : '______________') + '.</p>' +
+    '<table style="border:none"><tr>' + F.map(([n, c]) => '<td style="border:none;text-align:center;width:' + Math.floor(100 / F.length) + '%;padding-top:50px">Fdo.: ' + (n ? esc(n) : '______________________') + '<br><span style="font-size:9pt">' + esc(c) + '</span></td>').join('') + '</tr></table>';
+  abrirActa('Acta ' + (g ? g.nombre + ' ' : '') + (r.fecha || ''), html, r.tipo === 'quincenal' || r.tipo === 'familia');
+}
+function abrirActa(titulo, cuerpo, fse) {
+  const base = location.href.replace(/[^/]*$/, ''), logo = fse ? '<img class="logos" src="' + (LOGO_FSE.startsWith('data:') ? LOGO_FSE : base + LOGO_FSE) + '" alt="Logos FSE+">' : '<div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:12px"><img src="' + base + 'img/junta.jpg" style="height:48px"><img src="' + base + 'img/colegio.png" style="height:48px"></div>';
+  const css = '@page{size:A4;margin:14mm 16mm}body{font-family:Calibri,Arial,sans-serif;font-size:11pt;margin:0;background:#888;line-height:1.45}.pag{background:#fff;width:210mm;min-height:297mm;margin:10px auto;padding:12mm 16mm;outline:none}.logos{display:block;width:78%;margin:0 auto 14px}h1{font-size:12pt;text-align:center;margin:0 0 10px}table{width:100%;border-collapse:collapse;margin:0 0 12px}td{border:1px solid #000;padding:3px 6px;vertical-align:top}.et{background:#d9d9d9;font-weight:700}.c{text-align:center}.b{font-weight:700}.lugar{text-align:center;margin:18px 0 0}ol{margin:4px 0 10px 22px}.bar{text-align:center;padding:10px;background:#fff;font-family:Arial}.bar button{font-size:15px;padding:8px 14px;margin:0 4px;cursor:pointer}@media print{body{background:#fff}.pag{margin:0;width:auto;min-height:0;padding:0}.bar{display:none}}';
+  const html = '<!doctype html><html lang="es"><head><meta charset="utf-8"><title>' + esc(titulo) + '</title><style>' + css + '</style></head><body><div class="pag" contenteditable="true">' + logo + cuerpo + '</div></body></html>';
+  const w = window.open('', '_blank'); if (!w) return toast('Permite las ventanas emergentes para ver el acta', 'err');
+  w.document.write(html.replace('<body>', '<body><div class="bar"><button onclick="print()">🖨️ Imprimir o guardar en PDF</button><button id="bw">📝 Descargar Word</button><br><small>Puedes escribir directamente sobre el acta antes de imprimirla.</small></div>'));
+  w.document.close();
+  w.document.getElementById('bw').onclick = () => { const b = new Blob(['﻿<html><head><meta charset="utf-8"><style>' + css + '</style></head><body>' + w.document.querySelector('.pag').outerHTML + '</body></html>'], { type: 'application/msword' }), a = w.document.createElement('a'); a.href = URL.createObjectURL(b); a.download = titulo.replace(/[^\wáéíóúñÁÉÍÓÚÑ ]+/g, '').replace(/\s+/g, '_') + '.doc'; a.click(); };
+}
