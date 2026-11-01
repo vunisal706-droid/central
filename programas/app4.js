@@ -295,3 +295,22 @@ async function dlgSala(id) {
   };
 }
 document.addEventListener('click', e => { const b = e.target.closest('[data-sala]'); if (b) { e.stopPropagation(); dlgSala(b.dataset.sala); } }, true);
+
+// ─── Vista de monitores y tutores: programación del grupo y reuniones quincenales ───
+function rVistaEquipo(g) {
+  const P = g.prog ? Object.assign(progPorDefecto(g), g.prog) : null, yo = PERFILES[PERFIL] || {};
+  const lista = t => '<ul style="margin:4px 0 8px 20px">' + String(t || '').split('\n').filter(Boolean).map(x => '<li>' + esc(x) + '</li>').join('') + '</ul>';
+  let h = '<div class="card"><div class="card-h"><h2>📘 Programación del grupo</h2>' + (P ? '<button class="btn sec peq" data-acc="verProg">📄 Ver en PDF</button>' : '') + '</div>' +
+    (P ? '<p class="small muted">Para preparar las sesiones. La hace la coordinación con el tutor/a.</p>' + PROG_CAMPOS.map(([k, t]) => P[k] ? '<details><summary>' + esc(t.split(' · ')[0]) + '</summary>' + lista(P[k]) + '</details>' : '').join('') +
+      (P.ind && Object.keys(P.ind).length ? '<details><summary>Objetivos de cada alumno/a</summary><ul style="margin:4px 0 8px 20px">' + Object.entries(P.ind).map(([aid, t]) => '<li><b>' + esc(((g.alumnos || {})[aid] || {}).siglas || '') + ':</b> ' + esc(t) + '</li>').join('') + '</ul></details>' : '')
+      : '<p class="muted">La coordinación todavía no ha guardado la programación de este grupo.</p>') + '</div>';
+  const hoy = hoyIso(), RR = Object.entries(D.reuniones || {}).filter(([, r]) => r.grupo === grupoSel && r.tipo === 'quincenal').sort((a, b) => (a[1].fecha || '').localeCompare(b[1].fecha || ''));
+  const prox = RR.filter(([, r]) => (r.fecha || '') >= hoy || (r.sala && !r.salaAport)), pas = RR.filter(([, r]) => r.salaAport).reverse().slice(0, 6);
+  const rol = yo.mon && yo.tut ? 'Profesor del grupo y tutor' : yo.mon ? 'Persona acompañante' : 'Tutor/a';
+  h += '<div class="card"><h2>🤝 Reuniones quincenales</h2><p class="small muted">Telemáticas, cada quince días, entre la persona acompañante y el tutor/a. Lo que escribís en los puntos del orden del día pasa al acta; el chat no.</p>' +
+    (prox.slice(0, 4).map(([id, r]) => '<div class="item"><div class="fecha">' + fechaCorta(r.fecha) + '</div><div class="cuerpo"><div class="tt">' + esc(r.hora || '') + (r.sala && !r.salaAport ? ' <span class="tag st-ok">Abierta</span>' : '') + '</div>' +
+      (r.sala && !r.salaAport ? '<a class="btn peq" style="text-decoration:none;display:inline-block;margin-top:4px;color:#fff" target="_blank" rel="noopener" href="' + esc(urlSala(r.sala) + '&n=' + encodeURIComponent(yo.nombre) + '&r=' + encodeURIComponent(rol)) + '">🎥 Entrar en la reunión telemática</a>' : '<div class="dd">La coordinación abrirá la reunión ese día.</div>') + '</div></div>').join('') || '<p class="muted small">No hay reuniones previstas.</p>') +
+    (pas.length ? '<p class="small" style="margin-top:8px"><b>Celebradas</b></p>' + pas.map(([id, r]) => '<div class="item"><div class="fecha">' + fechaCorta(r.fecha) + '</div><div class="cuerpo"><button class="btn sec peq" data-acta="' + id + '">📄 Acta</button></div></div>').join('') : '') + '</div>';
+  return h;
+}
+document.addEventListener('click', e => { const b = e.target.closest('[data-acc="verProg"]'); if (b) { const g = D.grupos[grupoSel]; docProg(grupoSel, Object.assign(progPorDefecto(g), g.prog || {})); } });

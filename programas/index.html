@@ -114,11 +114,14 @@ body.mon #nav button:not([data-s=acomp]),body.mon #selCurso{display:none}
     <img src="img/colegio.png" alt="CEIP Capitulaciones">
     <h2 style="text-align:center">Programas del cole</h2>
     <p class="muted small" style="text-align:center">ZTS · PROA Andalucía · PROA+ Transfórmate</p>
+    <div class="chips" id="listaProg" style="justify-content:center;margin-top:12px"></div>
     <div class="perfiles" id="listaPerfiles"></div>
+    <div id="accDatos">
     <label for="accIdea">Usuario (IdEA, o el que te haya dado dirección)</label>
     <input id="accIdea" autocomplete="username" autocapitalize="off" spellcheck="false">
     <label style="display:flex;gap:8px;align-items:center;font-weight:700"><input type="checkbox" id="accRecordar" checked style="width:auto"> Recordarme en este dispositivo</label>
     <button class="btn" id="accEntrar" style="width:100%;margin-top:10px">Entrar</button>
+    </div>
     <div id="accError"></div>
   </div>
 </div>
@@ -157,6 +160,7 @@ body.mon #nav button:not([data-s=acomp]),body.mon #selCurso{display:none}
 <dialog id="novedades">
   <h2>🆕 Novedades</h2>
   <p>📅 <b>Reuniones previstas</b>: en «Reuniones» puedes cargar con un botón las reuniones del curso (quincenales de cada grupo, reunión con familias, coordinación ZTS y comisiones del PROA+) con su orden del día, para editarlas.</p>
+  <p>🔑 <b>Acceso por programa</b>: primero se elige ZTS, PROA Andalucía o PROA+ y salen solo sus personas. Entran las <b>tutoras de 3.º, 4.º y 5.º y el tutor de 6.º</b>: ven la programación del grupo y las reuniones quincenales, y entran desde ahí en la reunión telemática. Las monitoras ven también la <b>programación</b>.</p>
   <p>🎥 <b>Reunión telemática integrada</b>: en cada reunión, botón «Reunión telemática». Envías el enlace a la acompañante y al tutor/a (sin usuario); cada una escribe en los puntos del orden del día y hablan por un chat que <b>no</b> pasa al acta. Al terminar, «Cerrar y pasar al acta» y el acta sale con lo escrito.<br>🔧 Arreglado el botón del <b>acta de selección</b>.</p>
   <p>📄 <b>Actas de reunión desarrolladas</b>: orden del día, desarrollo de cada punto, acuerdos y quién firma (nombre y cargo). Se pueden editar directamente antes de imprimir o descargar en Word.</p>
   <p>👥 En el <b>acta de selección</b> ya aparecen María Noelia Sáez Guerrero (coordinadora del Equipo de Orientación) y Bianca Ruiz Muñoz (orientadora del EOE).</p>
@@ -170,11 +174,12 @@ body.mon #nav button:not([data-s=acomp]),body.mon #selCurso{display:none}
   <div class="pie"><button class="btn" onclick="this.closest('dialog').close()">Entendido</button></div>
 </dialog>
 <dialog id="novMon">
-  <h2>👋 Bienvenida al PROA</h2>
-  <p>Aquí tienes tu grupo de Acompañamiento:</p>
-  <p>✍️ Cada mes, marca en el móvil las sesiones que das y quién falta, <b>firma con el dedo</b> y descarga el Anexo X y el XII ya firmados. Si prefieres papel, imprímelos con las fechas puestas.<br>
-  📝 Al final de cada trimestre, rellena el <b>informe de cada alumno/a</b> tocando opciones y frases sugeridas, y descarga el <b>Anexo XV</b>.</p>
-  <p class="muted small">Solo ves tus grupos. El alumnado aparece por siglas.</p>
+  <h2>👋 Novedades del PROA</h2>
+  <p>🔑 Al entrar, primero eliges el <b>programa</b> y luego tu nombre. Ya están las tutoras de 3.º, 4.º y 5.º y el tutor de 6.º.</p>
+  <p>📘 <b>Programación del grupo</b>: la veis en vuestra pantalla para preparar las sesiones.<br>
+  🤝 <b>Reuniones quincenales</b> con su botón para <b>entrar en la reunión telemática</b>: cada una escribe en los puntos del orden del día y habláis por un chat que no sale en el acta.<br>
+  ✍️ Monitores: las hojas del mes se pueden rellenar y firmar con el dedo, y el informe trimestral (Anexo XV) se rellena con opciones y frases sugeridas.</p>
+  <p class="muted small">Solo ves tu grupo. El alumnado aparece por siglas.</p>
   <div class="pie"><button class="btn" onclick="this.closest('dialog').close()">Entendido</button></div>
 </dialog>
 <div id="toast"></div>

@@ -82,6 +82,7 @@ const app = firebase.initializeApp({ apiKey: 'AIzaSyC7NgtJ1lUecZr5LR3jK1wURfzNIa
 const db = app.database(), R = db.ref('programas_salas/' + SALA);
 let YO = null; try { YO = JSON.parse(localStorage.getItem('programas-sala-yo') || 'null'); } catch (e) { }
 if (!YO || !YO.pid) YO = { pid: Math.random().toString(36).slice(2, 12) + Date.now().toString(36) };
+const QP = new URLSearchParams(location.search); if (QP.get('n') && !YO.n) { YO.n = QP.get('n'); YO.rol = QP.get('r') || 'Tutor/a'; try { localStorage.setItem('programas-sala-yo', JSON.stringify(YO)); } catch (e) { } }
 let S = null, timers = {};
 const fallo = t => { document.body.innerHTML = '<div class="card" style="max-width:460px;margin:60px auto"><h1>🤝 Reunión telemática</h1><p style="margin-top:8px">' + t + '</p></div>'; };
 if (!/^[a-z0-9]{16,}$/.test(SALA)) fallo('El enlace de la reunión no es correcto. Pide de nuevo el enlace a la coordinación del PROA.');

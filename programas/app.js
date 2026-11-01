@@ -17,16 +17,22 @@ const tagProg = p => '<span class="tag t-' + PROG[p].cls + '">' + esc(PROG[p].n)
 const EUROS = { B: 20, A: 23 };
 
 const PERFILES = {
-  victor:   { nombre: 'Víctor',          emoji: '👨‍🏫', idea: 'vunisal706', rol: 'Dirección' },
-  maria:    { nombre: 'María Rodríguez', emoji: '👩‍🏫', idea: 'mrodrod323', rol: 'Jefatura de estudios' },
-  encarna:  { nombre: 'Encarna',         emoji: '👩‍🏫', idea: 'emunrom369', rol: 'Equipo directivo' },
-  miriam:   { nombre: 'Miriam',          emoji: '🌱', idea: 'mromrod681', rol: 'Coordinación ZTS' },
-  cristina: { nombre: 'Cristina',        emoji: '🌱', idea: 'cmolmar422', rol: 'Maestra ZTS' },
-  sandra:   { nombre: 'Sandra',          emoji: '🧑‍🏫', idea: 'proa.sandra', rol: 'Monitora PROA Andalucía', mon: true },
-  nuria:    { nombre: 'Nuria',           emoji: '🧑‍🏫', idea: 'proa.nuria',  rol: 'Monitora PROA Andalucía', mon: true },
-  manolo:   { nombre: 'Manolo',          emoji: '🧑‍🏫', idea: 'proa.manolo', rol: 'PROA Andalucía', mon: true }
+  victor:    { nombre: 'Víctor',          emoji: '👨‍🏫', idea: 'vunisal706', rol: 'Dirección', prog: ['ZTS', 'PROA', 'PROA+'] },
+  maria:     { nombre: 'María Rodríguez', emoji: '👩‍🏫', idea: 'mrodrod323', rol: 'Jefatura de estudios', prog: ['ZTS', 'PROA', 'PROA+'] },
+  encarna:   { nombre: 'Encarna',         emoji: '👩‍🏫', idea: 'emunrom369', rol: 'Equipo directivo', prog: ['ZTS', 'PROA', 'PROA+'] },
+  miriam:    { nombre: 'Miriam',          emoji: '🌱', idea: 'mromrod681', rol: 'Coordinación ZTS', prog: ['ZTS', 'PROA+'] },
+  cristina:  { nombre: 'Cristina',        emoji: '🌱', idea: 'cmolmar422', rol: 'Maestra ZTS', prog: ['ZTS', 'PROA+'] },
+  sandra:    { nombre: 'Sandra',          emoji: '🧑‍🏫', idea: 'proa.sandra', rol: 'Monitora (Tercero y Quinto)', mon: true, prog: ['PROA'] },
+  nuria:     { nombre: 'Nuria',           emoji: '🧑‍🏫', idea: 'proa.nuria',  rol: 'Monitora (Cuarto)', mon: true, prog: ['PROA'] },
+  manolo:    { nombre: 'Manolo',          emoji: '🧑‍🏫', idea: 'proa.manolo', rol: 'Profesor del grupo y tutor de 6.º', mon: true, tut: 'Sexto', prog: ['PROA'] },
+  beatriz:   { nombre: 'Beatriz',         emoji: '👩‍🏫', idea: 'proa.beatriz',   rol: 'Tutora de 3.º', tut: 'Tercero', prog: ['PROA'] },
+  silvia:    { nombre: 'Silvia',          emoji: '👩‍🏫', idea: 'proa.silvia',    rol: 'Tutora de 4.º', tut: 'Cuarto', prog: ['PROA'] },
+  alejandra: { nombre: 'Alejandra',       emoji: '👩‍🏫', idea: 'proa.alejandra', rol: 'Tutora de 5.º', tut: 'Quinto', prog: ['PROA'] }
 };
-const esMon = () => !!(PERFILES[PERFIL] || {}).mon;
+const esMon = () => { const p = PERFILES[PERFIL] || {}; return !!(p.mon || p.tut); };
+const esMonitor = () => !!(PERFILES[PERFIL] || {}).mon;
+const esTut = () => !!(PERFILES[PERFIL] || {}).tut && !esMonitor();
+const miGrupo = g => g.monitor === PERFIL || g.nombre === (PERFILES[PERFIL] || {}).tut;
 const DOMINIO = '@capitulaciones.local';
 
 // ─── Firebase (app con nombre propio para no pisar otras sesiones del dominio) ───
@@ -72,7 +78,7 @@ function conectar() {
 let refsMon = [];
 function conectarMon() {
   refsMon.forEach(r => r.off()); refsMon = [];
-  ['grupos', 'sesiones', 'informes'].forEach(k => {
+  ['grupos', 'sesiones', 'informes', 'reuniones'].forEach(k => {
     const r = db.ref(BASE + '/' + k); refsMon.push(r);
     r.on('value', s => {
       D[k] = s.val() || {}; cachear();
@@ -87,7 +93,16 @@ db.ref('.info/connected').on('value', s => { $('dot').className = 'dot ' + (s.va
 
 // ─── Acceso ───
 let perfilSel = null;
-$('listaPerfiles').innerHTML = Object.entries(PERFILES).map(([k, p]) => '<button class="perfil-btn" data-p="' + k + '"><span class="e">' + p.emoji + '</span><span><b>' + esc(p.nombre) + '</b><small>' + esc(p.rol) + '</small></span></button>').join('');
+let progAcc = null; try { progAcc = localStorage.getItem('programas-prog-acc'); } catch (e) { }
+function pintarPerfiles() {
+  $('listaProg').innerHTML = Object.entries(PROG).map(([k, p]) => '<button class="chip' + (progAcc === k ? ' on' : '') + '" data-pa="' + k + '">' + p.e + ' ' + esc(p.n) + '</button>').join('');
+  const L = Object.entries(PERFILES).filter(([, p]) => progAcc && p.prog.includes(progAcc));
+  $('listaPerfiles').innerHTML = progAcc ? L.map(([k, p]) => '<button class="perfil-btn' + (perfilSel === k ? ' on' : '') + '" data-p="' + k + '"><span class="e">' + p.emoji + '</span><span><b>' + esc(p.nombre) + '</b><small>' + esc(p.rol) + '</small></span></button>').join('') : '<p class="muted small" style="text-align:center">Elige primero el programa.</p>';
+  $('accDatos').style.display = progAcc ? '' : 'none';
+}
+$('listaProg').onclick = e => { const b = e.target.closest('[data-pa]'); if (!b) return; progAcc = b.dataset.pa; try { localStorage.setItem('programas-prog-acc', progAcc); } catch (x) { } if (perfilSel && !PERFILES[perfilSel].prog.includes(progAcc)) perfilSel = null; pintarPerfiles(); };
+pintarPerfiles();
+if (false) $('listaPerfiles').innerHTML = Object.entries(PERFILES).map(([k, p]) => '<button class="perfil-btn" data-p="' + k + '"><span class="e">' + p.emoji + '</span><span><b>' + esc(p.nombre) + '</b><small>' + esc(p.rol) + '</small></span></button>').join('');
 $('listaPerfiles').onclick = e => { const b = e.target.closest('.perfil-btn'); if (!b) return; perfilSel = b.dataset.p; document.querySelectorAll('.perfil-btn').forEach(x => x.classList.toggle('on', x === b)); $('accIdea').focus(); };
 $('accIdea').onkeydown = e => { if (e.key === 'Enter') entrar(); };
 $('accEntrar').onclick = entrar;
@@ -112,7 +127,7 @@ function abrir(p) {
   $('pantallaAcceso').style.display = 'none';
   $('perfilPill').textContent = PERFILES[p].emoji + ' ' + PERFILES[p].nombre.split(' ')[0];
   document.body.classList.toggle('mon', esMon());
-  if (esMon()) { $('tituloApp').innerHTML = 'PROA Andalucía<small>Acompañamiento · ' + esc(PERFILES[p].nombre) + '</small>'; seccion = 'acomp'; irA('acomp'); }
+  if (esMon()) { $('tituloApp').innerHTML = 'PROA Andalucía<small>' + (esTut() ? 'Tutoría' : 'Acompañamiento') + ' · ' + esc(PERFILES[p].nombre) + '</small>'; seccion = 'acomp'; irA('acomp'); }
   pintarCursos(); conectar(); novedades();
 }
 $('perfilPill').onclick = async () => {
@@ -127,7 +142,7 @@ function pintarCursos() {
   $('selCurso').innerHTML = [i - 1, i, i + 1].map(y => { const c = y + '-' + String(y + 1).slice(2); return '<option value="' + c + '"' + (c === CURSO ? ' selected' : '') + '>' + y + '/' + String(y + 1).slice(2) + '</option>'; }).join('');
   $('selCurso').onchange = () => { CURSO = $('selCurso').value; conectar(); };
 }
-function novedades() { const K = esMon() ? 'programas-nov-mon-v5' : 'programas-nov-v13'; const dlgId = esMon() ? 'novMon' : 'novedades'; try { if (localStorage.getItem(K)) return; localStorage.setItem(K, 1); } catch (e) { } setTimeout(() => { try { $(dlgId).showModal(); } catch (e) { } }, 500); }
+function novedades() { const K = esMon() ? 'programas-nov-mon-v6' : 'programas-nov-v14'; const dlgId = esMon() ? 'novMon' : 'novedades'; try { if (localStorage.getItem(K)) return; localStorage.setItem(K, 1); } catch (e) { } setTimeout(() => { try { $(dlgId).showModal(); } catch (e) { } }, 500); }
 
 // ─── Navegación ───
 $('nav').onclick = e => { const b = e.target.closest('button'); if (b) irA(b.dataset.s); };
@@ -210,11 +225,11 @@ function rPanel() {
 const ACT = { AE: 'Acompañamiento Escolar', ALI: 'Acompañamiento Lingüístico', AED: 'Acompañamiento Escolar Domiciliario' };
 function rangoProg() { const y = startY(CURSO); return { ini: y + '-10-13', fin: (y + 1) + '-05-31' }; }
 function rAcomp() {
-  const G = Object.entries(D.grupos || {}).filter(([, g]) => !esMon() || g.monitor === PERFIL).sort((a, b) => (a[1].nombre || '').localeCompare(b[1].nombre || ''));
+  const G = Object.entries(D.grupos || {}).filter(([, g]) => !esMon() || miGrupo(g)).sort((a, b) => (a[1].nombre || '').localeCompare(b[1].nombre || ''));
   if (grupoSel && (!D.grupos[grupoSel] || !G.some(x => x[0] === grupoSel))) grupoSel = null;
   if (!grupoSel && G.length) grupoSel = G[0][0];
   let h = '<div class="card"><div class="card-h"><h2>🧑‍🏫 PROA Andalucía · Acompañamiento</h2>' + (esMon() ? '' : '<button class="btn" data-acc="nuevoGrupo">＋ Nuevo grupo</button>') + '</div>' +
-    (esMon() ? '<div class="aviso verde"><b>Cómo se usa:</b> 1) Cada mes, en «Hojas del mes», marca las sesiones y quién falta, firma con el dedo y descarga el Anexo X y el XII (o imprímelos y fírmalos a mano). 2) Entrégalos a dirección a final de mes. 3) Al final de cada trimestre rellena el <b>informe de cada alumno/a</b> (Anexo XV) con las opciones sugeridas.</div>' : '') +
+    (esTut() ? '<div class="aviso verde"><b>Cómo se usa:</b> aquí ves el grupo de Acompañamiento de tu clase, su <b>programación</b> y las <b>reuniones quincenales</b>. Cuando haya reunión, pulsa «Entrar en la reunión telemática», escribe en los puntos del orden del día lo que veas necesario y habla por el chat con la monitora.</div>' : '') + (esMonitor() ? '<div class="aviso verde"><b>Cómo se usa:</b> 1) Cada mes, en «Hojas del mes», marca las sesiones y quién falta, firma con el dedo y descarga el Anexo X y el XII (o imprímelos y fírmalos a mano). 2) Entrégalos a dirección a final de mes. 3) Al final de cada trimestre rellena el <b>informe de cada alumno/a</b> (Anexo XV) con las opciones sugeridas.</div>' : '') +
     (G.length ? '<div class="chips">' + G.map(([id, g]) => '<button class="chip' + (id === grupoSel ? ' on' : '') + '" data-grupo="' + id + '">' + esc(g.nombre) + '</button>').join('') + '</div>' :
       (esMon() ? '<p class="muted">Todavía no tienes ningún grupo asignado. Avisa a dirección.</p>' : '<p class="muted">Aún no hay grupos.</p><button class="btn" data-acc="gruposSeneca">⚡ Crear los 4 grupos como están en Séneca</button> <span class="small muted">Tercero (L y X), Cuarto, Quinto y Sexto (M y J), de 16:00 a 18:00</span>')) +
     '<p class="small muted">Recuerda: 2 sesiones de 2 h a la semana (o 4 de 1 h), nunca el viernes por la tarde. No se recuperan sesiones ni se cobran las no impartidas. Del 13 de octubre al 31 de mayo.</p></div>';
@@ -230,11 +245,12 @@ function rAcomp() {
   const meses = mesesProg();
   if (!mesResumen || !meses.includes(mesResumen)) mesResumen = meses.includes(hoyIso().slice(0, 7)) ? hoyIso().slice(0, 7) : meses[0];
   const selMes = '<select id="mesResumen" style="width:auto">' + meses.map(m => '<option value="' + m + '"' + (m === mesResumen ? ' selected' : '') + '>' + MESES[+m.slice(5) - 1] + ' ' + m.slice(0, 4) + '</option>').join('') + '</select>';
-  if (esMon()) h += rHojasMon(g, A, selMes);
-  else { h += rSesiones(g, selMes); h += rSubir(g); }
+  if (esMon() && typeof rVistaEquipo === 'function') h += rVistaEquipo(g);
+  if (esMonitor()) h += rHojasMon(g, A, selMes);
+  if (!esMon()) { h += rSesiones(g, selMes); h += rSubir(g); }
   if (!esMon() && typeof rDocsGrupo === 'function') h += rDocsGrupo(g, A);
   // Informe trimestral (Anexo XV)
-  h += rInformeXV(A, +(($('triInf') || {}).value || trimestreActual()));
+  if (!esTut()) h += rInformeXV(A, +(($('triInf') || {}).value || trimestreActual()));
   if (!esMon()) h += rCotejo(grupoSel);
   return h;
 }
