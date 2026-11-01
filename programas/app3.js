@@ -173,9 +173,9 @@ function docProg(gid, P) {
     '<p class="lugar">En Santa Fe, a ' + fLarga(hoyIso()) + '.</p><table style="border:0"><tr><td style="border:0;text-align:center">El mentor/a o profesor/a<br><br><br>Fdo.: ' + esc(g.docente || '') + '</td><td style="border:0;text-align:center">Vº Bº El coordinador del Programa<br><br><br>Fdo.: ' + DIRECTOR + '</td></tr></table>']);
 }
 // Acta de selección (Anexo XVI)
-const COMISION_DEF = { je: 'María Rodríguez Rodríguez', co: 'Víctor Manuel Única Salas', ciclos: 'Silvia Tatiana Tortosa Espínola (2.º ciclo) y Manuel Lupión Puente (3.er ciclo)', eoe: '' };
+const COMISION_DEF = { je: 'María Rodríguez Rodríguez', co: 'Víctor Manuel Única Salas', ciclos: 'Silvia Tatiana Tortosa Espínola (2.º ciclo) y Manuel Lupión Puente (3.er ciclo); María Noelia Sáez Guerrero (Equipo de Orientación)', eoe: 'Bianca Ruiz Muñoz' };
 function dlgActa() {
-  const g = D.grupos[grupoSel], A = Object.entries(g.alumnos || {}), C = Object.assign({}, COMISION_DEF, (D.comision || {})), N = nombres(grupoSel), a0 = g.acta || {};
+  const g = D.grupos[grupoSel], A = Object.entries(g.alumnos || {}), C = Object.assign({}, COMISION_DEF, (D.comision || {})); if (!C.eoe) C.eoe = COMISION_DEF.eoe; if (!/Sáez Guerrero/.test(C.ciclos)) C.ciclos += '; María Noelia Sáez Guerrero (Equipo de Orientación)', N = nombres(grupoSel), a0 = g.acta || {};
   $('dlgIn').innerHTML = '<h2>Acta de selección · ' + esc(g.nombre) + '</h2>' +
     '<div class="g2"><div><label>Fecha de la reunión</label><input type="date" id="acF" value="' + esc(a0.fecha || '') + '"></div><div><label>Hora</label><input type="time" id="acH" value="' + esc(a0.hora || '') + '"></div></div>' +
     '<label>Jefe/a de Estudios</label><input id="acJe" value="' + esc(C.je) + '"><label>Coordinador/a del Programa</label><input id="acCo" value="' + esc(C.co) + '">' +
@@ -242,7 +242,7 @@ function dlgXVII() {
     '<div class="pie"><button class="btn sec" id="x7C">Cancelar</button><button class="btn" id="x7Ok">Generar PDF</button></div>';
   $('dlg').showModal(); $('x7C').onclick = () => $('dlg').close();
   $('x7Ok').onclick = () => {
-    const C = Object.assign({}, COMISION_DEF, D.comision || {}), f = $('x7F').value, h = $('x7H').value, b = $('x7B').value.trim(), a = $('x7A').value.trim(); $('dlg').close();
+    const C = Object.assign({}, COMISION_DEF, D.comision || {}); if (!C.eoe) C.eoe = COMISION_DEF.eoe; const f = $('x7F').value, h = $('x7H').value, b = $('x7B').value.trim(), a = $('x7A').value.trim(); $('dlg').close();
     abrirAnexo(D.grupos[grupoSel].nombre + ' - Anexo al acta de selección', ['<h1>ANEXO XVII. MODELO DE ANEXO AL ACTA DE SELECCIÓN DEL ALUMNADO.</h1>' + cabActa(f, h, 'se reúne') + bloqueComision(C) +
       '<p style="text-align:justify;line-height:1.8">Ante la baja del alumno/a ' + lin(b, 50) + ' en el Programa PROA Andalucía, esta Comisión propone la incorporación al Programa del alumno/a ' + lin(a, 50) + '.</p>' +
       '<p style="text-align:justify">Para constancia, este Anexo al Acta de selección del alumnado participante en el Programa PROA Andalucía se cierra y firma por todos los miembros de la Comisión de Selección que han intervenido. Con el VºBº del Director/a del centro (y el sello oficial del centro, en el caso de no emplear las firmas electrónicas), en ' + lin('Santa Fe', 12) + ' a ' + lin(f ? String(+f.slice(8)) : '', 5) + ' de ' + lin(f ? MESES[+f.slice(5, 7) - 1] : '', 15) + ' de ' + (f ? f.slice(0, 4) : '20__') + '.</p>' + firmasComision(C)]);
