@@ -157,20 +157,20 @@ body.mon #nav button:not([data-s=acomp]),body.mon #selCurso{display:none}
 <dialog id="novedades">
   <h2>🆕 Novedades</h2>
   <p>📅 <b>Reuniones previstas</b>: en «Reuniones» puedes cargar con un botón las reuniones del curso (quincenales de cada grupo, reunión con familias, coordinación ZTS y comisiones del PROA+) con su orden del día, para editarlas.</p>
-  <p><b>Acompañamiento ajustado a cómo se trabaja de verdad:</b></p>
-  <p>📥 Los monitores ya <b>no pasan lista en la app</b>. Te entregan el PDF de asistencia y tú lo metes aquí: la app <b>lee las fechas del PDF</b> (si es digital) o las marcas tocando los días previstos, y señalas quién faltó.<br>
-  🟢 Con eso sale «Para grabar en Séneca» (días a marcar en Usos del servicio) y el PDF con su nombre para subirlo.<br>
-  📑 Nuevo apartado <b>Documentos del grupo</b>: <b>programación</b> con una propuesta lista para revisar, <b>acta de selección</b> (Anexo XVI), <b>autorizaciones</b> de las familias (Anexo VI), <b>baja</b> (Anexo VIII) y <b>anexo al acta</b> (XVII), copiados de los modelos oficiales.<br>
-  🖨️ Los monitores descargan su <b>Anexo X con las fechas previstas</b> del mes, el XII y el XIII para imprimir, y rellenan el informe trimestral (Anexo XV).<br>
-  ⚡ Los 4 grupos se crean como en Séneca (Tercero y Quinto: Sandra; Cuarto: Nuria; Sexto: Manolo).</p>
+  <p><b>Acompañamiento más sencillo:</b></p>
+  <p>🧹 Fuera la asistencia del alumnado: la graban los monitores.<br>
+  🕒 <b>Sesiones dadas</b>: solo marcas los días que se dio clase → horas e importe para la certificación.<br>
+  📷 <b>Fotos → PDF</b>: haz fotos a las hojas firmadas y sale un PDF con el nombre exacto del tipo de documento de Séneca, listo para subir.<br>
+  ✍️ Los monitores pueden <b>rellenar el Anexo X y el XII en el móvil y firmar con el dedo</b> (o seguir en papel con las fechas ya puestas).<br>
+  📝 <b>Informe trimestral (Anexo XV) rápido</b>: contenidos sugeridos por área, Conseguido / En proceso / Sin iniciar con un toque, frases tipo para cada pregunta y «copiar del trimestre anterior».</p>
   <p class="muted small">Los datos se comparten entre el equipo directivo y la coordinación ZTS. En la nube el alumnado va solo por siglas; los nombres completos se quedan en tu dispositivo.</p>
   <div class="pie"><button class="btn" onclick="this.closest('dialog').close()">Entendido</button></div>
 </dialog>
 <dialog id="novMon">
   <h2>👋 Bienvenida al PROA</h2>
   <p>Aquí tienes tu grupo de Acompañamiento:</p>
-  <p>🖨️ Cada mes, descarga e imprime la <b>hoja de asistencia (Anexo X)</b> con las fechas ya puestas y la de <b>ausencias (Anexo XII)</b>. Firma cada sesión, anota quién falta y entrégalas a dirección a final de mes.<br>
-  📝 Al final de cada trimestre, rellena aquí el <b>informe de cada alumno/a</b> y descarga el <b>Anexo XV</b>.</p>
+  <p>✍️ Cada mes, marca en el móvil las sesiones que das y quién falta, <b>firma con el dedo</b> y descarga el Anexo X y el XII ya firmados. Si prefieres papel, imprímelos con las fechas puestas.<br>
+  📝 Al final de cada trimestre, rellena el <b>informe de cada alumno/a</b> tocando opciones y frases sugeridas, y descarga el <b>Anexo XV</b>.</p>
   <p class="muted small">Solo ves tus grupos. El alumnado aparece por siglas.</p>
   <div class="pie"><button class="btn" onclick="this.closest('dialog').close()">Entendido</button></div>
 </dialog>
@@ -184,6 +184,7 @@ body.mon #nav button:not([data-s=acomp]),body.mon #selCurso{display:none}
 <script src="app.js"></script>
 <script src="app2.js"></script>
 <script src="app3.js"></script>
+<script src="app4.js"></script>
 <script>if('serviceWorker' in navigator)navigator.serviceWorker.register('sw.js').catch(()=>{});</script>
 </body>
 </html>

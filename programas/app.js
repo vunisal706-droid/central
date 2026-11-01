@@ -127,7 +127,7 @@ function pintarCursos() {
   $('selCurso').innerHTML = [i - 1, i, i + 1].map(y => { const c = y + '-' + String(y + 1).slice(2); return '<option value="' + c + '"' + (c === CURSO ? ' selected' : '') + '>' + y + '/' + String(y + 1).slice(2) + '</option>'; }).join('');
   $('selCurso').onchange = () => { CURSO = $('selCurso').value; conectar(); };
 }
-function novedades() { const K = esMon() ? 'programas-nov-mon-v3' : 'programas-nov-v8'; const dlgId = esMon() ? 'novMon' : 'novedades'; try { if (localStorage.getItem(K)) return; localStorage.setItem(K, 1); } catch (e) { } setTimeout(() => { try { $(dlgId).showModal(); } catch (e) { } }, 500); }
+function novedades() { const K = esMon() ? 'programas-nov-mon-v5' : 'programas-nov-v10'; const dlgId = esMon() ? 'novMon' : 'novedades'; try { if (localStorage.getItem(K)) return; localStorage.setItem(K, 1); } catch (e) { } setTimeout(() => { try { $(dlgId).showModal(); } catch (e) { } }, 500); }
 
 // ─── Navegación ───
 $('nav').onclick = e => { const b = e.target.closest('button'); if (b) irA(b.dataset.s); };
@@ -141,7 +141,10 @@ function irA(s) {
 const RENDER = {};
 function render() {
   const f = Object.assign({ panel: rPanel, plazos: rPlazos, acomp: rAcomp, reuniones: rReuniones, palancas: rPalancas }, RENDER)[seccion];
-  if (f) $('sec-' + seccion).innerHTML = f();
+  if (!f) return;
+  const el = $('sec-' + seccion), abiertos = [...el.querySelectorAll('details[open] > summary')].map(x => x.textContent.split(' ')[0]), y = window.scrollY;
+  el.innerHTML = f();
+  if (abiertos.length) { el.querySelectorAll('details > summary').forEach(x => { if (abiertos.includes(x.textContent.split(' ')[0])) x.parentNode.open = true; }); window.scrollTo(0, y); }
 }
 
 // ─── Plazos ───
@@ -211,7 +214,7 @@ function rAcomp() {
   if (grupoSel && (!D.grupos[grupoSel] || !G.some(x => x[0] === grupoSel))) grupoSel = null;
   if (!grupoSel && G.length) grupoSel = G[0][0];
   let h = '<div class="card"><div class="card-h"><h2>🧑‍🏫 PROA Andalucía · Acompañamiento</h2>' + (esMon() ? '' : '<button class="btn" data-acc="nuevoGrupo">＋ Nuevo grupo</button>') + '</div>' +
-    (esMon() ? '<div class="aviso verde"><b>Cómo se usa:</b> 1) Al empezar cada mes, descarga e imprime la <b>hoja de asistencia (Anexo X)</b> y la de <b>ausencias (Anexo XII)</b> de tu grupo. 2) Firma cada sesión que des y anota quién falta. 3) A final de mes entrégalas a dirección. 4) Al final de cada trimestre rellena aquí el <b>informe de cada alumno/a</b> (Anexo XV).</div>' : '') +
+    (esMon() ? '<div class="aviso verde"><b>Cómo se usa:</b> 1) Cada mes, en «Hojas del mes», marca las sesiones y quién falta, firma con el dedo y descarga el Anexo X y el XII (o imprímelos y fírmalos a mano). 2) Entrégalos a dirección a final de mes. 3) Al final de cada trimestre rellena el <b>informe de cada alumno/a</b> (Anexo XV) con las opciones sugeridas.</div>' : '') +
     (G.length ? '<div class="chips">' + G.map(([id, g]) => '<button class="chip' + (id === grupoSel ? ' on' : '') + '" data-grupo="' + id + '">' + esc(g.nombre) + '</button>').join('') + '</div>' :
       (esMon() ? '<p class="muted">Todavía no tienes ningún grupo asignado. Avisa a dirección.</p>' : '<p class="muted">Aún no hay grupos.</p><button class="btn" data-acc="gruposSeneca">⚡ Crear los 4 grupos como están en Séneca</button> <span class="small muted">Tercero (L y X), Cuarto, Quinto y Sexto (M y J), de 16:00 a 18:00</span>')) +
     '<p class="small muted">Recuerda: 2 sesiones de 2 h a la semana (o 4 de 1 h), nunca el viernes por la tarde. No se recuperan sesiones ni se cobran las no impartidas. Del 13 de octubre al 31 de mayo.</p></div>';
@@ -220,23 +223,15 @@ function rAcomp() {
   // Datos del grupo
   h += '<div class="card"><div class="card-h"><div><h2>' + esc(g.nombre) + '</h2><p class="small muted">' + esc(ACT[g.act] || '') + ' · ' + (g.mod === 'A' ? 'Mentor/a (modalidad A)' : 'Profesorado (modalidad B)') + ' · ' + esc(g.docente || 'sin docente') + ' · ' + esc(g.horario || '') + '</p></div>' +
     (esMon() ? '' : '<div><button class="btn sec peq" data-acc="editarGrupo">✏️ Editar grupo</button> <button class="btn sec peq" data-acc="nuevoAlumno">＋ Alumno/a</button></div>') + '</div>' +
-    (A.length ? '<div class="tabla"><table><tr><th>Alumno/a</th><th>Curso</th><th>Tutor/a</th><th>Asistencia</th><th></th></tr>' +
-      A.map(([aid, a]) => { const r = asistAlumno(grupoSel, aid); return '<tr><td><b>' + esc(a.siglas) + '</b></td><td>' + esc(a.curso || '') + '</td><td>' + esc(a.tutor || '') + '</td><td>' + (r.total ? r.pct + ' % <span class="muted small">(' + r.P + '/' + r.total + ', ' + r.J + ' just.)</span>' : '—') + '</td><td>' + (esMon() ? '' : '<button class="btn sec peq" data-alumno="' + aid + '">✏️</button>') + '</td></tr>'; }).join('') + '</table></div>' :
+    (A.length ? '<div class="tabla"><table><tr><th>Alumno/a</th><th>Curso</th><th>Tutor/a</th><th></th></tr>' +
+      A.map(([aid, a]) => { return '<tr><td><b>' + esc(a.siglas) + '</b></td><td>' + esc(a.curso || '') + '</td><td>' + esc(a.tutor || '') + '</td><td>' + (esMon() ? '' : '<button class="btn sec peq" data-alumno="' + aid + '">✏️</button>') + '</td></tr>'; }).join('') + '</table></div>' :
       '<p class="muted">Añade el alumnado del grupo (solo siglas).</p>') + '</div>';
   // Mes de trabajo
   const meses = mesesProg();
   if (!mesResumen || !meses.includes(mesResumen)) mesResumen = meses.includes(hoyIso().slice(0, 7)) ? hoyIso().slice(0, 7) : meses[0];
   const selMes = '<select id="mesResumen" style="width:auto">' + meses.map(m => '<option value="' + m + '"' + (m === mesResumen ? ' selected' : '') + '>' + MESES[+m.slice(5) - 1] + ' ' + m.slice(0, 4) + '</option>').join('') + '</select>';
   if (esMon()) h += rHojasMon(g, A, selMes);
-  else {
-    h += rAsistPDF(g, A, selMes);
-    const R = resumenMes(grupoSel, mesResumen);
-    h += '<div class="card"><div class="card-h"><h2>📊 Resumen de ' + MESES[+mesResumen.slice(5) - 1] + '</h2></div>' +
-      '<div class="kpis"><div class="kpi"><b>' + R.imp + '</b><span>sesiones impartidas</span></div><div class="kpi"><b>' + R.horas + ' h</b><span>horas efectivas</span></div><div class="kpi"><b>' + R.euros + ' €</b><span>a ' + EUROS[g.mod || 'B'] + ' €/h</span></div></div>' +
-      (A.length && R.imp ? '<div class="tabla"><table><tr><th>Alumno/a</th><th>Asiste</th><th>Falta</th><th>%</th></tr>' + A.map(([aid, a]) => { const r = R.al[aid] || { P: 0, F: 0, J: 0 }; const t = r.P + r.F + r.J; return '<tr><td>' + esc(a.siglas) + '</td><td>' + r.P + '</td><td>' + (r.F + r.J) + '</td><td>' + (t ? Math.round(100 * r.P / t) + ' %' : '—') + '</td></tr>'; }).join('') + '</table></div>' : '') +
-      '<div class="pie" style="justify-content:flex-start"><button class="btn sec peq" data-acc="anexoX">📄 Anexo X con las sesiones guardadas</button> <button class="btn sec peq" data-acc="anexoXII">📄 Anexo XII · ausencias</button></div></div>';
-  }
-  if (typeof rSeneca === 'function' && !esMon()) h += rSeneca(g, A);
+  else { h += rSesiones(g, selMes); h += rSubir(g); }
   if (!esMon() && typeof rDocsGrupo === 'function') h += rDocsGrupo(g, A);
   // Informe trimestral (Anexo XV)
   h += rInformeXV(A, +(($('triInf') || {}).value || trimestreActual()));
