@@ -35,7 +35,7 @@ function rQuincenalesCoord() {
     return '<div style="padding:8px 0;border-top:1px solid #edf1f7"><div style="display:flex;gap:8px;align-items:baseline;flex-wrap:wrap"><b>' + esc(g.nombre) + '</b><span class="small muted">' + esc(g.docente || '') + '</span><span class="small" style="margin-left:auto">' + env + ' enviadas' + (faltan ? ' · <b style="color:var(--bad)">' + faltan + ' sin enviar</b>' : '') + '</span></div>' +
       (RR.length ? '<div class="chips" style="margin-top:6px">' + chips + '</div>' : '<p class="small muted">Sin reuniones quincenales. Cárgalas con «Cargar reuniones previstas».</p>') + '</div>';
   };
-  return '<div class="card" style="border-left:5px solid var(--proa)"><div class="card-h"><h2>🤝 Quincenales por curso</h2></div>' +
+  return '<div class="card"><div class="card-h"><h2>🤝 Quincenales por curso</h2></div>' +
     '<p class="small muted"><b>✔ / 📨</b> enviada: toca para descargar el acta · <b style="color:var(--bad)">⚠</b> ya celebrada y sin enviar · gris: prevista. La monitora o la tutora pulsan «Enviar a Víctor» al terminar.</p>' +
     G.map(fila).join('') + '</div>';
 }
