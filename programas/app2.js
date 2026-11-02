@@ -279,7 +279,7 @@ function docAnexoXV(gid, tri) {
       area(1, inf) + '<br>' + area(2, inf));
     pags.push('<p class="b">VALORACIÓN GLOBAL DEL ALUMNO/A</p><table><colgroup><col style="width:46%"><col></colgroup>' + PREG_XV.map((q, i) => '<tr><td class="b" style="height:' + (i === 4 ? 130 : i === 0 ? 50 : 72) + 'px;text-align:justify">' + q + '</td><td>' + txt(inf['q' + (i + 1)]) + '</td></tr>').join('') + '</table>' +
       '<p class="b">PROPUESTAS DE MEJORA:</p><table><tr><td style="height:46px">' + txt(inf.mejora) + '</td></tr></table>' +
-      '<p class="lugar">En Santa Fe, a ________ de ______________ de ' + anio + '</p><p class="firma" style="margin-top:40px">Fdo.: ' + esc(g.docente || '') + '<br>(Firma del mentor/a o profesor/a)</p>');
+      '<p class="lugar">En Santa Fe, a ________ de ______________ de ' + anio + '</p><p class="firma" style="margin-top:' + (firmaGrupo(gid) ? 6 : 40) + 'px">' + (firmaGrupo(gid) ? '<img src="' + firmaGrupo(gid) + '" style="height:46px"><br>' : '') + 'Fdo.: ' + esc(g.docente || '') + '<br>(Firma del mentor/a o profesor/a)</p>');
   });
   abrirAnexo(g.nombre + ' - Informe de evaluacion ' + tri + 'º trimestre', pags);
 }

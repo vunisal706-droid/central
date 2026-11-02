@@ -28,8 +28,7 @@ function guardarSesiones() {
 function tiposSeneca(mes) {
   const t = [];
   if (DOC_MES[mes.slice(5)]) t.push(['x' + mes, 'Hoja de asistencia de empleado (' + DOC_MES[mes.slice(5)] + ')']);
-  const tri = trimestreActual();
-  t.push(['inf' + tri, 'Informe de evaluación ' + tri + 'º trimestre.'], ['prog', 'Programación'], ['acta', 'Acta de selección del alumnado'], ['baja', 'Baja alumnado'], ['otros', 'Otros']);
+
   return t;
 }
 function rSubir(g) {
@@ -39,7 +38,7 @@ function rSubir(g) {
     tiposSeneca(mesResumen).map(([k, t]) => '<div class="item"><div class="cuerpo"><div class="tt">' + esc(t) + '</div>' + (SB[k] ? '<div class="dd">✔ Subido el ' + esc(fechaCorta(SB[k])) + '</div>' : '') + '</div>' +
       '<label class="btn sec peq" style="cursor:pointer">📷 Fotos → PDF<input type="file" accept="image/*,application/pdf" multiple capture="environment" data-fotos="' + esc(t) + '" style="display:none"></label> ' +
       '<label class="small" style="display:flex;gap:4px;align-items:center;margin:0;color:var(--text)"><input type="checkbox" data-subido="' + k + '"' + (SB[k] ? ' checked' : '') + ' style="width:18px;height:18px">Subido</label></div>').join('') +
-    '<p class="small muted">Si eliges varias fotos salen en un solo PDF, en el orden en que las elijas. La programación y el acta también se pueden generar ya hechas en «Documentos del grupo».</p></div>';
+    '<p class="small muted">Si eliges varias fotos salen en un solo PDF, en el orden en que las elijas.</p></div>';
 }
 async function fotosAPdf(files, tipo) {
   toast('⏳ Preparando el PDF…');
@@ -95,7 +94,7 @@ function dlgRellenar() {
   $('rlX').onclick = () => docXFirmado(grupoSel, mes, R);
   $('rlXII').onclick = () => docXIIFirmado(grupoSel, mes, R);
 }
-const imgFirma = src => src ? '<img src="' + src + '" style="height:30px;max-width:100%">' : '';
+const imgFirma = src => (src = src || firmaGrupo(grupoSel)) ? '<img src="' + src + '" style="height:30px;max-width:100%">' : '';
 function docXFirmado(gid, mes, R) {
   const g = D.grupos[gid], mesTxt = MESES[+mes.slice(5) - 1].toUpperCase() + ' ' + mes.slice(0, 4), F = Object.keys(R.dias).sort().filter(f => R.dias[f].dada), n = Math.max(14, F.length), filas = [];
   for (let i = 0; i < n; i++) { const f = F[i]; filas.push('<tr><td>' + ORD(i + 1) + '</td><td class="c">' + (f ? fechaAnexo(f) : '') + '</td><td class="c">' + (f ? esc((g.hi || '16:00') + ' - ' + (g.hf || '18:00')) : '') + '</td><td class="c">' + (f ? imgFirma(R.firma) : '') + '</td><td>' + (f ? esc(R.dias[f].obs || '') : '') + '</td></tr>'); }

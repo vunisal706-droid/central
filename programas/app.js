@@ -70,7 +70,7 @@ function conectar() {
   ref.on('value', s => {
     D = Object.assign(VACIO(), s.val() || {});
     cachear();
-    if (!conectar._sync) { conectar._sync = true; Object.entries(D.reuniones || {}).forEach(([k, r]) => { if (r && r.fecha) publicarCita(k, r); }); }
+    if (!conectar._sync) { conectar._sync = true; setTimeout(() => syncReuniones(), 1500); }
     clearTimeout(conectar._t);
     if (Date.now() - ultimoLocal > 800 && !editando()) render();
     else conectar._t = setTimeout(() => { if (!editando()) render(); }, 1500);
@@ -143,7 +143,7 @@ function pintarCursos() {
   $('selCurso').innerHTML = [i - 1, i, i + 1].map(y => { const c = y + '-' + String(y + 1).slice(2); return '<option value="' + c + '"' + (c === CURSO ? ' selected' : '') + '>' + y + '/' + String(y + 1).slice(2) + '</option>'; }).join('');
   $('selCurso').onchange = () => { CURSO = $('selCurso').value; conectar(); };
 }
-function novedades() { const K = esMon() ? 'programas-nov-mon-v6' : 'programas-nov-v17'; const dlgId = esMon() ? 'novMon' : 'novedades'; try { if (localStorage.getItem(K)) return; localStorage.setItem(K, 1); } catch (e) { } setTimeout(() => { try { $(dlgId).showModal(); } catch (e) { } }, 500); }
+function novedades() { const K = esMon() ? 'programas-nov-mon-v7' : 'programas-nov-v18'; const dlgId = esMon() ? 'novMon' : 'novedades'; try { if (localStorage.getItem(K)) return; localStorage.setItem(K, 1); } catch (e) { } setTimeout(() => { try { $(dlgId).showModal(); } catch (e) { } }, 500); }
 
 // ─── Navegación ───
 $('nav').onclick = e => { const b = e.target.closest('button'); if (b) irA(b.dataset.s); };
@@ -226,11 +226,11 @@ function rPanel() {
 const ACT = { AE: 'Acompañamiento Escolar', ALI: 'Acompañamiento Lingüístico', AED: 'Acompañamiento Escolar Domiciliario' };
 function rangoProg() { const y = startY(CURSO); return { ini: y + '-10-13', fin: (y + 1) + '-05-31' }; }
 function rAcomp() {
-  const G = Object.entries(D.grupos || {}).filter(([, g]) => !esMon() || miGrupo(g)).sort((a, b) => (a[1].nombre || '').localeCompare(b[1].nombre || ''));
+  const G = Object.entries(D.grupos || {}).filter(([, g]) => !esMon() || miGrupo(g)).sort((a, b) => ordGrupo(a[1]) - ordGrupo(b[1]) || (a[1].nombre || '').localeCompare(b[1].nombre || ''));
   if (grupoSel && (!D.grupos[grupoSel] || !G.some(x => x[0] === grupoSel))) grupoSel = null;
   if (!grupoSel && G.length) grupoSel = G[0][0];
   let h = '<div class="card"><div class="card-h"><h2>🧑‍🏫 PROA Andalucía · Acompañamiento</h2>' + (esMon() ? '' : '<button class="btn" data-acc="nuevoGrupo">＋ Nuevo grupo</button>') + '</div>' +
-    (esTut() ? '<div class="aviso verde"><b>Cómo se usa:</b> aquí ves el grupo de Acompañamiento de tu clase, su <b>programación</b> y las <b>reuniones quincenales</b>. Cuando haya reunión, pulsa «Entrar en la reunión telemática», escribe en los puntos del orden del día lo que veas necesario y habla por el chat con la monitora.</div>' : '') + (esMonitor() ? '<div class="aviso verde"><b>Cómo se usa:</b> 1) Cada mes, en «Hojas del mes», marca las sesiones y quién falta, firma con el dedo y descarga el Anexo X y el XII (o imprímelos y fírmalos a mano). 2) Entrégalos a dirección a final de mes. 3) Al final de cada trimestre rellena el <b>informe de cada alumno/a</b> (Anexo XV) con las opciones sugeridas.</div>' : '') +
+    (esTut() ? '<div class="aviso verde"><b>Cómo se usa:</b> aquí ves el grupo de Acompañamiento de tu clase, su <b>programación</b> y las <b>reuniones quincenales</b>. Cuando haya reunión, pulsa «Entrar en la reunión telemática», escribe en los puntos del orden del día lo que veas necesario y habla por el chat con la monitora.</div>' : '') + (esMonitor() ? '<div class="aviso verde"><b>Cómo se usa:</b> de arriba abajo: 1) <b>Hojas del mes</b>: marca las sesiones y quién falta y descarga el Anexo X y el XII firmados. 2) <b>Reuniones quincenales</b>: toca la fecha para entrar. 3) <b>Programación</b> del trimestre para preparar las sesiones. 4) Al final de cada trimestre, el <b>informe de cada alumno/a</b>. 5) <b>Mi firma</b>: una vez y sale en todo.</div>' : '') +
     (G.length ? '<div class="chips">' + G.map(([id, g]) => '<button class="chip' + (id === grupoSel ? ' on' : '') + '" data-grupo="' + id + '">' + esc(g.nombre) + '</button>').join('') + '</div>' :
       (esMon() ? '<p class="muted">Todavía no tienes ningún grupo asignado. Avisa a dirección.</p>' : '<p class="muted">Aún no hay grupos.</p><button class="btn" data-acc="gruposSeneca">⚡ Crear los 4 grupos como están en Séneca</button> <span class="small muted">Tercero (L y X), Cuarto, Quinto y Sexto (M y J), de 16:00 a 18:00</span>')) +
     '<p class="small muted">Recuerda: 2 sesiones de 2 h a la semana (o 4 de 1 h), nunca el viernes por la tarde. No se recuperan sesiones ni se cobran las no impartidas. Del 13 de octubre al 31 de mayo.</p></div>';
@@ -246,15 +246,13 @@ function rAcomp() {
   const meses = mesesProg();
   if (!mesResumen || !meses.includes(mesResumen)) mesResumen = meses.includes(hoyIso().slice(0, 7)) ? hoyIso().slice(0, 7) : meses[0];
   const selMes = '<select id="mesResumen" style="width:auto">' + meses.map(m => '<option value="' + m + '"' + (m === mesResumen ? ' selected' : '') + '>' + MESES[+m.slice(5) - 1] + ' ' + m.slice(0, 4) + '</option>').join('') + '</select>';
-  if (esMon() && typeof rVistaEquipo === 'function') h += rVistaEquipo(g);
-  if (esMonitor()) h += rHojasMon(g, A, selMes);
-  if (!esMon()) { h += rSesiones(g, selMes); h += rSubir(g); }
-  if (!esMon() && typeof rDocsGrupo === 'function') h += rDocsGrupo(g, A);
-  // Informe trimestral (Anexo XV)
-  if (!esTut()) h += rInformeXV(A, +(($('triInf') || {}).value || trimestreActual()));
-  if (!esMon()) h += rCotejo(grupoSel);
+  const triSel = +(($('triInf') || {}).value || trimestreActual());
+  if (esMonitor()) { h += rHojasMon(g, A, selMes); h += rReunionesEquipo(g); h += rProgEquipo(g); h += rInformeXV(A, triSel); h += rFirmaMon(); }
+  else if (esTut()) { h += rReunionesEquipo(g); h += rProgEquipo(g); }
+  else { h += rSesiones(g, selMes); h += rSubir(g); h += rDocsGrupo(g, A); h += rInformesCoord(g); h += rCotejo(grupoSel); }
   return h;
 }
+function ordGrupo(g) { const i = ['Tercero', 'Cuarto', 'Quinto', 'Sexto'].findIndex(n => (g.nombre || '').startsWith(n)); return i < 0 ? 9 : i; }
 function mesesProg() { const y = startY(CURSO), r = []; for (let m = 10; m <= 17; m++) { const mm = ((m - 1) % 12) + 1, yy = m > 12 ? y + 1 : y; r.push(yy + '-' + pad(mm)); } return r; }
 function trimestreActual() { const h = hoyIso(), y = startY(CURSO); if (h < (y + 1) + '-01-07') return 1; if (h < (y + 1) + '-04-01') return 2; return 3; }
 function asistAlumno(g, aid) { const r = { P: 0, F: 0, J: 0 }; Object.values((D.sesiones || {})[g] || {}).forEach(s => { if (s.impartida && s.asist && s.asist[aid]) r[s.asist[aid]]++; }); r.total = r.P + r.F + r.J; r.pct = r.total ? Math.round(100 * r.P / r.total) : 0; return r; }
@@ -345,15 +343,23 @@ function dlgReunion(id) {
   $('rOk').onclick = () => {
     const v = { tipo: $('rTipo').value, fecha: $('rFecha').value, hora: $('rHora').value || '', prevista: !$('rCel').checked || null, mod: $('rMod').value, grupo: $('rGrupo').value, asistentes: $('rAsis').value.trim(), alumnos: $('rAlum').value.trim(), acuerdos: $('rAcu').value.trim(), por: PERFIL };
     if (!v.fecha) return toast('Pon la fecha', 'err');
-    const rid = id || uid();
-    guardar('reuniones/' + rid, v); publicarCita(rid, v); $('dlg').close(); render(); toast('Reunión guardada');
+    const rid = id || uid(), ant = (D.reuniones || {})[rid] || {};
+    ['sala', 'salaAport', 'salaPart'].forEach(k => { if (ant[k]) v[k] = ant[k]; });
+    guardar('reuniones/' + rid, v); $('dlg').close(); render(); toast('Reunión guardada');
+    (async () => {
+      try {
+        if (v.tipo === 'quincenal' && !v.sala) await crearSala(rid, v);
+        else if (v.sala && !v.salaAport) { const P = puntosReunion(v); await db.ref('programas_salas/' + v.sala).update({ puntos: P.map(p => p.t), hints: P.map(p => p.hint) }); }
+      } catch (e) { console.warn(e); }
+      publicarCita(rid, v);
+    })();
   };
 }
 // Copia pública (solo fecha, hora y tipo) para el calendario del profesorado y el Tablón
 const TIT_CITA = { quincenal: 'PROA Andalucía · Reunión quincenal acompañante–tutor/a', comision: 'PROA+ · Comisión de seguimiento', zts: 'ZTS · Reunión de coordinación', familia: 'PROA · Cita con familia', otra: 'Programas · Reunión' };
 function publicarCita(id, r) {
   const g = r && r.grupo && D.grupos[r.grupo];
-  db.ref('programas_publico/citas/' + id).set(r ? { fecha: r.fecha, hora: r.hora || '', titulo: (TIT_CITA[r.tipo] || 'Reunión') + (g ? ' (' + g.nombre + ')' : ''), detalle: (r.mod || '') + ' · Programas del cole', fijo: ['quincenal', 'comision', 'zts'].includes(r.tipo) || null } : null)
+  db.ref('programas_publico/citas/' + id).set(r ? { fecha: r.fecha, hora: r.hora || '', titulo: (TIT_CITA[r.tipo] || 'Reunión') + (g ? ' (' + g.nombre + ')' : ''), detalle: (r.mod || '') + ' · Programas del cole', enlace: r.tipo === 'quincenal' && r.sala && !r.salaAport ? urlSala(r.sala) : null, fijo: ['quincenal', 'comision', 'zts'].includes(r.tipo) || null } : null)
     .catch(e => toast('La reunión se ha guardado, pero no ha podido salir en el calendario: falta el permiso «programas_publico» en Firebase.', 'err'));
 }
 // Reuniones previstas del curso (editables) para no partir de cero
@@ -383,6 +389,7 @@ async function cargarReunionesPrevistas() {
   [[y + '-12-14', '1.ª', 'de la 1.ª evaluación'], [(y + 1) + '-05-17', '2.ª', 'de la 2.ª evaluación y previsión de la 3.ª']].forEach(([f, n, ev]) => add({ tipo: 'comision', fecha: f, hora: '13:00', mod: 'Presencial', asistentes: 'Equipo directivo, coordinación del PROA+ y tutores/as del alumnado participante',
     acuerdos: n + ' comisión de seguimiento del PROA+ Transfórmate (modelo nº 12).\n1. Seguimiento del PEM y de las 10 actividades palanca.\n2. Datos de los indicadores ' + ev + '.\n3. Ejecución económica de la dotación.\n4. Dificultades y propuestas de mejora.\n5. Acuerdos.' }));
   out.forEach(r => { const k = uid(); guardar('reuniones/' + k, r); publicarCita(k, r); });
+  setTimeout(() => syncReuniones(), 2500);
   toast(out.length + ' reuniones previstas cargadas. Edítalas o bórralas cuando quieras.'); render();
 }
 function acta(id) {

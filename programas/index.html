@@ -160,6 +160,7 @@ body.mon #nav button:not([data-s=acomp]),body.mon #selCurso{display:none}
 <dialog id="novedades">
   <h2>🆕 Novedades</h2>
   <p>📅 <b>Reuniones previstas</b>: en «Reuniones» puedes cargar con un botón las reuniones del curso (quincenales de cada grupo, reunión con familias, coordinación ZTS y comisiones del PROA+) con su orden del día, para editarlas.</p>
+  <p>🧭 <b>Acompañamiento reordenado</b>: grupos en orden (Tercero, Cuarto, Quinto, Sexto). Para ti: sesiones dadas, hoja de asistencia para Séneca, documentos, <b>informes trimestrales para descargar</b> (los rellenan los monitores) y lista de cotejo. Los monitores tienen la programación por trimestres, el informe con los <b>saberes básicos</b> ya puestos, su firma con el dedo y las reuniones quincenales por fecha. En la <b>Agenda</b> y en el correo del Tablón sale el enlace de cada reunión quincenal.</p>
   <p>📝 <b>Acta de selección</b>: la fecha y la hora vienen ya puestas (hoy, 13:00) para que salgan rellenas en el acta; cámbialas por las de la reunión de la comisión.</p>
   <p>📅 <b>Todas las reuniones</b> salen en la <b>Agenda</b> y en el <b>Tablón</b>. En el correo y PDF semanal, las quincenales, las comisiones del PROA+ y la coordinación ZTS van siempre; las citas con familias y «otras» se pueden marcar o no. Las tutoras entran con su usuario IdEA.</p>
   <p>🔑 <b>Acceso por programa</b>: primero se elige ZTS, PROA Andalucía o PROA+ y salen solo sus personas. Entran las <b>tutoras de 3.º, 4.º y 5.º y el tutor de 6.º</b>: ven la programación del grupo y las reuniones quincenales, y entran desde ahí en la reunión telemática. Las monitoras ven también la <b>programación</b>.</p>
@@ -177,10 +178,12 @@ body.mon #nav button:not([data-s=acomp]),body.mon #selCurso{display:none}
 </dialog>
 <dialog id="novMon">
   <h2>👋 Novedades del PROA</h2>
-  <p>🔑 Al entrar, primero eliges el <b>programa</b> y luego tu nombre. Ya están las tutoras de 3.º, 4.º y 5.º y el tutor de 6.º.</p>
-  <p>📘 <b>Programación del grupo</b>: la veis en vuestra pantalla para preparar las sesiones.<br>
-  🤝 <b>Reuniones quincenales</b> con su botón para <b>entrar en la reunión telemática</b>: cada una escribe en los puntos del orden del día y habláis por un chat que no sale en el acta.<br>
-  ✍️ Monitores: las hojas del mes se pueden rellenar y firmar con el dedo, y el informe trimestral (Anexo XV) se rellena con opciones y frases sugeridas.</p>
+  <p>Todo está ordenado en tu pantalla, de arriba abajo:</p>
+  <p>📄 <b>Hojas del mes</b>: marca las sesiones y quién falta y descarga el Anexo X y el XII firmados.<br>
+  🤝 <b>Reuniones quincenales</b>: salen todas las fechas; <b>toca una</b> para entrar y escribir en el orden del día.<br>
+  📘 <b>Programación</b>: los saberes básicos de Lengua y Matemáticas de cada trimestre, para preparar las sesiones.<br>
+  📝 <b>Informe trimestral</b> (monitores): los saberes básicos ya vienen puestos; solo eliges el trimestre y marcas cómo va cada alumno/a.<br>
+  ✍️ <b>Mi firma</b>: fírmala una vez con el dedo y sale sola en todos tus documentos.</p>
   <p class="muted small">Solo ves tu grupo. El alumnado aparece por siglas.</p>
   <div class="pie"><button class="btn" onclick="this.closest('dialog').close()">Entendido</button></div>
 </dialog>
@@ -195,6 +198,7 @@ body.mon #nav button:not([data-s=acomp]),body.mon #selCurso{display:none}
 <script src="app2.js"></script>
 <script src="app3.js"></script>
 <script src="app4.js"></script>
+<script src="app5.js"></script>
 <script>if('serviceWorker' in navigator)navigator.serviceWorker.register('sw.js').catch(()=>{});</script>
 </body>
 </html>
