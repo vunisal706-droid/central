@@ -63,6 +63,7 @@ label{font-size:.8rem;font-weight:800;color:var(--muted);display:block;margin:8p
     <div class="card" id="cPuntos">
       <div class="aviso" id="estado">Escribe en cada punto lo que veas necesario (lo que informas, lo que se acuerda). Se guarda solo y lo ven todos. <b>Esto es lo que irá al acta.</b></div>
       <div id="puntos"></div>
+      <div id="envio" style="border-top:1px solid #edf1f7;padding-top:12px;margin-top:6px"><p class="gente" style="margin-bottom:8px">Cuando hayáis terminado de escribir, una de las dos pulsa este botón. Víctor recibe la reunión y puede descargar el acta.</p><button class="btn" id="bEnviar">📨 Hemos terminado: enviar a Víctor</button></div>
     </div>
     <div class="card chat oc-m" id="cChat">
       <h2>💬 Chat</h2><p class="gente" style="margin-bottom:6px">Para hablar entre vosotras. No sale en el acta.</p>
@@ -99,7 +100,7 @@ function iniciar() {
   R.child('part/' + YO.pid).set({ n: YO.n, rol: YO.rol, ts: firebase.database.ServerValue.TIMESTAMP });
   dibujarPuntos();
   R.child('aport').on('value', s => { S.aport = s.val() || {}; otros(); });
-  R.child('part').on('value', s => { const p = Object.values(s.val() || {}); $('gente').textContent = '👥 ' + p.map(x => x.n.split(' ')[0]).join(', '); });
+  R.child('part').on('value', s => { const v = s.val() || {}, E = v._envio; const p = Object.entries(v).filter(([k]) => k[0] !== '_').map(([, x]) => x); enviada(E); $('gente').textContent = '👥 ' + p.map(x => x.n.split(' ')[0]).join(', '); });
   R.child('abierta').on('value', s => { const ab = s.val() !== false; $('estado').className = 'aviso' + (ab ? '' : ' ok'); if (!ab) { $('estado').innerHTML = '✅ La coordinación ha cerrado la reunión y ha pasado lo escrito al acta.'; document.querySelectorAll('[data-i]').forEach(t => t.disabled = true); } });
   R.child('chat').limitToLast(200).on('value', s => {
     const M = Object.values(s.val() || {}).sort((a, b) => (a.ts || 0) - (b.ts || 0)), box = $('msgs'), abajo = box.scrollTop + box.clientHeight >= box.scrollHeight - 30;
@@ -119,6 +120,12 @@ function dibujarPuntos() {
 function otros() {
   (S.puntos || []).forEach((p, i) => { const o = Object.entries((S.aport || {})[i] || {}).filter(([k, v]) => k !== YO.pid && v && v.t); $('o' + i).innerHTML = o.map(([, v]) => '<div class="otro"><b>' + esc(v.rol) + ' · ' + esc(v.n) + ':</b> ' + esc(v.t) + '</div>').join(''); });
 }
+function enviada(E) {
+  if (!E) return;
+  $('envio').innerHTML = '<div class="aviso ok">✅ Enviada a Víctor por ' + esc(E.n) + (E.ts ? ' el ' + new Date(E.ts).toLocaleString('es-ES', { day: 'numeric', month: 'long', hour: '2-digit', minute: '2-digit' }) : '') + '. Ya no hace falta hacer nada más.</div>';
+  document.querySelectorAll('[data-i]').forEach(t => t.disabled = true);
+}
+$('bEnviar').onclick = () => { if (!confirm('¿Enviar la reunión a Víctor? Después ya no se podrá cambiar lo escrito.')) return; R.child('part/_envio').set({ n: YO.n, rol: YO.rol, ts: firebase.database.ServerValue.TIMESTAMP }); };
 function enviar() { const t = $('txt').value.trim(); if (!t) return; R.child('chat').push({ pid: YO.pid, n: YO.n, t, ts: firebase.database.ServerValue.TIMESTAMP }); $('txt').value = ''; }
 $('env').onclick = enviar; $('txt').onkeydown = e => { if (e.key === 'Enter') enviar(); };
 document.querySelectorAll('.tabs button').forEach(b => b.onclick = () => { const c = b.dataset.t === 'chat'; $('cChat').classList.toggle('oc-m', !c); $('cPuntos').classList.toggle('oc-m', c); document.querySelectorAll('.tabs button').forEach(x => x.className = 'btn' + (x === b ? '' : ' sec')); });

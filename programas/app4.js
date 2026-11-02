@@ -287,7 +287,7 @@ async function dlgSala(id) {
       const s = (await db.ref('programas_salas/' + r.sala).once('value')).val() || {};
       const ap = s.aport || {}, part = s.part || {}, n = Object.values(ap).reduce((k, x) => k + Object.keys(x || {}).length, 0);
       if (!n && !confirm('Nadie ha escrito en los puntos. ¿Cerrar igualmente?')) return;
-      guardar('reuniones/' + id + '/salaAport', ap); guardar('reuniones/' + id + '/salaPart', part); guardar('reuniones/' + id + '/prevista', null);
+      const env = part._envio || null; delete part._envio; guardar('reuniones/' + id + '/salaAport', ap); guardar('reuniones/' + id + '/salaPart', part); guardar('reuniones/' + id + '/salaEnvio', env); guardar('reuniones/' + id + '/prevista', null);
       await db.ref('programas_salas/' + r.sala).update({ abierta: false, chat: null });
       $('dlg').close(); toast('Pasado al acta. Ya puedes generar el acta.'); render();
     } catch (e) { console.warn(e); toast('No se ha podido leer la reunión', 'err'); }
