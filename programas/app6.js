@@ -52,17 +52,17 @@ function docFamilias(id) {
   const caja = (ico, tit, html, col) => '<section class="caja" style="--c:' + col + '"><h3><span>' + ico + '</span>' + tit + '</h3>' + html + '</section>';
   const html = '<!doctype html><html lang="es"><head><meta charset="utf-8"><title>Acompañamiento Escolar · Información para las familias · ' + esc(g.nombre) + '</title>' +
     '<link href="https://fonts.googleapis.com/css2?family=Nunito:wght@400;600;700;800;900&display=swap" rel="stylesheet"><style>' +
-    '@page{size:A4;margin:10mm}*{box-sizing:border-box;-webkit-print-color-adjust:exact;print-color-adjust:exact}body{font-family:Nunito,Arial,sans-serif;color:#1c2638;margin:0;background:#e9eef7;font-size:10.5pt;line-height:1.4}' +
+    '@page{size:A4;margin:10mm}*{box-sizing:border-box;-webkit-print-color-adjust:exact;print-color-adjust:exact}body{font-family:Nunito,Arial,sans-serif;color:#1c2638;margin:0;background:#e9eef7;font-size:10pt;line-height:1.35}' +
     '.pag{background:#fff;width:210mm;min-height:297mm;margin:12px auto;padding:9mm 11mm;position:relative}' +
     '.top{display:flex;align-items:center;gap:12px}.top img.cole{height:62px}.top .t{flex:1}.top h1{margin:0;font-size:20pt;font-weight:900;color:#1f3f7a;line-height:1.05}.top p{margin:3px 0 0;color:#5d6b82;font-weight:700}' +
-    '.fse{display:block;width:70%;margin:6px auto 10px}' +
-    '.hola{background:linear-gradient(135deg,#e8effc,#f3ecfd);border-radius:14px;padding:10px 14px;margin-bottom:10px}.hola b{color:#1f3f7a}' +
-    '.grid{display:grid;grid-template-columns:1fr 1fr;gap:9px}.ancha{grid-column:1/-1}' +
-    '.caja{border:2px solid var(--c);border-radius:14px;padding:8px 12px;break-inside:avoid}.caja h3{margin:0 0 4px;font-size:12pt;font-weight:900;color:var(--c);display:flex;gap:6px;align-items:center}.caja p{margin:3px 0}.caja ul{margin:3px 0 0 18px;padding:0}.caja li{margin:1px 0}' +
+    '.fse{display:block;width:62%;margin:4px auto 8px}' +
+    '.hola{background:linear-gradient(135deg,#e8effc,#f3ecfd);border-radius:14px;padding:8px 13px;margin-bottom:8px}.hola b{color:#1f3f7a}' +
+    '.grid{display:grid;grid-template-columns:1fr 1fr;gap:7px}.ancha{grid-column:1/-1}' +
+    '.caja{border:2px solid var(--c);border-radius:14px;padding:6px 11px;break-inside:avoid}.caja h3{margin:0 0 4px;font-size:12pt;font-weight:900;color:var(--c);display:flex;gap:6px;align-items:center}.caja p{margin:3px 0}.caja ul{margin:3px 0 0 18px;padding:0}.caja li{margin:1px 0}' +
     '.dato{display:flex;gap:8px;align-items:baseline}.dato b{min-width:84px;color:#1f3f7a}' +
     '.big{font-size:15pt;font-weight:900;color:#1f3f7a}.dos{display:grid;grid-template-columns:1fr 1fr;gap:10px}' +
-    '.pie{margin-top:10px;display:flex;justify-content:space-between;align-items:flex-end;gap:12px;font-size:9.5pt;color:#5d6b82}.firma{text-align:right;color:#1c2638}' +
-    '.recorte{margin-top:10px;border-top:2px dashed #9aa7bd;padding-top:8px;font-size:9.5pt}.recorte .l{border-bottom:1px solid #9aa7bd;display:inline-block;min-width:200px;height:14px}' +
+    '.pie{margin-top:8px;display:flex;justify-content:space-between;align-items:flex-end;gap:12px;font-size:9.5pt;color:#5d6b82}.firma{text-align:right;color:#1c2638}' +
+    '.recorte{margin-top:8px;border-top:2px dashed #9aa7bd;padding-top:8px;font-size:9.5pt}.recorte .l{border-bottom:1px solid #9aa7bd;display:inline-block;min-width:200px;height:14px}' +
     '.bar{text-align:center;padding:10px;font-family:Arial}.bar button{font-size:15px;padding:8px 14px;cursor:pointer}@media print{body{background:#fff}.pag{margin:0;width:auto;min-height:0;padding:0}.bar{display:none}}' +
     '</style></head><body><div class="bar"><button onclick="print()">🖨️ Imprimir o guardar en PDF</button></div><div class="pag">' +
     '<div class="top"><img class="cole" src="' + (LOGO_COLE.startsWith('data:') ? LOGO_COLE : base + LOGO_COLE) + '" alt="CEIP Capitulaciones"><div class="t"><h1>Acompañamiento Escolar</h1><p>PROA Andalucía · ' + esc(g.nombre) + ' (' + c + '.º de Primaria) · Curso ' + CURSO.replace('-', '/20') + '</p></div></div>' +
