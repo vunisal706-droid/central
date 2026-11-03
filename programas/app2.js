@@ -257,7 +257,7 @@ function docAnexoXII(gid, mes) {
   const g = D.grupos[gid], al = g.alumnos || {}, S = Object.entries((D.sesiones || {})[gid] || {}).filter(([f, x]) => f.startsWith(mes) && x.impartida).sort();
   const mesTxt = MESES[+mes.slice(5) - 1].toUpperCase() + ' ' + mes.slice(0, 4);
   const n = Math.max(14, S.length), filas = [];
-  for (let i = 0; i < n; i++) { const x = S[i]; const aus = x ? Object.entries(x[1].asist || {}).filter(([, v]) => v === 'F' || v === 'J').map(([k, v]) => (al[k] ? al[k].siglas : '?') + (v === 'J' ? ' (justificada)' : '')).join(', ') : ''; filas.push('<tr><td>' + ORD(i + 1) + '</td><td class="c">' + (x ? fechaAnexo(x[0]) : '') + '</td><td>' + esc(x ? (aus || 'Ninguno') : '') + '</td><td></td></tr>'); }
+  for (let i = 0; i < n; i++) { const x = S[i]; const aus = x ? Object.entries(x[1].asist || {}).filter(([, v]) => v === 'F' || v === 'J').map(([k, v]) => (al[k] ? nombreDe(gid, k, al[k]) : '?') + (v === 'J' ? ' (justificada)' : '')).join(', ') : ''; filas.push('<tr><td>' + ORD(i + 1) + '</td><td class="c">' + (x ? fechaAnexo(x[0]) : '') + '</td><td>' + esc(x ? (aus || 'Ninguno') : '') + '</td><td></td></tr>'); }
   abrirAnexo(g.nombre + ' - Anexo XII ausencias ' + mesTxt, ['<h1>ANEXO XII. MODELO PARA EL REGISTRO DE AUSENCIAS DEL ALUMNADO EN EL DESARROLLO DE LOS PROGRAMAS DE ACOMPAÑAMIENTO IMPARTIDOS EN EL CENTRO DOCENTE.</h1>' +
     cabeceraGrupo(g, mesTxt, true) +
     '<table class="muyalto"><colgroup><col style="width:9%"><col style="width:15%"><col style="width:48%"><col style="width:28%"></colgroup><tr><th>Sesión</th><th>Fecha</th><th>Alumnado ausente<br>(nombre y apellidos)</th><th>Firma del mentor/a o profesor/a</th></tr>' + filas.join('') + '</table>' +
@@ -275,7 +275,7 @@ function docAnexoXV(gid, tri) {
   A.forEach(([aid, a]) => {
     const inf = ((((D.informes || {})[gid] || {})[aid] || {})['t' + tri]) || {};
     pags.push('<h1>ANEXO XV. MODELO DE INFORME INDIVIDUALIZADO TRIMESTRAL DEL ALUMNADO.</h1><p class="c b">Curso ' + y + '/' + (y + 1) + '</p>' +
-      '<p class="b" style="line-height:1.5">ALUMNO/A: <span style="font-weight:400">' + esc(a.nombre || a.siglas) + '</span><br>TRIMESTRE: <span style="font-weight:400">' + tri + '.º</span><br>NIVEL: <span style="font-weight:400">' + esc(a.curso || '') + ' Educación Primaria</span><br>MENTOR/A o PROFESOR/A: <span style="font-weight:400">' + esc(g.docente || '') + '</span></p>' +
+      '<p class="b" style="line-height:1.5">ALUMNO/A: <span style="font-weight:400">' + esc(nombreDe(gid, aid, a)) + '</span><br>TRIMESTRE: <span style="font-weight:400">' + tri + '.º</span><br>NIVEL: <span style="font-weight:400">' + esc(a.curso || '') + ' Educación Primaria</span><br>MENTOR/A o PROFESOR/A: <span style="font-weight:400">' + esc(g.docente || '') + '</span></p>' +
       area(1, inf) + '<br>' + area(2, inf));
     pags.push('<p class="b">VALORACIÓN GLOBAL DEL ALUMNO/A</p><table><colgroup><col style="width:46%"><col></colgroup>' + PREG_XV.map((q, i) => '<tr><td class="b" style="height:' + (i === 4 ? 130 : i === 0 ? 50 : 72) + 'px;text-align:justify">' + q + '</td><td>' + txt(inf['q' + (i + 1)]) + '</td></tr>').join('') + '</table>' +
       '<p class="b">PROPUESTAS DE MEJORA:</p><table><tr><td style="height:46px">' + txt(inf.mejora) + '</td></tr></table>' +
@@ -395,7 +395,7 @@ function rSeneca(g, A) {
   const mes = mesResumen || hoyIso().slice(0, 7), mm = mes.slice(5), S = Object.entries((D.sesiones || {})[grupoSel] || {}).filter(([f]) => f.startsWith(mes)).sort();
   const imp = S.filter(([, x]) => x.impartida), dia = f => +f.slice(8);
   const diasImp = imp.map(([f]) => dia(f));
-  const faltas = A.map(([aid, a]) => ({ a, f: imp.filter(([, x]) => (x.asist || {})[aid] && x.asist[aid] !== 'P').map(([f]) => dia(f)) })).filter(x => x.f.length);
+  const faltas = A.map(([aid, a]) => ({ a, aid, f: imp.filter(([, x]) => (x.asist || {})[aid] && x.asist[aid] !== 'P').map(([f]) => dia(f)) })).filter(x => x.f.length);
   const sinLista = imp.filter(([, x]) => !x.asist || !Object.keys(x.asist).length).map(([f]) => dia(f));
   const docM = DOC_MES[mm];
   return '<div class="card" style="border-left:5px solid var(--ok)"><div class="card-h"><h2>🟢 Para grabar en Séneca · ' + esc(MESES[+mm - 1]) + '</h2><span class="small muted">Grupo «' + esc(g.nombre) + '»</span></div>' +
@@ -403,7 +403,7 @@ function rSeneca(g, A) {
     '<h3 style="margin-top:10px">1 · Usos del servicio (mes ' + esc(MESES[+mm - 1]) + ')</h3>' +
     (imp.length ? '<ol class="small" style="margin:6px 0 6px 20px;line-height:1.6"><li>En la plantilla del mes, marca estos días: <b style="font-size:1.05rem">' + diasImp.join(', ') + '</b> <button class="btn sec peq" data-copiar="' + diasImp.join(', ') + '">Copiar</button></li>' +
       '<li>Pulsa «Aplicar a todos/as los/as alumnos/as de esta página».</li>' +
-      (faltas.length ? '<li>Después <b>quita</b> estos días a quien faltó:<ul style="margin:4px 0 0 18px">' + faltas.map(x => '<li><b>' + esc(x.a.siglas) + '</b>: ' + x.f.join(', ') + '</li>').join('') + '</ul></li>' : '<li>No faltó nadie: no hay que quitar ningún día.</li>') +
+      (faltas.length ? '<li>Después <b>quita</b> estos días a quien faltó:<ul style="margin:4px 0 0 18px">' + faltas.map(x => '<li><b>' + esc(nombreDe(grupoSel, x.aid, x.a)) + '</b>: ' + x.f.join(', ') + '</li>').join('') + '</ul></li>' : '<li>No faltó nadie: no hay que quitar ningún día.</li>') +
       '<li>En «Asistencia del empleado/a» (' + esc(g.docente || 'monitor/a') + '), marca los mismos días: <b>' + diasImp.join(', ') + '</b>.</li><li>Guarda con ✔.</li></ol>' +
       (sinLista.length ? '<div class="aviso">Días sin pasar lista en la app: ' + sinLista.join(', ') + '. Complétalos para que el dato sea exacto.</div>' : '') +
       (S.some(([, x]) => !x.impartida) ? '<div class="aviso">No impartidas (no se marcan): ' + S.filter(([, x]) => !x.impartida).map(([f, x]) => dia(f) + ' (' + ({ noAlumnado: 'sin alumnado', noDocente: 'falta del docente', festivo: 'festivo' }[x.motivo] || '') + ')').join(', ') + '</div>' : '')
@@ -413,7 +413,7 @@ function rSeneca(g, A) {
     '📄 Tipo «<b>Informe de evaluación ' + trimestreActual() + 'º trimestre.</b>» (al acabar el trimestre) → <button class="btn sec peq" data-acc="anexoXV">Generar Anexo XV</button><br>' +
     '📄 Tipos «Programación» y «Acta de selección del alumnado»: una vez al principio.<br>' +
     '<span class="muted">Al guardar el PDF, el nombre ya viene puesto. El Anexo XII (ausencias) es para la coordinación: no se sube.</span></div>' +
-    '<h3 style="margin-top:10px">3 · Usuarios/as</h3><p class="small">«Usuarios/as» → icono de añadir → curso ' + esc((A[0] && A[0][1].curso) || g.nombre) + ' → marca a: <b>' + (A.map(([, a]) => esc(a.siglas)).join(', ') || '—') + '</b>.</p></div>';
+    '<h3 style="margin-top:10px">3 · Usuarios/as</h3><p class="small">«Usuarios/as» → icono de añadir → curso ' + esc((A[0] && A[0][1].curso) || g.nombre) + ' → marca a: <b>' + (A.map(([aid, a]) => esc(nombreDe(grupoSel, aid, a))).join(', ') || '—') + '</b>.</p></div>';
 }
 
 // Nombre completo de Nuria en los grupos ya creados
