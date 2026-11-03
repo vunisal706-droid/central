@@ -413,10 +413,10 @@ function rSeneca(g, A) {
   return '<div class="card" style="border-left:5px solid var(--ok)"><div class="card-h"><h2>🟢 Para grabar en Séneca · ' + esc(MESES[+mm - 1]) + '</h2><span class="small muted">Grupo «' + esc(g.nombre) + '»</span></div>' +
     '<p class="small"><b>Ruta:</b> Centro → Planes y Programas Educativos → PROA → grupo «' + esc(g.nombre) + '» (pulsa el nombre).</p>' +
     '<h3 style="margin-top:10px">1 · Usos del servicio (mes ' + esc(MESES[+mm - 1]) + ')</h3>' +
-    (imp.length ? '<ol class="small" style="margin:6px 0 6px 20px;line-height:1.6"><li>En la plantilla del mes, marca estos días: <b style="font-size:1.05rem">' + diasImp.join(', ') + '</b> <button class="btn sec peq" data-copiar="' + diasImp.join(', ') + '">Copiar</button></li>' +
+    (imp.length ? '<ol class="small" style="margin:6px 0 6px 20px;line-height:1.6"><li>En la plantilla del mes, marca estos días: <b style="font-size:1.05rem">' + diasImp.join(',') + '</b> <button class="btn sec peq" data-copiar="' + diasImp.join(',') + '">Copiar</button></li>' +
       '<li>Pulsa «Aplicar a todos/as los/as alumnos/as de esta página».</li>' +
-      (faltas.length ? '<li>Después <b>quita</b> estos días a quien faltó:<ul style="margin:4px 0 0 18px">' + faltas.map(x => '<li><b>' + esc(nombreDe(grupoSel, x.aid, x.a)) + '</b>: ' + x.f.join(', ') + '</li>').join('') + '</ul></li>' : '<li>No faltó nadie: no hay que quitar ningún día.</li>') +
-      '<li>En «Asistencia del empleado/a» (' + esc(g.docente || 'monitor/a') + '), marca los mismos días: <b>' + diasImp.join(', ') + '</b>.</li><li>Guarda con ✔.</li></ol>' +
+      (faltas.length ? '<li>Después <b>quita</b> estos días a quien faltó:<ul style="margin:4px 0 0 18px">' + faltas.map(x => '<li><b>' + esc(nombreDe(grupoSel, x.aid, x.a)) + '</b>: ' + x.f.join(',') + '</li>').join('') + '</ul></li>' : '<li>No faltó nadie: no hay que quitar ningún día.</li>') +
+      '<li>En «Asistencia del empleado/a» (' + esc(g.docente || 'monitor/a') + '), marca los mismos días: <b>' + diasImp.join(',') + '</b>.</li><li>Guarda con ✔.</li></ol>' +
       (sinLista.length ? '<div class="aviso">Días sin pasar lista en la app: ' + sinLista.join(', ') + '. Complétalos para que el dato sea exacto.</div>' : '') +
       (S.some(([, x]) => !x.impartida) ? '<div class="aviso">No impartidas (no se marcan): ' + S.filter(([, x]) => !x.impartida).map(([f, x]) => dia(f) + ' (' + ({ noAlumnado: 'sin alumnado', noDocente: 'falta del docente', festivo: 'festivo' }[x.motivo] || '') + ')').join(', ') + '</div>' : '')
       : '<p class="small muted">Todavía no hay sesiones impartidas registradas este mes.</p>') +
