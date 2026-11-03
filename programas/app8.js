@@ -53,3 +53,16 @@ rFirmaMon = function () {
   limpiarFirmas();
   return '<div class="card"><div class="card-h"><h2>✍️ Firma</h2></div><p class="small muted">Cada documento se firma <b>en el momento</b>: al descargar la hoja del mes, el informe trimestral o la programación, te pedirá tu firma con el dedo. No se guarda ninguna firma.</p></div>';
 };
+
+// ─── Instalar «Programas» como app propia ───
+(function () {
+  const yaInstalada = matchMedia('(display-mode: standalone)').matches || navigator.standalone;
+  if (yaInstalada) return;
+  const box = $('instalar'), btn = $('instBtn'), txt = $('instTxt'); if (!box) return;
+  let ev = null;
+  window.addEventListener('beforeinstallprompt', e => { e.preventDefault(); ev = e; box.style.display = ''; });
+  window.addEventListener('appinstalled', () => { box.style.display = 'none'; toast('App instalada'); });
+  const ios = /iphone|ipad|ipod/i.test(navigator.userAgent) || (navigator.platform === 'MacIntel' && navigator.maxTouchPoints > 1);
+  if (ios) { box.style.display = ''; btn.style.display = 'none'; txt.innerHTML = 'En Safari pulsa <b>Compartir</b> (el cuadrado con la flecha) y después <b>«Añadir a pantalla de inicio»</b>.'; }
+  btn.onclick = async () => { if (!ev) return toast('Abre el menú del navegador (⋮) y pulsa «Instalar aplicación»'); ev.prompt(); await ev.userChoice; ev = null; box.style.display = 'none'; };
+})();
