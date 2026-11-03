@@ -15,7 +15,7 @@ function dlgPegarLista() {
     '<p class="small muted">Copia de Séneca la lista del alumnado seleccionado («Apellidos, Nombre», uno por línea) y pégala aquí. En la nube solo se guardan las <b>siglas</b>; los nombres completos se quedan <b>solo en este dispositivo</b> y salen en los anexos oficiales.</p>' +
     '<textarea id="plT" rows="10" placeholder="García López, Ana&#10;Pérez Ruiz, Luis&#10;…"></textarea><div id="plV" class="small" style="margin-top:6px"></div>' +
     '<div class="pie"><button class="btn sec" id="plC">Cancelar</button><button class="btn" id="plOk">Añadir al grupo</button></div>';
-  $('dlg').showModal();
+  if (!$('dlg').open) $('dlg').showModal();
   const ver = () => { const L = parseSeneca($('plT').value); $('plV').innerHTML = L.length ? '<b>' + L.length + '</b> alumnos/as: ' + L.map(x => esc(siglasDe(x.no, x.ap))).join(', ') + avisoTam(L.length) : ''; };
   $('plT').oninput = ver;
   $('plC').onclick = () => $('dlg').close();
@@ -24,6 +24,7 @@ function dlgPegarLista() {
     const r = anadirLista(grupoSel, L); $('dlg').close(); toast(r.nuevos + ' añadidos' + (r.ya ? ', ' + r.ya + ' ya estaban' : '')); render();
   };
 }
+const normS = s => String(s || '').replace(/[^A-Za-zÁÉÍÓÚÜÑáéíóúüñ0-9]/g, '').toUpperCase();
 function anadirLista(gid, L) {
   const g = D.grupos[gid], N = nombres(gid), A = Object.entries(g.alumnos || {}), curso = CURSO_G(g) || '';
   let nuevos = 0, ya = 0;
@@ -31,15 +32,28 @@ function anadirLista(gid, L) {
     const full = x.no + ' ' + x.ap;
     if (Object.values(N).some(n => n.toLowerCase() === full.toLowerCase())) { ya++; return; }
     let s = siglasDe(x.no, x.ap);
-    const libre = A.find(([aid, a]) => a.siglas === s && !N[aid]);
-    if (libre) { N[libre[0]] = full; ya++; return; }
+    // Alumno ya creado a mano (con o sin puntos) y sin nombre: se le pone el nombre y se le arreglan las siglas
+    const libre = A.find(([aid, a]) => normS(a.siglas) === normS(s) && !N[aid]);
+    if (libre) { N[libre[0]] = full; if (libre[1].siglas !== s) guardar('grupos/' + gid + '/alumnos/' + libre[0] + '/siglas', s); ya++; return; }
     const usadas = A.map(([, a]) => a.siglas); let k = 2, base = s; while (usadas.includes(s)) s = base + k++;
     const aid = uid(); N[aid] = full; A.push([aid, { siglas: s }]);
     guardar('grupos/' + gid + '/alumnos/' + aid, { siglas: s, curso: curso, tutor: '' }); nuevos++;
   });
+  // Quita duplicados: alumnos sin nombre con las mismas siglas que uno que ya lo tiene
+  A.forEach(([aid, a]) => { if (!N[aid] && A.some(([b, x]) => b !== aid && N[b] && normS(x.siglas) === normS(a.siglas))) guardar('grupos/' + gid + '/alumnos/' + aid, null); });
   try { localStorage.setItem(NKEY(gid), JSON.stringify(N)); } catch (e) { }
   return { nuevos, ya };
 }
+// En el acta de selección: aviso y botón para pegar la lista si falta algún nombre
+const _dlgActa = dlgActa;
+dlgActa = function () {
+  _dlgActa();
+  const g = D.grupos[grupoSel], N = nombres(grupoSel), falta = Object.keys(g.alumnos || {}).filter(aid => !N[aid]).length;
+  if (!falta) return;
+  const d = document.createElement('div'); d.className = 'aviso';
+  d.innerHTML = '⚠️ <b>' + falta + '</b> alumno/a' + (falta > 1 ? 's' : '') + ' sin nombre completo en este dispositivo: en el acta saldrían las siglas. Escríbelos abajo o <button class="btn peq" data-acc7="pegar">📋 Pega la lista de Séneca</button>';
+  const h = $('dlgIn').querySelector('h2'); h.after(d);
+};
 // Pegar el alumnado de TODOS los grupos de una vez (una línea con el nombre del grupo y debajo su lista)
 const GRUPO_RX = { Tercero: /\b(tercero|3\.?º?)\b/i, Cuarto: /\b(cuarto|4\.?º?)\b/i, Quinto: /\b(quinto|5\.?º?)\b/i, Sexto: /\b(sexto|6\.?º?)\b/i };
 function parseTodo(txt) {
@@ -58,7 +72,7 @@ function dlgPegarTodo() {
     '<p class="small muted">Pega todo de una vez: una línea con el grupo (Tercero, Cuarto, Quinto, Sexto) y debajo su lista de Séneca («Apellidos, Nombre»). En la nube solo van las <b>siglas</b>; los nombres completos se quedan <b>solo en este dispositivo</b>.</p>' +
     '<textarea id="ptT" rows="12" placeholder="Tercero&#10;García López, Ana&#10;Pérez Ruiz, Luis&#10;Cuarto&#10;…"></textarea><div id="ptV" class="small" style="margin-top:6px"></div>' +
     '<div class="pie"><button class="btn sec" id="ptC">Cancelar</button><button class="btn" id="ptOk">Añadir a los grupos</button></div>';
-  $('dlg').showModal();
+  if (!$('dlg').open) $('dlg').showModal();
   const idDe = nom => (G.find(([, g]) => g.nombre === nom) || [])[0];
   const ver = () => { const P = parseTodo($('ptT').value); $('ptV').innerHTML = Object.entries(P).map(([k, L]) => '<div><b>' + k + '</b>: ' + L.length + ' alumnos/as' + (idDe(k) ? '' : ' <span style="color:#c00">(no existe ese grupo)</span>') + avisoTam(L.length) + '</div>').join(''); };
   $('ptT').oninput = ver;
