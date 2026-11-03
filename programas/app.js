@@ -98,23 +98,27 @@ let progAcc = null; try { progAcc = localStorage.getItem('programas-prog-acc'); 
 const CATS = { ed: '🏫 Equipo directivo', zts: '🌱 ZTS', mon: '🧑‍🏫 Monitoras', tut: '👩‍🏫 Tutoras' };
 const catsDe = p => p.mon || p.tut ? [p.mon && 'mon', p.tut && 'tut'].filter(Boolean) : [/ZTS/.test(p.rol) ? 'zts' : 'ed'];
 let catAcc = null; try { catAcc = localStorage.getItem('programas-cat-acc'); } catch (e) { }
+const PROG_DESC = { ZTS: 'Zona de Transformación Social', PROA: 'Acompañamiento escolar de tarde', 'PROA+': 'Plan de mejora con fondos europeos' };
 function pintarPerfiles() {
-  $('listaProg').innerHTML = Object.entries(PROG).map(([k, p]) => '<button class="chip' + (progAcc === k ? ' on' : '') + '" data-pa="' + k + '">' + p.e + ' ' + esc(p.n) + '</button>').join('');
+  const acc = document.querySelector('.acc'); if (progAcc) acc.dataset.prog = progAcc; else delete acc.dataset.prog;
+  $('listaProg').innerHTML = Object.entries(PROG).map(([k, p]) => '<button class="op prog' + (progAcc === k ? ' on' : '') + '" data-pa="' + k + '" aria-pressed="' + (progAcc === k) + '"><span class="e">' + p.e + '</span><span><b>' + esc(p.n) + '</b><small>' + esc(PROG_DESC[k] || '') + '</small></span></button>').join('');
   const enProg = Object.entries(PERFILES).filter(([, p]) => progAcc && p.prog.includes(progAcc));
   const cats = Object.keys(CATS).filter(c => enProg.some(([, p]) => catsDe(p).includes(c)));
   if (catAcc && !cats.includes(catAcc)) catAcc = null;
   if (cats.length === 1) catAcc = cats[0];
-  $('listaCat').innerHTML = progAcc && cats.length > 1 ? cats.map(c => '<button class="chip' + (catAcc === c ? ' on' : '') + '" data-cat="' + c + '">' + CATS[c] + '</button>').join('') : '';
+  const n = c => enProg.filter(([, p]) => catsDe(p).includes(c)).length;
+  $('listaCat').innerHTML = progAcc ? cats.map(c => { const [e, ...t] = CATS[c].split(' '); return '<button class="op cat' + (catAcc === c ? ' on' : '') + '" data-cat="' + c + '" aria-pressed="' + (catAcc === c) + '"><span class="e">' + e + '</span><span><b>' + esc(t.join(' ')) + '</b><small>' + n(c) + (n(c) === 1 ? ' persona' : ' personas') + '</small></span></button>'; }).join('') : '';
   const L = enProg.filter(([, p]) => catsDe(p).includes(catAcc));
-  $('listaPerfiles').innerHTML = !progAcc ? '<p class="muted small" style="text-align:center">Elige primero el programa.</p>' : !catAcc ? '<p class="muted small" style="text-align:center">Elige ahora tu grupo.</p>' :
-    L.map(([k, p]) => '<button class="perfil-btn' + (perfilSel === k ? ' on' : '') + '" data-p="' + k + '"><span class="e">' + p.emoji + '</span><span><b>' + esc(p.nombre) + '</b><small>' + esc(p.rol) + '</small></span></button>').join('');
-  $('accDatos').style.display = progAcc && catAcc ? '' : 'none';
+  $('listaPerfiles').innerHTML = progAcc && catAcc ? L.map(([k, p]) => '<button class="op per' + (perfilSel === k ? ' on' : '') + '" data-p="' + k + '" aria-pressed="' + (perfilSel === k) + '"><span class="e">' + p.emoji + '</span><span><b>' + esc(p.nombre) + '</b><small>' + esc(p.rol) + '</small></span></button>').join('') : '';
+  const paso = (id, hecho, activo) => { const el = $(id); el.className = 'paso' + (activo ? (hecho ? '' : ' toca') : ' espera'); };
+  paso('pasoProg', !!progAcc, true); paso('pasoCat', !!catAcc, !!progAcc); paso('pasoPer', !!perfilSel, !!(progAcc && catAcc));
+  $('accDatos').style.display = progAcc && catAcc && perfilSel ? '' : 'none';
 }
 $('listaCat').onclick = e => { const b = e.target.closest('[data-cat]'); if (!b) return; catAcc = b.dataset.cat; try { localStorage.setItem('programas-cat-acc', catAcc); } catch (x) { } if (perfilSel && !catsDe(PERFILES[perfilSel]).includes(catAcc)) perfilSel = null; pintarPerfiles(); };
 $('listaProg').onclick = e => { const b = e.target.closest('[data-pa]'); if (!b) return; progAcc = b.dataset.pa; try { localStorage.setItem('programas-prog-acc', progAcc); } catch (x) { } if (perfilSel && !PERFILES[perfilSel].prog.includes(progAcc)) perfilSel = null; pintarPerfiles(); };
 pintarPerfiles();
 if (false) $('listaPerfiles').innerHTML = Object.entries(PERFILES).map(([k, p]) => '<button class="perfil-btn" data-p="' + k + '"><span class="e">' + p.emoji + '</span><span><b>' + esc(p.nombre) + '</b><small>' + esc(p.rol) + '</small></span></button>').join('');
-$('listaPerfiles').onclick = e => { const b = e.target.closest('.perfil-btn'); if (!b) return; perfilSel = b.dataset.p; document.querySelectorAll('.perfil-btn').forEach(x => x.classList.toggle('on', x === b)); $('accIdea').focus(); };
+$('listaPerfiles').onclick = e => { const b = e.target.closest('[data-p]'); if (!b) return; perfilSel = b.dataset.p; pintarPerfiles(); $('accIdea').focus(); };
 $('accIdea').onkeydown = e => { if (e.key === 'Enter') entrar(); };
 $('accEntrar').onclick = entrar;
 function accError(m) { const d = $('accError'); d.textContent = m; d.style.display = 'block'; $('accEntrar').disabled = false; $('accEntrar').textContent = 'Entrar'; }
@@ -153,7 +157,7 @@ function pintarCursos() {
   $('selCurso').innerHTML = [i - 1, i, i + 1].map(y => { const c = y + '-' + String(y + 1).slice(2); return '<option value="' + c + '"' + (c === CURSO ? ' selected' : '') + '>' + y + '/' + String(y + 1).slice(2) + '</option>'; }).join('');
   $('selCurso').onchange = () => { CURSO = $('selCurso').value; conectar(); };
 }
-function novedades() { const K = esMon() ? 'programas-nov-mon-v8' : 'programas-nov-v24'; const dlgId = esMon() ? 'novMon' : 'novedades'; try { if (localStorage.getItem(K)) return; localStorage.setItem(K, 1); } catch (e) { } setTimeout(() => { try { $(dlgId).showModal(); } catch (e) { } }, 500); }
+function novedades() { const K = esMon() ? 'programas-nov-mon-v8' : 'programas-nov-v25'; const dlgId = esMon() ? 'novMon' : 'novedades'; try { if (localStorage.getItem(K)) return; localStorage.setItem(K, 1); } catch (e) { } setTimeout(() => { try { $(dlgId).showModal(); } catch (e) { } }, 500); }
 
 // ─── Navegación ───
 $('nav').onclick = e => { const b = e.target.closest('button'); if (b) irA(b.dataset.s); };

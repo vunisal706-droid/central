@@ -92,6 +92,36 @@ details summary{cursor:pointer;font-weight:800;color:var(--primary-dark)}
 .acc{background:#fff;border-radius:20px;box-shadow:var(--shadow);padding:22px;max-width:420px;width:100%}
 .acc img{height:60px;display:block;margin:0 auto 8px}
 .perfiles{display:grid;gap:8px;margin:12px 0}
+/* Acceso · botones táctiles por pasos */
+.acc{max-width:560px;--c:var(--primary);--c-d:var(--primary-dark);--c-s:var(--primary-soft)}
+.acc[data-prog="ZTS"]{--c:var(--zts);--c-d:#0a6158;--c-s:var(--zts-soft)}
+.acc[data-prog="PROA"]{--c:var(--proa);--c-d:#5a3699;--c-s:var(--proa-soft)}
+.acc[data-prog="PROA+"]{--c:var(--proap);--c-d:#a8461a;--c-s:var(--proap-soft)}
+.paso{display:flex;align-items:center;gap:10px;margin:18px 0 10px;font-family:'Bricolage Grotesque',system-ui,sans-serif;font-weight:800;font-size:1.05rem;color:var(--text)}
+.paso i{font-style:normal;width:30px;height:30px;border-radius:50%;display:grid;place-items:center;background:var(--c);color:#fff;font-size:.95rem;flex:none}
+.paso.espera{color:var(--muted)}.paso.espera i{background:#c9d3e3}
+.paso.toca i{animation:latido 1.6s ease-in-out infinite}
+@keyframes latido{0%,100%{box-shadow:0 0 0 0 color-mix(in srgb,var(--c) 45%,transparent)}50%{box-shadow:0 0 0 9px transparent}}
+.ops{display:grid;gap:10px;grid-template-columns:repeat(auto-fit,minmax(150px,1fr))}
+.op{position:relative;display:flex;align-items:center;gap:12px;text-align:left;min-height:64px;padding:12px 14px;border-radius:16px;border:2px solid var(--oc-b,#d9e1ee);background:var(--oc-s,#fff);color:var(--text);box-shadow:0 5px 0 var(--oc-b,#d9e1ee);transition:transform .08s,box-shadow .08s,background .15s}
+.op:hover{transform:translateY(-2px);box-shadow:0 7px 0 var(--oc-b,#d9e1ee)}
+.op:active{transform:translateY(4px);box-shadow:0 1px 0 var(--oc-b,#d9e1ee)}
+.op:focus-visible{outline:3px solid var(--oc,var(--c));outline-offset:3px}
+.op .e{font-size:1.8rem;line-height:1;flex:none}
+.op b{display:block;font-size:1rem;line-height:1.2}.op small{display:block;color:var(--muted);font-size:.8rem;line-height:1.25;margin-top:2px}
+.op.on{background:var(--oc,var(--c));border-color:var(--oc-d,var(--c-d));color:#fff;box-shadow:0 5px 0 var(--oc-d,var(--c-d))}
+.op.on small{color:rgba(255,255,255,.88)}
+.op.on::after{content:'✓';position:absolute;top:-9px;right:-9px;width:26px;height:26px;border-radius:50%;background:#fff;color:var(--oc,var(--c));border:2px solid var(--oc,var(--c));display:grid;place-items:center;font-weight:900;font-size:.85rem}
+.op.prog{flex-direction:column;align-items:flex-start;gap:6px;min-height:118px}
+.op.prog .e{font-size:2.2rem}
+.op[data-pa="ZTS"]{--oc:var(--zts);--oc-d:#0a6158;--oc-s:var(--zts-soft);--oc-b:#a9ddd6}
+.op[data-pa="PROA"]{--oc:var(--proa);--oc-d:#5a3699;--oc-s:var(--proa-soft);--oc-b:#d3c2f1}
+.op[data-pa="PROA+"]{--oc:var(--proap);--oc-d:#a8461a;--oc-s:var(--proap-soft);--oc-b:#f6c6ad}
+.op.cat,.op.per{--oc:var(--c);--oc-d:var(--c-d);--oc-b:color-mix(in srgb,var(--c) 30%,#fff)}
+#accEntrar{min-height:54px;font-size:1.1rem;font-weight:800;border-radius:16px;background:var(--c);box-shadow:0 5px 0 var(--c-d);border:none;color:#fff;transition:transform .08s,box-shadow .08s}
+#accEntrar:active{transform:translateY(4px);box-shadow:0 1px 0 var(--c-d)}
+@media (prefers-reduced-motion:reduce){.paso.toca i{animation:none}.op,#accEntrar{transition:none}}
+
 .perfil-btn{display:flex;gap:10px;align-items:center;border:1px solid var(--border);background:#fff;border-radius:12px;padding:10px;text-align:left}
 .perfil-btn.on{border-color:var(--primary);background:var(--primary-soft)}
 .perfil-btn .e{font-size:1.5rem}.perfil-btn small{display:block;color:var(--muted)}
@@ -115,9 +145,12 @@ body.mon #nav button:not([data-s=acomp]),body.mon #selCurso{display:none}
     <img src="img/colegio.png" alt="CEIP Capitulaciones">
     <h2 style="text-align:center">Programas del cole</h2>
     <p class="muted small" style="text-align:center">ZTS · PROA Andalucía · PROA+ Transfórmate</p>
-    <div class="chips" id="listaProg" style="justify-content:center;margin-top:12px"></div>
-    <div class="chips" id="listaCat" style="justify-content:center;margin-top:10px"></div>
-    <div class="perfiles" id="listaPerfiles"></div>
+    <div class="paso" id="pasoProg"><i>1</i>Elige el programa</div>
+    <div class="ops" id="listaProg"></div>
+    <div class="paso" id="pasoCat"><i>2</i>¿Quién eres?</div>
+    <div class="ops" id="listaCat"></div>
+    <div class="paso" id="pasoPer"><i>3</i>Toca tu nombre</div>
+    <div class="ops" id="listaPerfiles"></div>
     <div id="accDatos">
     <label for="accIdea">Usuario (IdEA, o el que te haya dado dirección)</label>
     <input id="accIdea" autocomplete="username" autocapitalize="off" spellcheck="false">
@@ -161,6 +194,7 @@ body.mon #nav button:not([data-s=acomp]),body.mon #selCurso{display:none}
 <dialog id="dlg"><div id="dlgIn"></div></dialog>
 <dialog id="novedades">
   <h2>🆕 Novedades</h2>
+  <p>🎨 <b>Pantalla de entrada renovada</b>: botones grandes y de colores en 3 pasos (programa, quién eres y tu nombre), con el color de cada programa.</p>
   <p>🔑 <b>Entrada más cómoda</b>: después del programa eliges tu grupo (Equipo directivo, ZTS, Monitoras o Tutoras) y solo salen esas personas.</p>
   <p>🖨️ Los anexos y actas ya se imprimen <b>sin la fecha, el título ni la dirección web</b> arriba y abajo de la hoja.</p>
   <p>📝 <b>Acta de selección</b>: si a algún alumno/a le falta el nombre completo en este dispositivo, te avisa y puedes pegar la lista de Séneca desde ahí mismo. Al pegar, los alumnos que habías creado a mano con siglas reciben su nombre (sin duplicarse).</p>
