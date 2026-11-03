@@ -39,8 +39,8 @@ function dlgPegarLista() {
   };
 }
 function avisoTam(n) {
-  if (n >= 8 && n <= 10) return '';
-  return '<div class="aviso" style="margin-top:6px">⚠️ Las Instrucciones fijan grupos de <b>8 a 10</b> alumnos/as. Este grupo tiene <b>' + n + '</b>' + (n < 8 ? ': falta' + (8 - n > 1 ? 'n ' : ' ') + (8 - n) + '.' : ': sobra' + (n - 10 > 1 ? 'n ' : ' ') + (n - 10) + ' (puede quedar como suplente).') + '</div>';
+  if (!n || n >= 8) return '';
+  return '<div class="aviso" style="margin-top:6px">⚠️ Este grupo tiene <b>' + n + '</b> alumnos/as: falta' + (8 - n > 1 ? 'n ' : ' ') + (8 - n) + ' para llegar al mínimo de 8.</div>';
 }
 // Copia de seguridad de los nombres (para pasarlos a otro dispositivo sin subirlos a la nube)
 function exportarNombres() {
