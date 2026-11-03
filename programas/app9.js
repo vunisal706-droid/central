@@ -3,7 +3,8 @@
 const asisDe = (gid, mes) => ((((D.informes || {})[gid] || {})._asis || {})[mes]) || null;
 const fmtSen = L => (L || []).slice().sort((a, b) => a - b).join(',');
 const previstosHastaHoy = (g, mes) => diasPrevistos(g, mes).filter(f => f <= hoyIso()).map(f => +f.slice(8));
-const puedeAsis = g => !esMon() || g.monitor === PERFIL;
+PERFILES.sandra.asis = ['Tercero', 'Cuarto', 'Quinto'];   // Sandra pasa la asistencia de estos tres grupos
+const puedeAsis = g => !esMon() || g.monitor === PERFIL || ((PERFILES[PERFIL] || {}).asis || []).includes(g.nombre);
 
 function rAsistencia(g, selMes) {
   const gid = grupoSel, mes = mesResumen, A = Object.entries(g.alumnos || {}).sort((a, b) => (a[1].siglas || '').localeCompare(b[1].siglas || ''));
@@ -31,13 +32,13 @@ function rAsistencia(g, selMes) {
 function guardarAsis(gid, mes, doc, alu) {
   guardar('informes/' + gid + '/_asis/' + mes, { doc: doc.slice().sort((a, b) => a - b), alu, por: PERFIL, ts: Date.now() });
 }
-function asisTodo() {
-  const g = D.grupos[grupoSel], prev = previstosHastaHoy(g, mesResumen); if (!prev.length) return toast('No hay días previstos todavía este mes', 'err');
+function asisTodo(gid) {
+  gid = gid || grupoSel; const g = D.grupos[gid], prev = previstosHastaHoy(g, mesResumen); if (!prev.length) return toast('No hay días previstos todavía este mes', 'err');
   const alu = {}; Object.keys(g.alumnos || {}).forEach(aid => alu[aid] = prev.slice());
-  guardarAsis(grupoSel, mesResumen, prev, alu); toast('Asistencia guardada: ' + fmtSen(prev)); render();
+  guardarAsis(gid, mesResumen, prev, alu); toast(g.nombre + ': asistencia guardada (' + fmtSen(prev) + ')'); render();
 }
-function asisEditar() {
-  const g = D.grupos[grupoSel], gid = grupoSel, mes = mesResumen, X = asisDe(gid, mes);
+function asisEditar(gid) {
+  gid = gid || grupoSel; const g = D.grupos[gid], mes = mesResumen, X = asisDe(gid, mes);
   const A = Object.entries(g.alumnos || {}).sort((a, b) => (a[1].siglas || '').localeCompare(b[1].siglas || ''));
   const prev = diasPrevistos(g, mes).map(f => +f.slice(8));
   const dias = [...new Set(prev.concat(X ? X.doc || [] : []).concat(X ? [].concat(...Object.values(X.alu || {})) : []))].sort((a, b) => a - b);
@@ -66,5 +67,29 @@ document.addEventListener('click', e => {
   const c = e.target.closest('[data-copiar9]');
   if (c) { const t = c.dataset.copiar9; (navigator.clipboard ? navigator.clipboard.writeText(t) : Promise.reject()).then(() => toast('Copiado: ' + t)).catch(() => toast('No se pudo copiar: selecciona y copia ' + t, 'err')); return; }
   const b = e.target.closest('[data-acc9]'); if (!b) return;
-  ({ todo: asisTodo, editar: asisEditar }[b.dataset.acc9] || (() => { }))();
+  ({ todo: asisTodo, editar: asisEditar }[b.dataset.acc9] || (() => { }))(b.dataset.gid);
 });
+
+// Tarjeta con todos los grupos de los que pasa asistencia (Sandra: Tercero, Cuarto y Quinto)
+const _rAcomp9 = rAcomp;
+rAcomp = function () {
+  const html = _rAcomp9(), L = (PERFILES[PERFIL] || {}).asis;
+  if (!L || !esMon()) return html;
+  mesResumen = mesResumen || hoyIso().slice(0, 7);
+  const G = L.map(n => Object.entries(D.grupos || {}).find(([, g]) => g.nombre === n)).filter(Boolean);
+  if (!G.length) return html;
+  const mes = mesResumen, mesN = MESES[+mes.slice(5) - 1];
+  const card = '<div class="card" style="border-left:5px solid var(--ok)"><div class="card-h"><h2>✅ Asistencia de ' + esc(mesN) + ' · tus grupos</h2></div>' +
+    '<p class="small muted">Si viniste tú y todo el alumnado todos los días previstos, pulsa el botón verde de ese grupo. Si alguien faltó, «Editar».</p>' +
+    '<div style="display:grid;gap:10px;margin-top:8px">' + G.map(([gid, g]) => {
+      const X = asisDe(gid, mes), prev = previstosHastaHoy(g, mes), A = Object.keys(g.alumnos || {});
+      const faltas = X ? A.filter(aid => fmtSen((X.alu || {})[aid]) !== fmtSen(X.doc)).length : 0;
+      return '<div style="display:flex;flex-wrap:wrap;align-items:center;gap:10px;padding:10px 12px;border:2px solid var(--border);border-radius:14px;background:' + (X ? 'var(--ok-soft)' : '#fff') + '">' +
+        '<div style="flex:1;min-width:170px"><b style="font-size:1.05rem">' + esc(g.nombre) + '</b><br><span class="small ' + (X ? '' : 'muted') + '">' + (X ? '✔ Guardada: ' + (fmtSen(X.doc) || 'ningún día') + (faltas ? ' · ' + faltas + ' con faltas' : ' · todos vinieron') : 'Sin guardar · previstos: ' + (fmtSen(prev) || '—')) + '</span></div>' +
+        '<button class="btn" data-acc9="todo" data-gid="' + gid + '"' + (prev.length ? '' : ' disabled') + '>✅ Todos los días</button>' +
+        '<button class="btn sec" data-acc9="editar" data-gid="' + gid + '">✏️ Editar</button></div>';
+    }).join('') + '</div></div>';
+  // la colocamos justo después de la tarjeta de cabecera
+  const fin = html.indexOf('<div class="card"', html.indexOf('PROA Andalucía · Acompañamiento'));
+  return fin > 0 ? html.slice(0, fin) + card + html.slice(fin) : card + html;
+};
