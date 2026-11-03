@@ -224,7 +224,7 @@
   // Programas del cole (ZTS, PROA Andalucía y PROA+): plazos y actividades palanca (archivos públicos de la app)
   let PLZ = [];
   async function cargarProgramas() {
-    const [a, b] = await Promise.all([traer(BASE + 'central/programas/plazos.js'), traer(BASE + 'central/programas/palancas.js')]);
+    const [a, b] = await Promise.all([traer(BASE + 'programas/plazos.js'), traer(BASE + 'programas/palancas.js')]);
     const w = {};
     try { if (a) new Function('window', a)(w); } catch (e) { }
     try { if (b) new Function('window', b)(w); } catch (e) { }
@@ -235,11 +235,11 @@
       const fin = y + '-' + pad(p.m) + '-' + pad(p.s ? Math.min(p.e || p.s, dim) : dim);
       return Object.assign({}, p, { y, fin, prog: NP[p.p] || p.p });
     });
-    PLZ.forEach(p => out.push({ fuente: 'Programas', doc: 'Programas del cole', sec: p.prog, sub: p.t, cab: '', ancla: '', url: BASE + 'central/programas/', urlDirecta: true,
+    PLZ.forEach(p => out.push({ fuente: 'Programas', doc: 'Programas del cole', sec: p.prog, sub: p.t, cab: '', ancla: '', url: BASE + 'programas/', urlDirecta: true,
       bloques: [p.t + ' · ' + (p.f ? p.f + ' · ' : '') + MESES[p.m - 1] + ' ' + p.y].concat([p.d, p.r ? 'Séneca: ' + p.r : ''].filter(Boolean)), fecha: p.fin, peso: 1 }));
-    (w.PALANCAS || []).forEach(p => out.push({ fuente: 'Programas', doc: 'PROA+ · Plan de actividades palanca', sec: p.c + ' · ' + p.t, sub: p.bloque, cab: '', ancla: '', url: BASE + 'central/programas/', urlDirecta: true,
+    (w.PALANCAS || []).forEach(p => out.push({ fuente: 'Programas', doc: 'PROA+ · Plan de actividades palanca', sec: p.c + ' · ' + p.t, sub: p.bloque, cab: '', ancla: '', url: BASE + 'programas/', urlDirecta: true,
       bloques: [p.c + ' · ' + p.t + ' (' + p.tipo + ', reto: ' + p.reto + ')', 'Objetivo: ' + p.obj].concat(p.acc, ['Indicadores: ' + p.ind]), peso: 1.1 }));
-    (w.RETOS || []).forEach(r => out.push({ fuente: 'Programas', doc: 'PROA+ · Retos e indicadores', sec: 'Reto ' + r.n, sub: r.t, cab: '', ancla: '', url: BASE + 'central/programas/', urlDirecta: true,
+    (w.RETOS || []).forEach(r => out.push({ fuente: 'Programas', doc: 'PROA+ · Retos e indicadores', sec: 'Reto ' + r.n, sub: r.t, cab: '', ancla: '', url: BASE + 'programas/', urlDirecta: true,
       bloques: ['Reto ' + r.n + ': ' + r.t, 'Por qué: ' + r.por, 'Indicador: ' + r.ind, 'Meta 26/27: ' + r.meta], peso: 1.05 }));
     return out;
   }
@@ -255,7 +255,7 @@
     if (!L.length) return '';
     return '<div class="as-cal as-agenda"><b>🗂️ Programas del cole' + (pr ? ' · ' + esc({ ZTS: 'ZTS', PROA: 'PROA Andalucía', 'PROA+': 'PROA+' }[pr]) : '') + (/proxim|cuando/.test(nq) ? ' · próximos plazos' : ' · ' + MESES[mes - 1]) + '</b><ul>'
       + L.map(p => '<li><b>' + esc(p.t) + '</b> · ' + esc(p.f || '') + (p.fin ? ' (hasta el ' + esc(largo(p.fin)) + ')' : '') + (p.d || p.r ? '<details><summary>Detalles</summary>' + (p.d ? '<div>' + esc(p.d) + '</div>' : '') + (p.r ? '<div>Séneca: ' + esc(p.r) + '</div>' : '') + '</details>' : '') + '</li>').join('')
-      + '</ul><a class="enlace" href="' + BASE + 'central/programas/" target="_blank" rel="noopener">Abrir Programas del cole</a></div>';
+      + '</ul><a class="enlace" href="' + BASE + 'programas/" target="_blank" rel="noopener">Abrir Programas del cole</a></div>';
   }
   // Las fechas cercanas pesan más que las pasadas
   function pesoFecha(t) {
