@@ -87,7 +87,8 @@ details summary{cursor:pointer;font-weight:800;color:var(--primary-dark)}
 .pal{border-left:5px solid var(--proap)}
 .barra{height:8px;background:#edf1f7;border-radius:99px;overflow:hidden}.barra i{display:block;height:100%;background:var(--ok)}
 /* Acceso */
-#pantallaAcceso{position:fixed;inset:0;z-index:500;display:flex;align-items:center;justify-content:center;padding:16px;background:#f4f7fc}
+#pantallaAcceso{position:fixed;inset:0;z-index:500;display:flex;align-items:flex-start;justify-content:center;padding:16px;background:#f4f7fc;overflow-y:auto}
+.acc{margin:auto 0}
 .acc{background:#fff;border-radius:20px;box-shadow:var(--shadow);padding:22px;max-width:420px;width:100%}
 .acc img{height:60px;display:block;margin:0 auto 8px}
 .perfiles{display:grid;gap:8px;margin:12px 0}
@@ -115,6 +116,7 @@ body.mon #nav button:not([data-s=acomp]),body.mon #selCurso{display:none}
     <h2 style="text-align:center">Programas del cole</h2>
     <p class="muted small" style="text-align:center">ZTS · PROA Andalucía · PROA+ Transfórmate</p>
     <div class="chips" id="listaProg" style="justify-content:center;margin-top:12px"></div>
+    <div class="chips" id="listaCat" style="justify-content:center;margin-top:10px"></div>
     <div class="perfiles" id="listaPerfiles"></div>
     <div id="accDatos">
     <label for="accIdea">Usuario (IdEA, o el que te haya dado dirección)</label>
@@ -159,6 +161,7 @@ body.mon #nav button:not([data-s=acomp]),body.mon #selCurso{display:none}
 <dialog id="dlg"><div id="dlgIn"></div></dialog>
 <dialog id="novedades">
   <h2>🆕 Novedades</h2>
+  <p>🔑 <b>Entrada más cómoda</b>: después del programa eliges tu grupo (Equipo directivo, ZTS, Monitoras o Tutoras) y solo salen esas personas.</p>
   <p>🖨️ Los anexos y actas ya se imprimen <b>sin la fecha, el título ni la dirección web</b> arriba y abajo de la hoja.</p>
   <p>📝 <b>Acta de selección</b>: si a algún alumno/a le falta el nombre completo en este dispositivo, te avisa y puedes pegar la lista de Séneca desde ahí mismo. Al pegar, los alumnos que habías creado a mano con siglas reciben su nombre (sin duplicarse).</p>
   <p>📋 <b>Pegar alumnado de todos</b> (arriba, en Acompañamiento): pegas de una vez la lista de los 4 grupos y se crean todos los alumnos/as con su nombre completo (solo en este dispositivo).</p>

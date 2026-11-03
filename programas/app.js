@@ -95,12 +95,22 @@ db.ref('.info/connected').on('value', s => { $('dot').className = 'dot ' + (s.va
 // ─── Acceso ───
 let perfilSel = null;
 let progAcc = null; try { progAcc = localStorage.getItem('programas-prog-acc'); } catch (e) { }
+const CATS = { ed: '🏫 Equipo directivo', zts: '🌱 ZTS', mon: '🧑‍🏫 Monitoras', tut: '👩‍🏫 Tutoras' };
+const catsDe = p => p.mon || p.tut ? [p.mon && 'mon', p.tut && 'tut'].filter(Boolean) : [/ZTS/.test(p.rol) ? 'zts' : 'ed'];
+let catAcc = null; try { catAcc = localStorage.getItem('programas-cat-acc'); } catch (e) { }
 function pintarPerfiles() {
   $('listaProg').innerHTML = Object.entries(PROG).map(([k, p]) => '<button class="chip' + (progAcc === k ? ' on' : '') + '" data-pa="' + k + '">' + p.e + ' ' + esc(p.n) + '</button>').join('');
-  const L = Object.entries(PERFILES).filter(([, p]) => progAcc && p.prog.includes(progAcc));
-  $('listaPerfiles').innerHTML = progAcc ? L.map(([k, p]) => '<button class="perfil-btn' + (perfilSel === k ? ' on' : '') + '" data-p="' + k + '"><span class="e">' + p.emoji + '</span><span><b>' + esc(p.nombre) + '</b><small>' + esc(p.rol) + '</small></span></button>').join('') : '<p class="muted small" style="text-align:center">Elige primero el programa.</p>';
-  $('accDatos').style.display = progAcc ? '' : 'none';
+  const enProg = Object.entries(PERFILES).filter(([, p]) => progAcc && p.prog.includes(progAcc));
+  const cats = Object.keys(CATS).filter(c => enProg.some(([, p]) => catsDe(p).includes(c)));
+  if (catAcc && !cats.includes(catAcc)) catAcc = null;
+  if (cats.length === 1) catAcc = cats[0];
+  $('listaCat').innerHTML = progAcc && cats.length > 1 ? cats.map(c => '<button class="chip' + (catAcc === c ? ' on' : '') + '" data-cat="' + c + '">' + CATS[c] + '</button>').join('') : '';
+  const L = enProg.filter(([, p]) => catsDe(p).includes(catAcc));
+  $('listaPerfiles').innerHTML = !progAcc ? '<p class="muted small" style="text-align:center">Elige primero el programa.</p>' : !catAcc ? '<p class="muted small" style="text-align:center">Elige ahora tu grupo.</p>' :
+    L.map(([k, p]) => '<button class="perfil-btn' + (perfilSel === k ? ' on' : '') + '" data-p="' + k + '"><span class="e">' + p.emoji + '</span><span><b>' + esc(p.nombre) + '</b><small>' + esc(p.rol) + '</small></span></button>').join('');
+  $('accDatos').style.display = progAcc && catAcc ? '' : 'none';
 }
+$('listaCat').onclick = e => { const b = e.target.closest('[data-cat]'); if (!b) return; catAcc = b.dataset.cat; try { localStorage.setItem('programas-cat-acc', catAcc); } catch (x) { } if (perfilSel && !catsDe(PERFILES[perfilSel]).includes(catAcc)) perfilSel = null; pintarPerfiles(); };
 $('listaProg').onclick = e => { const b = e.target.closest('[data-pa]'); if (!b) return; progAcc = b.dataset.pa; try { localStorage.setItem('programas-prog-acc', progAcc); } catch (x) { } if (perfilSel && !PERFILES[perfilSel].prog.includes(progAcc)) perfilSel = null; pintarPerfiles(); };
 pintarPerfiles();
 if (false) $('listaPerfiles').innerHTML = Object.entries(PERFILES).map(([k, p]) => '<button class="perfil-btn" data-p="' + k + '"><span class="e">' + p.emoji + '</span><span><b>' + esc(p.nombre) + '</b><small>' + esc(p.rol) + '</small></span></button>').join('');
@@ -143,7 +153,7 @@ function pintarCursos() {
   $('selCurso').innerHTML = [i - 1, i, i + 1].map(y => { const c = y + '-' + String(y + 1).slice(2); return '<option value="' + c + '"' + (c === CURSO ? ' selected' : '') + '>' + y + '/' + String(y + 1).slice(2) + '</option>'; }).join('');
   $('selCurso').onchange = () => { CURSO = $('selCurso').value; conectar(); };
 }
-function novedades() { const K = esMon() ? 'programas-nov-mon-v8' : 'programas-nov-v23'; const dlgId = esMon() ? 'novMon' : 'novedades'; try { if (localStorage.getItem(K)) return; localStorage.setItem(K, 1); } catch (e) { } setTimeout(() => { try { $(dlgId).showModal(); } catch (e) { } }, 500); }
+function novedades() { const K = esMon() ? 'programas-nov-mon-v8' : 'programas-nov-v24'; const dlgId = esMon() ? 'novMon' : 'novedades'; try { if (localStorage.getItem(K)) return; localStorage.setItem(K, 1); } catch (e) { } setTimeout(() => { try { $(dlgId).showModal(); } catch (e) { } }, 500); }
 
 // ─── Navegación ───
 $('nav').onclick = e => { const b = e.target.closest('button'); if (b) irA(b.dataset.s); };
