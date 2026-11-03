@@ -143,7 +143,7 @@ function pintarCursos() {
   $('selCurso').innerHTML = [i - 1, i, i + 1].map(y => { const c = y + '-' + String(y + 1).slice(2); return '<option value="' + c + '"' + (c === CURSO ? ' selected' : '') + '>' + y + '/' + String(y + 1).slice(2) + '</option>'; }).join('');
   $('selCurso').onchange = () => { CURSO = $('selCurso').value; conectar(); };
 }
-function novedades() { const K = esMon() ? 'programas-nov-mon-v8' : 'programas-nov-v20'; const dlgId = esMon() ? 'novMon' : 'novedades'; try { if (localStorage.getItem(K)) return; localStorage.setItem(K, 1); } catch (e) { } setTimeout(() => { try { $(dlgId).showModal(); } catch (e) { } }, 500); }
+function novedades() { const K = esMon() ? 'programas-nov-mon-v8' : 'programas-nov-v21'; const dlgId = esMon() ? 'novMon' : 'novedades'; try { if (localStorage.getItem(K)) return; localStorage.setItem(K, 1); } catch (e) { } setTimeout(() => { try { $(dlgId).showModal(); } catch (e) { } }, 500); }
 
 // ─── Navegación ───
 $('nav').onclick = e => { const b = e.target.closest('button'); if (b) irA(b.dataset.s); };
@@ -229,7 +229,7 @@ function rAcomp() {
   const G = Object.entries(D.grupos || {}).filter(([, g]) => !esMon() || miGrupo(g)).sort((a, b) => ordGrupo(a[1]) - ordGrupo(b[1]) || (a[1].nombre || '').localeCompare(b[1].nombre || ''));
   if (grupoSel && (!D.grupos[grupoSel] || !G.some(x => x[0] === grupoSel))) grupoSel = null;
   if (!grupoSel && G.length) grupoSel = G[0][0];
-  let h = '<div class="card"><div class="card-h"><h2>🧑‍🏫 PROA Andalucía · Acompañamiento</h2>' + (esMon() ? '' : '<button class="btn" data-acc="nuevoGrupo">＋ Nuevo grupo</button>') + '</div>' +
+  let h = '<div class="card"><div class="card-h"><h2>🧑‍🏫 PROA Andalucía · Acompañamiento</h2>' + (esMon() ? '' : '<div><button class="btn sec" data-acc7="todo">📋 Pegar alumnado de todos</button> <button class="btn" data-acc="nuevoGrupo">＋ Nuevo grupo</button></div>') + '</div>' +
     (esTut() ? '<div class="aviso verde"><b>Cómo se usa:</b> aquí ves el grupo de Acompañamiento de tu clase, su <b>programación</b> y las <b>reuniones quincenales</b>. Cuando haya reunión, pulsa «Entrar en la reunión telemática», escribe en los puntos del orden del día lo que veas necesario y habla por el chat con la monitora.</div>' : '') + (esMonitor() ? '<div class="aviso verde"><b>Cómo se usa:</b> de arriba abajo: 1) <b>Hojas del mes</b>: marca las sesiones y quién falta y descarga el Anexo X y el XII firmados. 2) <b>Reuniones quincenales</b>: toca la fecha para entrar. 3) <b>Programación</b> del trimestre para preparar las sesiones. 4) Al final de cada trimestre, el <b>informe de cada alumno/a</b>. 5) <b>Mi firma</b>: una vez y sale en todo.</div>' : '') +
     (G.length ? '<div class="chips">' + G.map(([id, g]) => '<button class="chip' + (id === grupoSel ? ' on' : '') + '" data-grupo="' + id + '">' + esc(g.nombre) + '</button>').join('') + '</div>' :
       (esMon() ? '<p class="muted">Todavía no tienes ningún grupo asignado. Avisa a dirección.</p>' : '<p class="muted">Aún no hay grupos.</p><button class="btn" data-acc="gruposSeneca">⚡ Crear los 4 grupos como están en Séneca</button> <span class="small muted">Tercero (L y X), Cuarto, Quinto y Sexto (M y J), de 16:00 a 18:00</span>')) +

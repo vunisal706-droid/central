@@ -21,21 +21,53 @@ function dlgPegarLista() {
   $('plC').onclick = () => $('dlg').close();
   $('plOk').onclick = () => {
     const L = parseSeneca($('plT').value); if (!L.length) return toast('No encuentro nombres con el formato «Apellidos, Nombre»', 'err');
-    const N = nombres(grupoSel), A = Object.entries(g.alumnos || {}), curso = CURSO_G(g) || '';
-    let nuevos = 0, ya = 0;
-    L.forEach(x => {
-      const full = x.no + ' ' + x.ap;
-      if (Object.values(N).some(n => n.toLowerCase() === full.toLowerCase())) { ya++; return; }
-      let s = siglasDe(x.no, x.ap);
-      // Si ya hay un alumno con esas siglas y sin nombre, se le asigna; si no, se crea uno nuevo
-      const libre = A.find(([aid, a]) => a.siglas === s && !N[aid]);
-      if (libre) { N[libre[0]] = full; ya++; return; }
-      const usadas = A.map(([, a]) => a.siglas); let k = 2, base = s; while (usadas.includes(s)) s = base + k++;
-      const aid = uid(); N[aid] = full; A.push([aid, { siglas: s }]);
-      guardar('grupos/' + grupoSel + '/alumnos/' + aid, { siglas: s, curso: curso, tutor: '' }); nuevos++;
-    });
-    try { localStorage.setItem(NKEY(grupoSel), JSON.stringify(N)); } catch (e) { }
-    $('dlg').close(); toast(nuevos + ' añadidos' + (ya ? ', ' + ya + ' ya estaban' : '')); render();
+    const r = anadirLista(grupoSel, L); $('dlg').close(); toast(r.nuevos + ' añadidos' + (r.ya ? ', ' + r.ya + ' ya estaban' : '')); render();
+  };
+}
+function anadirLista(gid, L) {
+  const g = D.grupos[gid], N = nombres(gid), A = Object.entries(g.alumnos || {}), curso = CURSO_G(g) || '';
+  let nuevos = 0, ya = 0;
+  L.forEach(x => {
+    const full = x.no + ' ' + x.ap;
+    if (Object.values(N).some(n => n.toLowerCase() === full.toLowerCase())) { ya++; return; }
+    let s = siglasDe(x.no, x.ap);
+    const libre = A.find(([aid, a]) => a.siglas === s && !N[aid]);
+    if (libre) { N[libre[0]] = full; ya++; return; }
+    const usadas = A.map(([, a]) => a.siglas); let k = 2, base = s; while (usadas.includes(s)) s = base + k++;
+    const aid = uid(); N[aid] = full; A.push([aid, { siglas: s }]);
+    guardar('grupos/' + gid + '/alumnos/' + aid, { siglas: s, curso: curso, tutor: '' }); nuevos++;
+  });
+  try { localStorage.setItem(NKEY(gid), JSON.stringify(N)); } catch (e) { }
+  return { nuevos, ya };
+}
+// Pegar el alumnado de TODOS los grupos de una vez (una línea con el nombre del grupo y debajo su lista)
+const GRUPO_RX = { Tercero: /\b(tercero|3\.?º?)\b/i, Cuarto: /\b(cuarto|4\.?º?)\b/i, Quinto: /\b(quinto|5\.?º?)\b/i, Sexto: /\b(sexto|6\.?º?)\b/i };
+function parseTodo(txt) {
+  const out = {}; let cur = null;
+  String(txt || '').split('\n').map(l => l.replace(/\t/g, ' ').trim()).filter(Boolean).forEach(l => {
+    if (!l.includes(',') || /:/.test(l)) { const k = Object.keys(GRUPO_RX).find(k => GRUPO_RX[k].test(l)); if (k) { cur = k; out[k] = out[k] || []; } if (!l.includes(',')) return; }
+    if (!cur || /^(alumno|n[úu]mero total)/i.test(l)) return;
+    const L = parseSeneca(l); if (L.length) out[cur].push(L[0]);
+  });
+  return out;
+}
+function dlgPegarTodo() {
+  const G = Object.entries(D.grupos || {});
+  if (!G.length) return toast('Crea primero los grupos', 'err');
+  $('dlgIn').innerHTML = '<h2>📋 Pegar el alumnado de todos los grupos</h2>' +
+    '<p class="small muted">Pega todo de una vez: una línea con el grupo (Tercero, Cuarto, Quinto, Sexto) y debajo su lista de Séneca («Apellidos, Nombre»). En la nube solo van las <b>siglas</b>; los nombres completos se quedan <b>solo en este dispositivo</b>.</p>' +
+    '<textarea id="ptT" rows="12" placeholder="Tercero&#10;García López, Ana&#10;Pérez Ruiz, Luis&#10;Cuarto&#10;…"></textarea><div id="ptV" class="small" style="margin-top:6px"></div>' +
+    '<div class="pie"><button class="btn sec" id="ptC">Cancelar</button><button class="btn" id="ptOk">Añadir a los grupos</button></div>';
+  $('dlg').showModal();
+  const idDe = nom => (G.find(([, g]) => g.nombre === nom) || [])[0];
+  const ver = () => { const P = parseTodo($('ptT').value); $('ptV').innerHTML = Object.entries(P).map(([k, L]) => '<div><b>' + k + '</b>: ' + L.length + ' alumnos/as' + (idDe(k) ? '' : ' <span style="color:#c00">(no existe ese grupo)</span>') + avisoTam(L.length) + '</div>').join(''); };
+  $('ptT').oninput = ver;
+  $('ptC').onclick = () => $('dlg').close();
+  $('ptOk').onclick = () => {
+    const P = parseTodo($('ptT').value); let n = 0, y = 0;
+    Object.entries(P).forEach(([k, L]) => { const gid = idDe(k); if (gid && L.length) { const r = anadirLista(gid, L); n += r.nuevos; y += r.ya; } });
+    if (!n && !y) return toast('No encuentro alumnado. Revisa el formato.', 'err');
+    $('dlg').close(); toast(n + ' añadidos' + (y ? ', ' + y + ' ya estaban' : '')); render();
   };
 }
 function avisoTam(n) {
@@ -69,5 +101,5 @@ rDocsGrupo = function (g, A) {
 };
 document.addEventListener('click', e => {
   const t = e.target.closest('[data-acc7]'); if (!t) return;
-  ({ pegar: dlgPegarLista, exp: exportarNombres, imp: importarNombres }[t.dataset.acc7] || (() => { }))();
+  ({ todo: dlgPegarTodo, pegar: dlgPegarLista, exp: exportarNombres, imp: importarNombres }[t.dataset.acc7] || (() => { }))();
 });
