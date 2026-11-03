@@ -60,7 +60,7 @@ function asisEditar(gid) {
 }
 
 // Monitores: arriba de sus hojas del mes · Coordinación: arriba de «Sesiones dadas»
-const _rHojasMon9 = rHojasMon; rHojasMon = (g, A, selMes) => rAsistencia(g, selMes) + _rHojasMon9(g, A, selMes);
+const _rHojasMon9 = rHojasMon; rHojasMon = (g, A, selMes) => ((PERFILES[PERFIL] || {}).asis ? '' : rAsistencia(g, selMes)) + _rHojasMon9(g, A, selMes);
 const _rSesiones9 = rSesiones; rSesiones = (g, selMes) => rAsistencia(g, selMes) + _rSesiones9(g, selMes);
 
 document.addEventListener('click', e => {
@@ -79,7 +79,8 @@ rAcomp = function () {
   const G = L.map(n => Object.entries(D.grupos || {}).find(([, g]) => g.nombre === n)).filter(Boolean);
   if (!G.length) return html;
   const mes = mesResumen, mesN = MESES[+mes.slice(5) - 1];
-  const card = '<div class="card" style="border-left:5px solid var(--ok)"><div class="card-h"><h2>✅ Asistencia de ' + esc(mesN) + ' · tus grupos</h2></div>' +
+  const selM = '<select id="mesAsis9" style="width:auto">' + mesesProg().map(m => '<option value="' + m + '"' + (m === mes ? ' selected' : '') + '>' + MESES[+m.slice(5) - 1] + ' ' + m.slice(0, 4) + '</option>').join('') + '</select>';
+  const card = '<div class="card" style="border-left:5px solid var(--ok)"><div class="card-h"><h2>✅ Asistencia de ' + esc(mesN) + ' · tus grupos</h2>' + selM + '</div>' +
     '<p class="small muted">Si viniste tú y todo el alumnado todos los días previstos, pulsa el botón verde de ese grupo. Si alguien faltó, «Editar».</p>' +
     '<div style="display:grid;gap:10px;margin-top:8px">' + G.map(([gid, g]) => {
       const X = asisDe(gid, mes), prev = previstosHastaHoy(g, mes), A = Object.keys(g.alumnos || {});
@@ -93,3 +94,5 @@ rAcomp = function () {
   const fin = html.indexOf('<div class="card"', html.indexOf('PROA Andalucía · Acompañamiento'));
   return fin > 0 ? html.slice(0, fin) + card + html.slice(fin) : card + html;
 };
+
+document.addEventListener('change', e => { if (e.target.id === 'mesAsis9') { mesResumen = e.target.value; render(); } });
