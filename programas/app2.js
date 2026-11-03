@@ -13,17 +13,24 @@ const PALN = c => { const p = PALANCAS.find(x => x.c === c); return p ? p.c + ' 
 function abrirDoc(titulo, cuerpo, prog) {
   const base = location.href.replace(/[^/]*$/, '');
   const fse = prog === 'PROA+' ? 'Programa de Cooperación Territorial de Orientación, Avance y Enriquecimiento Educativo PROA+ Transfórmate, cofinanciado por el Fondo Social Europeo Plus (FSE+).' : 'Actuación cofinanciada por el Fondo Social Europeo Plus (FSE+). Consejería de Educación de la Junta de Andalucía.';
-  const css = '.salto{page-break-before:always;break-before:page}.firma{height:34px}body{font-family:Calibri,Arial,sans-serif;max-width:820px;margin:24px auto;padding:0 20px;color:#111;line-height:1.45;font-size:14px}h1{font-size:19px;text-align:center;margin:6px 0}h2{font-size:16px;color:#1f3f7a;border-bottom:2px solid #1f3f7a;padding-bottom:2px;margin-top:22px}h3{font-size:14px;margin:12px 0 4px}table{width:100%;border-collapse:collapse;margin:6px 0}td,th{border:1px solid #999;padding:5px 7px;vertical-align:top;text-align:left}th{background:#e8effc}.cab{display:flex;justify-content:space-between;align-items:center}.cab img{height:52px}.sub{text-align:center;color:#444;margin:0 0 10px}.fse{font-size:11px;text-align:center;margin-top:28px;color:#333}.bar{text-align:center;margin:16px}.bar button{font-size:15px;padding:8px 14px;margin:0 4px;cursor:pointer}@media print{.bar{display:none}}';
+  const css = '@page{size:A4;margin:0}@media print{body{padding:14mm 16mm!important;margin:0!important;max-width:none!important;-webkit-box-decoration-break:clone;box-decoration-break:clone}.bar{display:none}}.salto{page-break-before:always;break-before:page}.firma{height:34px}body{font-family:Calibri,Arial,sans-serif;max-width:820px;margin:24px auto;padding:0 20px;color:#111;line-height:1.45;font-size:14px}h1{font-size:19px;text-align:center;margin:6px 0}h2{font-size:16px;color:#1f3f7a;border-bottom:2px solid #1f3f7a;padding-bottom:2px;margin-top:22px}h3{font-size:14px;margin:12px 0 4px}table{width:100%;border-collapse:collapse;margin:6px 0}td,th{border:1px solid #999;padding:5px 7px;vertical-align:top;text-align:left}th{background:#e8effc}.cab{display:flex;justify-content:space-between;align-items:center}.cab img{height:52px}.sub{text-align:center;color:#444;margin:0 0 10px}.fse{font-size:11px;text-align:center;margin-top:28px;color:#333}.bar{text-align:center;margin:16px}.bar button{font-size:15px;padding:8px 14px;margin:0 4px;cursor:pointer}@media print{.bar{display:none}}';
   const html = '<!doctype html><html lang="es"><head><meta charset="utf-8"><title>' + esc(titulo) + '</title><style>' + css + '</style></head><body>' +
     (prog === 'PROA' ? '<img src="' + (LOGO_FSE.startsWith('data:') ? LOGO_FSE : base + LOGO_FSE) + '" alt="Cofinanciado por la Unión Europea · Ministerio de Trabajo y Economía Social · Fondos Europeos · Junta de Andalucía, Consejería de Educación" style="width:100%;height:auto;display:block">' : '<div class="cab"><img src="' + base + 'img/junta.jpg" alt=""><img src="' + base + 'img/colegio.png" alt=""></div>') +
     '<h1>' + esc(titulo) + '</h1><p class="sub">CEIP Capitulaciones (18008853) · Santa Fe (Granada) · Curso ' + CURSO.replace('-', '/') + '</p>' + cuerpo +
     '<p class="fse">' + fse + '</p></body></html>';
   const w = window.open('', '_blank');
   if (!w) return toast('Permite las ventanas emergentes para ver el documento', 'err');
-  w.document.write(html.replace('</h1>', '</h1><div class="bar"><button onclick="print()">🖨️ Imprimir o PDF</button><button id="bw">📝 Descargar Word</button></div>'));
+  w.document.write(html.replace('</h1>', '</h1><div class="bar"><label style="margin-right:8px">📅 Fecha del documento <input type="date" id="fdoc"></label><button onclick="print()">🖨️ Imprimir o PDF</button><button id="bw">📝 Descargar Word</button></div>'));
   w.document.close();
+  const lugares = [...w.document.querySelectorAll('p')].filter(p => /^\s*En\s+Santa Fe,\s*a/.test(p.textContent)), orig = lugares.map(p => p.innerHTML);
+  let nuevo = null;
+  w.document.getElementById('fdoc').onchange = e => { const v = e.target.value, txt = v ? 'En Santa Fe, a ' + esc(fLarga(v)) + '.' : '';
+    if (lugares.length) return lugares.forEach((p, i) => { p.innerHTML = txt || orig[i]; });
+    if (!nuevo) { nuevo = w.document.createElement('p'); nuevo.style.cssText = 'margin-top:30px;text-align:right'; const fse = w.document.querySelector('.fse'); fse ? fse.before(nuevo) : w.document.body.appendChild(nuevo); }
+    nuevo.innerHTML = txt; };
   w.document.getElementById('bw').onclick = () => {
-    const b = new Blob(['﻿' + html], { type: 'application/msword' }), a = w.document.createElement('a');
+    const c = w.document.documentElement.cloneNode(true), br = c.querySelector('.bar'); if (br) br.remove();
+    const b = new Blob(['﻿<!doctype html>' + c.outerHTML], { type: 'application/msword' }), a = w.document.createElement('a');
     a.href = URL.createObjectURL(b); a.download = titulo.replace(/[^\wáéíóúñÁÉÍÓÚÑ ]+/g, '').replace(/\s+/g, '_') + '.doc'; a.click();
   };
 }
@@ -227,9 +234,14 @@ function abrirAnexo(titulo, paginas) {
   const html = '<!doctype html><html lang="es"><head><meta charset="utf-8"><title>' + esc(titulo) + '</title><link href="https://fonts.googleapis.com/css2?family=Source+Sans+3:wght@400;700&display=swap" rel="stylesheet"><style>' + css + '</style></head><body>' + cuerpo + '</body></html>';
   const w = window.open('', '_blank');
   if (!w) return toast('Permite las ventanas emergentes para ver el documento', 'err');
-  w.document.write(html.replace('<body>', '<body><div class="bar"><button onclick="print()">🖨️ Imprimir o guardar en PDF</button><button id="bw">📝 Descargar Word</button></div>'));
+  w.document.write(html.replace('<body>', '<body><div class="bar"><label style="font-size:15px;margin-right:8px">📅 Fecha del documento <input type="date" id="fdoc" style="font-size:15px;padding:5px"></label><button onclick="print()">🖨️ Imprimir o guardar en PDF</button><button id="bw">📝 Descargar Word</button></div>'));
   w.document.close();
-  w.document.getElementById('bw').onclick = () => { const b = new Blob(['﻿' + html], { type: 'application/msword' }), a = w.document.createElement('a'); a.href = URL.createObjectURL(b); a.download = titulo.replace(/[^\wáéíóúñÁÉÍÓÚÑ ]+/g, '').replace(/\s+/g, '_') + '.doc'; a.click(); };
+  const lugares = [...w.document.querySelectorAll('.pag p')].filter(p => /^\s*En\s+Santa Fe,\s*a/.test(p.textContent));
+  const orig = lugares.map(p => p.innerHTML);
+  w.document.getElementById('fdoc').onchange = e => { const v = e.target.value; lugares.forEach((p, i) => { p.innerHTML = v ? 'En Santa Fe, a ' + esc(fLarga(v)) + '.' : orig[i]; }); };
+  if (!lugares.length) w.document.getElementById('fdoc').parentElement.style.display = 'none';
+  const htmlActual = () => { const c = w.document.documentElement.cloneNode(true), b = c.querySelector('.bar'); if (b) b.remove(); return '<!doctype html>' + c.outerHTML; };
+  w.document.getElementById('bw').onclick = () => { const b = new Blob(['﻿' + htmlActual()], { type: 'application/msword' }), a = w.document.createElement('a'); a.href = URL.createObjectURL(b); a.download = titulo.replace(/[^\wáéíóúñÁÉÍÓÚÑ ]+/g, '').replace(/\s+/g, '_') + '.doc'; a.click(); };
 }
 const lugarFecha = () => '<p class="lugar">En Santa Fe, a______ de _________________________ de _______.</p>';
 const firmaDir = sello => '<p class="firma">Fdo.: ' + DIRECTOR + '<br>(Firma de la persona titular de la dirección del centro)' + (sello ? '<br>(Sello oficial del centro en el caso de no usar firma electrónica)' : '') + '</p>';
