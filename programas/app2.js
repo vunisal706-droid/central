@@ -389,7 +389,7 @@ function crearGruposSeneca() {
     { nombre: 'Quinto', dias: [2, 4], mod: 'A', docente: 'Sandra Rodríguez Pérez', monitor: 'sandra', horario: 'Martes y jueves 16:00–18:00' },
     { nombre: 'Sexto', dias: [2, 4], mod: 'B', docente: 'Manuel Lupión Puente', monitor: 'manolo', horario: 'Martes y jueves 16:00–18:00' }];
   G.forEach(g => guardar('grupos/' + uid(), Object.assign({}, base, g)));
-  toast('Grupos creados. Cuarto queda con Nuria (provisional): si cambia, edítalo en «Editar grupo».'); render();
+  toast('Grupos creados: Tercero y Quinto con Sandra, Cuarto con Nuria.'); render();
 }
 function rSeneca(g, A) {
   const mes = mesResumen || hoyIso().slice(0, 7), mm = mes.slice(5), S = Object.entries((D.sesiones || {})[grupoSel] || {}).filter(([f]) => f.startsWith(mes)).sort();
