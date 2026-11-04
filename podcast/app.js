@@ -10,7 +10,7 @@ const fmtD = s => { s=Math.max(0,s); return `${Math.floor(s/60)}:${(s%60).toFixe
 function rng(seed){ return ()=>{ seed|=0; seed=seed+0x6D2B79F5|0; let t=Math.imul(seed^seed>>>15,1|seed); t=t+Math.imul(t^t>>>7,61|t)^t; return ((t^t>>>14)>>>0)/4294967296; }; }
 const escapar = s => String(s).replace(/[&<>"]/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c]));
 const FB='"Baloo 2",Nunito,"Arial Rounded MT Bold",Arial,sans-serif', FN='Nunito,Arial,sans-serif';
-const AVISO_ID='2026-11-04-v3', AVISO_TXT='Las fotos ya salen enteras, ajustadas a la pantalla. Con el botón 🔲 de cada foto eliges si sale entera o llenando la pantalla. Y el final es tu vídeo del logo, completo.';
+const AVISO_ID='2026-11-04-v4', AVISO_TXT='Nuevo final: la corona del cole se convierte en un micrófono de podcast. El vídeo del logo con música sigue disponible en «El final».';
 
 const PALETAS = [
   {a:'#3346c9',b:'#8a3ee0',c:'#ff9f43'},
@@ -46,7 +46,7 @@ const S = {
   musica:{sintonia:null,fondo:null},  // AudioBuffers propios
   synth:{},          // cache de sonidos generados
   mezcla:null, mezclaKey:'',
-  cfg:{titulo:'',sub:'',introDur:6,fin:'¡Gracias por escuchar!',finDur:6,finTipo:'video',paleta:0,sintonia:'epica',
+  cfg:{titulo:'',sub:'',introDur:6,fin:'¡Gracias por escuchar!',finDur:6,finTipo:'micro',paleta:0,sintonia:'epica',
        trans:'auto',encuadre:'ajustar',formato:'h',calidad:'720',ondaEstilo:'barras',nombre:true,marca:false,movimiento:true,fondo:false,fondoVol:8,mejorar:true},
   play:{on:false,t:0,startCtx:0,startT:0,src:null,raf:0},
   nextId:1, ocupado:false
@@ -63,7 +63,11 @@ function cerrarModal(){ $('#modal').hidden=true; }
 function estado(t){ $('#estado').textContent=t||''; }
 const pausa = () => new Promise(r=>setTimeout(r,0));
 
-function cargarCfg(){ try{ Object.assign(S.cfg, JSON.parse(localStorage.getItem('podcastvideo_cfg')||'{}')); }catch(e){} }
+function cargarCfg(){
+  try{ Object.assign(S.cfg, JSON.parse(localStorage.getItem('podcastvideo_cfg')||'{}')); }catch(e){}
+  // una sola vez: el nuevo final (corona que se convierte en micrófono) pasa a ser el de por defecto
+  try{ if(!localStorage.getItem('podcastvideo_fin_micro')){ if(S.cfg.finTipo==='video') S.cfg.finTipo='micro'; localStorage.setItem('podcastvideo_fin_micro','1'); } }catch(e){}
+}
 function guardarCfg(){ try{ localStorage.setItem('podcastvideo_cfg', JSON.stringify(S.cfg)); }catch(e){} }
 
 /* ===================== SÍNTESIS DE SONIDO ===================== */
@@ -324,14 +328,22 @@ async function cargarVideo(f){
   miniaturas(v,v.videoWidth,v.videoHeight,it); it.tinyCv.width=it.tiny.width; it.tinyCv.height=it.tiny.height;
   return it;
 }
+const VIDEOS_FIN={micro:'logo-podcast.mp4',video:'logo-final.mp4'};
+let cargandoFin='';
 async function cargarLogoVideo(){
+  const tipo=S.cfg.finTipo, src=VIDEOS_FIN[tipo];
+  if(!src){ return; }
+  if(S.logoVid&&S.logoVid.src===src) return;
+  cargandoFin=src;
   try{
-    const resp=await fetch('logo-final.mp4'); const blob=await resp.blob();
+    const resp=await fetch(src); const blob=await resp.blob();
     const v=nuevoVideo(URL.createObjectURL(blob));
     let audio=null; try{ audio=await actx().decodeAudioData(await blob.arrayBuffer()); }catch(e){}
     // en tabletas el vídeo no se carga hasta que se toca la pantalla: se espera un poco y se sigue
     await Promise.race([esperar(v,'loadeddata').catch(()=>{}),new Promise(r=>setTimeout(r,6000))]);
-    S.logoVid={el:v,dur:isFinite(v.duration)&&v.duration?v.duration:(audio?audio.duration:10),w:v.videoWidth||1280,h:v.videoHeight||720,audio};
+    if(cargandoFin!==src) return;
+    if(S.logoVid) S.logoVid.el.pause();
+    S.logoVid={src,el:v,dur:isFinite(v.duration)&&v.duration?v.duration:(audio?audio.duration:10),w:v.videoWidth||1280,h:v.videoHeight||720,audio};
     if(v.readyState<2){
       const tocar=()=>{ v.load(); v.addEventListener('loadeddata',()=>{ S.logoVid.dur=v.duration; S.logoVid.w=v.videoWidth; S.logoVid.h=v.videoHeight; actualizar(); },{once:true}); };
       document.addEventListener('pointerdown',tocar,{once:true});
@@ -409,7 +421,7 @@ function lineaTiempo(){
   const natural=it=>it.tipo==='video'?Math.min(it.dur,VIDEO_MAX):6;
   const P0=S.audio&&conSint?I-.3:0;
   let finAudio = S.audio ? Math.max(P0+S.audio.dur, I+1) : I+items.reduce((s,it)=>s+natural(it),0)+(items.length?0:4);
-  const finVideo=S.cfg.finTipo==='video'&&S.logoVid;
+  const finVideo=VIDEOS_FIN[S.cfg.finTipo]&&S.logoVid&&S.logoVid.src===VIDEOS_FIN[S.cfg.finTipo];
   const F=finVideo?S.logoVid.dur:S.cfg.finDur;
   const A=finAudio-I, scenes=[{tipo:'intro',t0:0,t1:items.length?I:finAudio}];
   if(items.length){
@@ -774,7 +786,7 @@ function actualizar(){
     if(media>25) txt+=' · 💡 con más fotos tendrá más movimiento';
   }
   $('#resumen').textContent=txt;
-  document.querySelectorAll('.solo-imagen').forEach(e=>e.classList.toggle('oculto',S.cfg.finTipo==='video'&&!!S.logoVid));
+  document.querySelectorAll('.solo-imagen').forEach(e=>e.classList.toggle('oculto',!!VIDEOS_FIN[S.cfg.finTipo]));
   dibujarLinea();
   if(!S.play.on) dibujarPreview();
 }
@@ -1021,6 +1033,7 @@ CAMPOS.forEach(([id,k,t])=>{
     if(k==='introDur') $('#vIntro').textContent=el.value;
     if(k==='finDur') $('#vFin').textContent=el.value;
     if(k==='formato') tamPreview();
+    if(k==='finTipo') cargarLogoVideo().then(actualizar);
     if(k==='encuadre'){ S.items.forEach(it=>delete it.ajuste); pintarItems(); }
     if(k==='sintonia'){ notaSintonia(); if(el.value==='propia'&&!S.musica.sintonia){ $('#inMusica').dataset.para='sintonia'; $('#inMusica').click(); } }
     if(k==='mejorar') prepararVoz().then(actualizar);
