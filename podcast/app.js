@@ -2,6 +2,7 @@
 /* ============ Podcast a Vídeo v2 · CEIP Capitulaciones ============ */
 const $ = s => document.querySelector(s);
 const clamp = (v,a,b) => Math.max(a,Math.min(b,v));
+const lerp = (a,b,t) => a+(b-a)*t;
 const ease = p => p<.5 ? 4*p*p*p : 1-Math.pow(-2*p+2,3)/2;
 const easeOut = p => 1-Math.pow(1-p,3);
 const easeBack = p => { const c1=1.70158,c3=c1+1; return 1+c3*Math.pow(p-1,3)+c1*Math.pow(p-1,2); };
@@ -10,7 +11,7 @@ const fmtD = s => { s=Math.max(0,s); return `${Math.floor(s/60)}:${(s%60).toFixe
 function rng(seed){ return ()=>{ seed|=0; seed=seed+0x6D2B79F5|0; let t=Math.imul(seed^seed>>>15,1|seed); t=t+Math.imul(t^t>>>7,61|t)^t; return ((t^t>>>14)>>>0)/4294967296; }; }
 const escapar = s => String(s).replace(/[&<>"]/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c]));
 const FB='"Baloo 2",Nunito,"Arial Rounded MT Bold",Arial,sans-serif', FN='Nunito,Arial,sans-serif';
-const AVISO_ID='2026-11-04-v5', AVISO_TXT='Nueva intro «Podcastulaciones», el podcast del cole: con música, micrófono, confeti y «¡Bienvenidos!». El episodio (subtítulo) aparece al final de la intro.';
+const AVISO_ID='2026-11-04-v6', AVISO_TXT='¡Capitulín se cuela en tus vídeos! Aparece de vez en cuando saludando, bailando, escondiéndose o volando. Lo activas o desactivas en «Estilo».';
 
 const PALETAS = [
   {a:'#3346c9',b:'#8a3ee0',c:'#ff9f43'},
@@ -36,7 +37,7 @@ const PLANTILLAS_BASE = {
   'Valores del mes':{titulo:'Un mes, un valor',sub:'Juntos crecemos',paleta:3,sintonia:'tranquila',ondaEstilo:'circulo',trans:'fundido'},
   'Noticias del cole':{titulo:'Noticias del cole',sub:'CEIP Capitulaciones · Santa Fe',paleta:1,sintonia:'alegre',ondaEstilo:'linea',trans:'auto'}
 };
-const CLAVES_PLANTILLA=['introTipo','titulo','sub','introDur','paleta','sintonia','finTipo','fin','finDur','trans','ondaEstilo','nombre','marca','movimiento','fondo','fondoVol','mejorar'];
+const CLAVES_PLANTILLA=['capitulin','capiFrec','introTipo','titulo','sub','introDur','paleta','sintonia','finTipo','fin','finDur','trans','ondaEstilo','nombre','marca','movimiento','fondo','fondoVol','mejorar'];
 
 const S = {
   audio:null,        // podcast original {name,buffer,dur}
@@ -47,7 +48,7 @@ const S = {
   synth:{},          // cache de sonidos generados
   mezcla:null, mezclaKey:'',
   cfg:{titulo:'',sub:'',introDur:6,fin:'¡Gracias por escuchar!',finDur:6,finTipo:'micro',introTipo:'podcastulaciones',paleta:0,sintonia:'epica',
-       trans:'auto',encuadre:'ajustar',formato:'h',calidad:'720',ondaEstilo:'barras',nombre:true,marca:false,movimiento:true,fondo:false,fondoVol:8,mejorar:true},
+       trans:'auto',capitulin:true,capiFrec:'normal',encuadre:'ajustar',formato:'h',calidad:'720',ondaEstilo:'barras',nombre:true,marca:false,movimiento:true,fondo:false,fondoVol:8,mejorar:true},
   play:{on:false,t:0,startCtx:0,startT:0,src:null,raf:0},
   nextId:1, ocupado:false
 };
@@ -453,7 +454,7 @@ function lineaTiempo(){
     if(i===scenes.length-2){ s.trans='destello'; return; }
     let t; do{ t=TRANS[Math.floor(r()*TRANS.length)]; }while(t===prev); s.trans=prev=t;
   });
-  return {scenes,total:finAudio+F,finAudio,tr,I,P0,finVideo:!!finVideo,introVideo:iv};
+  const tl={scenes,total:finAudio+F,finAudio,tr,I,P0,finVideo:!!finVideo,introVideo:iv}; tl.capi=apariciones(tl); return tl;
 }
 
 /* ===================== DIBUJO ===================== */
@@ -664,6 +665,7 @@ function dibujarCapa(g,t,tl,W,H){
   }
   dibujarOndas(g,t,tl,W,H,P);
   g.restore();
+  dibujarCapitulin(g,t,tl,W,H);
 }
 
 /* --- transiciones --- */
@@ -792,6 +794,7 @@ function dibujarLinea(){
     for(let x=0;x<W;x+=2*dpr){ const t=x/W*tl.total-tl.P0; const i=Math.floor(t*S.voz.lvRate); if(i<0||i>=lv.length) continue; const h=Math.max(1,lv[i]*alto*.42); g.fillRect(x,mid-h,1.4*dpr,h*2); }
   }
   g.font=`${14*dpr}px sans-serif`; g.textAlign='center'; g.textBaseline='middle';
+  for(const a of tl.capi||[]){ const x=X(a.t0+CAPI_DUR/2); g.fillText('🤴',x,9*dpr); }
   for(const e of S.efectos){ const x=X(e.t); g.fillStyle=P.c; g.fillRect(x-1*dpr,top,2*dpr,alto); g.fillText(e.em,x,9*dpr); }
   lineaBase=c; dibujarCabezal();
 }
@@ -1055,7 +1058,7 @@ $('#fotos').addEventListener('dragover',e=>e.preventDefault());
 
 const CAMPOS=[['#tTitulo','titulo'],['#tSub','sub'],['#tIntroDur','introDur','num'],['#tFin','fin'],['#tFinDur','finDur','num'],['#oSintonia','sintonia'],['#oIntroTipo','introTipo'],['#oFinTipo','finTipo'],
   ['#oTrans','trans'],['#oEncuadre','encuadre'],['#oFormato','formato'],['#oCalidad','calidad'],['#oOndaEstilo','ondaEstilo'],['#oNombre','nombre','check'],['#oMarca','marca','check'],
-  ['#oMovimiento','movimiento','check'],['#oMejorar','mejorar','check'],['#oFondo','fondo','check'],['#oFondoVol','fondoVol','num']];
+  ['#oMovimiento','movimiento','check'],['#oCapitulin','capitulin','check'],['#oCapiFrec','capiFrec'],['#oMejorar','mejorar','check'],['#oFondo','fondo','check'],['#oFondoVol','fondoVol','num']];
 function volcarCfg(){
   CAMPOS.forEach(([id,k,t])=>{ const el=$(id); if(t==='check') el.checked=!!S.cfg[k]; else el.value=S.cfg[k]; });
   $('#vIntro').textContent=S.cfg.introDur; $('#vFin').textContent=S.cfg.finDur; pintarPaletas(); tamPreview(); notaSintonia();
@@ -1101,6 +1104,7 @@ function aviso(){
 async function iniciar(){
   cargarCfg(); volcarCfg(); pintarPlantillas(); pintarEfectos();
   try{ const im=new Image(); im.src='LOGO.jpg'; await im.decode(); S.logo=im; }catch(e){}
+  try{ await cargarCapitulin(); }catch(e){}
   try{ await Promise.all([document.fonts.load(`800 60px "Baloo 2"`),document.fonts.load('700 40px Nunito')]); }catch(e){}
   S.play.t=3; actualizar(); aviso();
   await Promise.all([cargarLogoVideo(),cargarIntroVideo()]); actualizar();

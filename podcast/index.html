@@ -149,6 +149,8 @@
           <label><input type="checkbox" id="oNombre"> Nombre del podcast en las fotos</label>
           <label><input type="checkbox" id="oMarca"> Logo pequeño en la esquina</label>
           <label><input type="checkbox" id="oMovimiento"> Movimiento suave en las fotos</label>
+          <label><input type="checkbox" id="oCapitulin"> 🤴 Capitulín aparece de vez en cuando</label>
+          <label style="gap:6px">¿Cuánto? <select id="oCapiFrec" class="sel-peq"><option value="poco">Poco</option><option value="normal">Normal</option><option value="mucho">Mucho</option></select></label>
         </div>
       </div>
     </div>
@@ -191,6 +193,7 @@
 
 <script src="mp4-muxer.js"></script>
 <script src="lame.min.js"></script>
+<script src="capitulin.js"></script>
 <script src="app.js"></script>
 <script>(function(){var A='Víctor Manuel Única Salas · CEIP Capitulaciones de Santa Fe';function poner(){if(!document.body||document.getElementById('capi-autoria'))return;var d=document.createElement('div');d.id='capi-autoria';d.setAttribute('aria-hidden','true');d.textContent='© CEIP Capitulaciones · CC BY-NC-SA';d.title=A;d.style.cssText='position:fixed;left:6px;bottom:4px;z-index:2147483000;font:10px/1.2 system-ui,sans-serif;color:rgba(60,60,60,.6);background:rgba(255,255,255,.55);padding:1px 5px;border-radius:6px;pointer-events:none';document.body.appendChild(d);}if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',poner);else poner();})();</script>
 </body>
