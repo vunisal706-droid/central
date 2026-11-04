@@ -10,7 +10,7 @@ const fmtD = s => { s=Math.max(0,s); return `${Math.floor(s/60)}:${(s%60).toFixe
 function rng(seed){ return ()=>{ seed|=0; seed=seed+0x6D2B79F5|0; let t=Math.imul(seed^seed>>>15,1|seed); t=t+Math.imul(t^t>>>7,61|t)^t; return ((t^t>>>14)>>>0)/4294967296; }; }
 const escapar = s => String(s).replace(/[&<>"]/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c]));
 const FB='"Baloo 2",Nunito,"Arial Rounded MT Bold",Arial,sans-serif', FN='Nunito,Arial,sans-serif';
-const AVISO_ID='2026-11-04-v2', AVISO_TXT='Final con el vídeo del logo, sintonías, efectos de sonido, mejorar la voz, clip para redes y exportar en MP3.';
+const AVISO_ID='2026-11-04-v3', AVISO_TXT='Las fotos ya salen enteras, ajustadas a la pantalla. Con el botón 🔲 de cada foto eliges si sale entera o llenando la pantalla. Y el final es tu vídeo del logo, completo.';
 
 const PALETAS = [
   {a:'#3346c9',b:'#8a3ee0',c:'#ff9f43'},
@@ -47,7 +47,7 @@ const S = {
   synth:{},          // cache de sonidos generados
   mezcla:null, mezclaKey:'',
   cfg:{titulo:'',sub:'',introDur:6,fin:'¡Gracias por escuchar!',finDur:6,finTipo:'video',paleta:0,sintonia:'epica',
-       trans:'auto',formato:'h',calidad:'720',ondaEstilo:'barras',nombre:true,marca:false,movimiento:true,fondo:false,fondoVol:8,mejorar:true},
+       trans:'auto',encuadre:'ajustar',formato:'h',calidad:'720',ondaEstilo:'barras',nombre:true,marca:false,movimiento:true,fondo:false,fondoVol:8,mejorar:true},
   play:{on:false,t:0,startCtx:0,startT:0,src:null,raf:0},
   nextId:1, ocupado:false
 };
@@ -327,9 +327,15 @@ async function cargarVideo(f){
 async function cargarLogoVideo(){
   try{
     const resp=await fetch('logo-final.mp4'); const blob=await resp.blob();
-    const v=nuevoVideo(URL.createObjectURL(blob)); await esperar(v,'loadeddata');
+    const v=nuevoVideo(URL.createObjectURL(blob));
     let audio=null; try{ audio=await actx().decodeAudioData(await blob.arrayBuffer()); }catch(e){}
-    S.logoVid={el:v,dur:v.duration,w:v.videoWidth,h:v.videoHeight,audio};
+    // en tabletas el vídeo no se carga hasta que se toca la pantalla: se espera un poco y se sigue
+    await Promise.race([esperar(v,'loadeddata').catch(()=>{}),new Promise(r=>setTimeout(r,6000))]);
+    S.logoVid={el:v,dur:isFinite(v.duration)&&v.duration?v.duration:(audio?audio.duration:10),w:v.videoWidth||1280,h:v.videoHeight||720,audio};
+    if(v.readyState<2){
+      const tocar=()=>{ v.load(); v.addEventListener('loadeddata',()=>{ S.logoVid.dur=v.duration; S.logoVid.w=v.videoWidth; S.logoVid.h=v.videoHeight; actualizar(); },{once:true}); };
+      document.addEventListener('pointerdown',tocar,{once:true});
+    }
   }catch(e){ console.warn('Sin vídeo del logo',e); S.logoVid=null; }
 }
 
@@ -341,8 +347,9 @@ function pintarItems(){
     const d=document.createElement('div'); d.className='foto'; d.draggable=true;
     const c=it.thumb.cloneNode(); c.getContext('2d').drawImage(it.thumb,0,0); d.appendChild(c);
     d.insertAdjacentHTML('beforeend',`<span class="n">${i+1}</span>${it.tipo==='video'?`<span class="tipo">🎬 ${fmt(Math.min(it.dur,VIDEO_MAX))}</span>`:''}
-      <button class="x" title="Quitar">✕</button><span class="mov"><button data-m="-1" title="Antes">◀</button><button data-m="1" title="Después">▶</button></span>`);
+      <button class="x" title="Quitar">✕</button><button class="aj" title="Cómo sale en el vídeo">${(it.ajuste||S.cfg.encuadre)==='ajustar'?'🔲 Entera':'⛶ Llena'}</button><span class="mov"><button data-m="-1" title="Antes">◀</button><button data-m="1" title="Después">▶</button></span>`);
     d.querySelector('.x').onclick=()=>quitarItem(it.id);
+    d.querySelector('.aj').onclick=()=>{ it.ajuste=(it.ajuste||S.cfg.encuadre)==='ajustar'?'llenar':'ajustar'; pintarItems(); actualizar(); irAItem(it); };
     d.querySelectorAll('[data-m]').forEach(b=>b.onclick=()=>moverItem(it.id,+b.dataset.m));
     d.addEventListener('dragstart',()=>{ dragId=it.id; d.classList.add('arrastrando'); });
     d.addEventListener('dragend',()=>{ dragId=null; d.classList.remove('arrastrando'); box.querySelectorAll('.destino').forEach(x=>x.classList.remove('destino')); });
@@ -356,6 +363,7 @@ function pintarItems(){
   $('#fotosInfo').textContent=S.items.length?[nf&&`${nf} foto${nf>1?'s':''}`,nv&&`${nv} vídeo${nv>1?'s':''}`].filter(Boolean).join(' · '):'';
   $('#zonaFotos').classList.toggle('ok',S.items.length>0);
 }
+function irAItem(it){ const sc=TL().scenes.find(s=>s.item===it); if(sc) irA(sc.t0+Math.min(1.5,(sc.t1-sc.t0)/2)); }
 function quitarItem(id){
   const i=S.items.findIndex(x=>x.id===id); if(i<0) return; const it=S.items[i];
   if(it.tipo==='video'){ it.src.pause(); URL.revokeObjectURL(it.src.src); } else it.src.close?.();
@@ -507,17 +515,19 @@ function dibujarItem(g,sc,u,span,W,H){
   if(it.tipo==='video'&&it.src.readyState<2){ g.fillStyle='#111'; g.fillRect(0,0,W,H); return; }
   const ar=it.w/it.h, car=W/H, dif=Math.abs(Math.log(ar/car));
   g.imageSmoothingEnabled=true; g.imageSmoothingQuality='high';
-  if(dif>.2){
+  const modo=it.ajuste||S.cfg.encuadre;
+  if(modo==='ajustar'&&dif>.03){
     const t=fuenteItem(it), k=Math.max(W/t.width,H/t.height)*1.15;
     g.drawImage(t,(W-t.width*k)/2,(H-t.height*k)/2,t.width*k,t.height*k);
     g.fillStyle='rgba(0,0,0,.25)'; g.fillRect(0,0,W,H);
-    const z=mov?1+.05*p:1, kk=Math.min(W*.94/it.w,H*.94/it.h)*z, w=it.w*kk, h=it.h*kk, rr=Math.min(W,H)*.02;
+    const z=mov?1+.04*p:1, kk=Math.min(W*.94/it.w,H*.94/it.h)*z, w=it.w*kk, h=it.h*kk, rr=Math.min(W,H)*.02;
     g.save(); g.shadowColor='rgba(0,0,0,.45)'; g.shadowBlur=Math.min(W,H)*.04; rrect(g,(W-w)/2,(H-h)/2,w,h,rr); g.fillStyle='#000'; g.fill(); g.restore();
     g.save(); rrect(g,(W-w)/2,(H-h)/2,w,h,rr); g.clip(); g.drawImage(it.src,(W-w)/2,(H-h)/2,w,h); g.restore();
   } else {
     const k=Math.max(W/it.w,H/it.h); let z=1.02,dx=0,dy=0;
     if(mov){ const m=Math.floor(r()*5), e=ease(p);
-      if(m===0) z=1.04+.14*e; else if(m===1) z=1.18-.14*e; else { z=1.14; const a=(e-.5)*.09; if(m===2) dx=a; else if(m===3) dx=-a; else dy=a; } }
+      const fuerte=modo!=='ajustar';
+      if(m===0) z=1.02+(fuerte?.1:.04)*e; else if(m===1) z=(fuerte?1.12:1.06)-(fuerte?.1:.04)*e; else { z=fuerte?1.1:1.05; const a=(e-.5)*(fuerte?.07:.035); if(m===2) dx=a; else if(m===3) dx=-a; else dy=a; } }
     const w=it.w*k*z, h=it.h*k*z; g.drawImage(it.src,(W-w)/2+dx*W,(H-h)/2+dy*H,w,h);
   }
 }
@@ -789,9 +799,22 @@ async function remuestrear(ab,sr,ch){
   if(ab.sampleRate===sr&&ab.numberOfChannels===ch) return ab;
   const oc=new OfflineAudioContext(ch,Math.ceil(ab.duration*sr),sr), so=oc.createBufferSource(); so.buffer=ab; so.connect(oc.destination); so.start(); return oc.startRendering();
 }
+async function avanzarVideo(el,t){
+  // el vídeo avanza reproduciéndose despacio (sin saltos, que son muy lentos en vídeos con pocos fotogramas clave)
+  if(el.currentTime>=t-.012){ if(!el.paused&&el.currentTime>t+.08) el.pause(); return; }
+  el.playbackRate=.5;
+  return new Promise(ok=>{
+    let hecho=false; const fin=()=>{ if(hecho) return; hecho=true; clearTimeout(to); ok(); };
+    const to=setTimeout(fin,1500);
+    const mira=(now,meta)=>{ if(meta.mediaTime>=t-.012||el.ended) fin(); else el.requestVideoFrameCallback(mira); };
+    el.requestVideoFrameCallback(mira); if(el.paused) el.play().catch(fin);
+  });
+}
 async function prepararVideosExport(lista){
   for(const {el,t} of lista){
-    if(Math.abs(el.currentTime-t)>.001||el.readyState<2){
+    const d=t-el.currentTime;
+    if(el.readyState>=2&&'requestVideoFrameCallback' in el&&d>-.08&&d<.5){ await avanzarVideo(el,t); continue; }
+    if(Math.abs(d)>.001||el.readyState<2){
       el.currentTime=t; await new Promise(ok=>{ const to=setTimeout(ok,1500); el.addEventListener('seeked',()=>{ clearTimeout(to); ok(); },{once:true}); });
     }
   }
@@ -823,6 +846,7 @@ async function exportarMP4(cfgs,W,H,dur,render,videos,audio,prog){
     while(venc.encodeQueueSize>8) await new Promise(r=>setTimeout(r,2));
     if(i%15===0){ const tr=(performance.now()-t0)/1000; prog(i/N,i?tr/i*(N-i):0); await pausa(); }
   }
+  todosVideos().forEach(v=>{ v.pause(); v.playbackRate=1; });
   await venc.flush(); await aenc.flush(); muxer.finalize();
   return new Blob([target.buffer],{type:'video/mp4'});
 }
@@ -983,7 +1007,7 @@ zonaSoltar($('#zonaFotos'),$('#inFotos'),fs=>cargarMedios(fs));
 $('#fotos').addEventListener('dragover',e=>e.preventDefault());
 
 const CAMPOS=[['#tTitulo','titulo'],['#tSub','sub'],['#tIntroDur','introDur','num'],['#tFin','fin'],['#tFinDur','finDur','num'],['#oSintonia','sintonia'],['#oFinTipo','finTipo'],
-  ['#oTrans','trans'],['#oFormato','formato'],['#oCalidad','calidad'],['#oOndaEstilo','ondaEstilo'],['#oNombre','nombre','check'],['#oMarca','marca','check'],
+  ['#oTrans','trans'],['#oEncuadre','encuadre'],['#oFormato','formato'],['#oCalidad','calidad'],['#oOndaEstilo','ondaEstilo'],['#oNombre','nombre','check'],['#oMarca','marca','check'],
   ['#oMovimiento','movimiento','check'],['#oMejorar','mejorar','check'],['#oFondo','fondo','check'],['#oFondoVol','fondoVol','num']];
 function volcarCfg(){
   CAMPOS.forEach(([id,k,t])=>{ const el=$(id); if(t==='check') el.checked=!!S.cfg[k]; else el.value=S.cfg[k]; });
@@ -997,6 +1021,7 @@ CAMPOS.forEach(([id,k,t])=>{
     if(k==='introDur') $('#vIntro').textContent=el.value;
     if(k==='finDur') $('#vFin').textContent=el.value;
     if(k==='formato') tamPreview();
+    if(k==='encuadre'){ S.items.forEach(it=>delete it.ajuste); pintarItems(); }
     if(k==='sintonia'){ notaSintonia(); if(el.value==='propia'&&!S.musica.sintonia){ $('#inMusica').dataset.para='sintonia'; $('#inMusica').click(); } }
     if(k==='mejorar') prepararVoz().then(actualizar);
     if(['titulo','sub','introDur','paleta'].includes(k)&&!S.play.on) S.play.t=Math.min(S.play.t,Math.max(2,S.cfg.introDur-1.5));
@@ -1029,9 +1054,8 @@ async function iniciar(){
   cargarCfg(); volcarCfg(); pintarPlantillas(); pintarEfectos();
   try{ const im=new Image(); im.src='LOGO.jpg'; await im.decode(); S.logo=im; }catch(e){}
   try{ await Promise.all([document.fonts.load(`800 60px "Baloo 2"`),document.fonts.load('700 40px Nunito')]); }catch(e){}
-  S.play.t=3; actualizar();
+  S.play.t=3; actualizar(); aviso();
   await cargarLogoVideo(); actualizar();
-  aviso();
 }
 iniciar();
 if('serviceWorker' in navigator) navigator.serviceWorker.register('sw.js').catch(()=>{});

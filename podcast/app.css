@@ -122,3 +122,4 @@ button{cursor:pointer;border:none}
 .btn-extra:not(:disabled):hover{border-color:var(--azul2)}
 .btn-extra:disabled{opacity:.4;cursor:default}
 .modal .campos{margin:10px 0}
+.foto .aj{position:absolute;left:5px;bottom:5px;background:rgba(255,255,255,.95);font-size:11px;font-weight:800;border-radius:8px;padding:2px 7px;color:#1f2547}
