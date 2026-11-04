@@ -101,7 +101,7 @@ button{cursor:pointer;border:none}
 .con-boton select{flex:1;min-width:0}
 .btn-redondo{width:40px;height:40px;border-radius:50%;background:var(--azul2);color:#fff;flex:none;font-size:14px}
 .nota{font-size:12px;color:var(--suave)}
-.paso .campos .solo-imagen.oculto{display:none}
+.paso .campos .solo-imagen.oculto,.paso .campos .solo-animada.oculto{display:none}
 .sfx-botones{display:flex;flex-wrap:wrap;gap:6px;margin-top:8px}
 .sfx-b{padding:7px 12px;border-radius:12px;background:#f2f4ff;border:2px solid var(--borde);font-weight:800}
 .sfx-b:hover{border-color:var(--azul2)}

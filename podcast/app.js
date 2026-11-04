@@ -10,7 +10,7 @@ const fmtD = s => { s=Math.max(0,s); return `${Math.floor(s/60)}:${(s%60).toFixe
 function rng(seed){ return ()=>{ seed|=0; seed=seed+0x6D2B79F5|0; let t=Math.imul(seed^seed>>>15,1|seed); t=t+Math.imul(t^t>>>7,61|t)^t; return ((t^t>>>14)>>>0)/4294967296; }; }
 const escapar = s => String(s).replace(/[&<>"]/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c]));
 const FB='"Baloo 2",Nunito,"Arial Rounded MT Bold",Arial,sans-serif', FN='Nunito,Arial,sans-serif';
-const AVISO_ID='2026-11-04-v4', AVISO_TXT='Nuevo final: la corona del cole se convierte en un micrófono de podcast. El vídeo del logo con música sigue disponible en «El final».';
+const AVISO_ID='2026-11-04-v5', AVISO_TXT='Nueva intro «Podcastulaciones», el podcast del cole: con música, micrófono, confeti y «¡Bienvenidos!». El episodio (subtítulo) aparece al final de la intro.';
 
 const PALETAS = [
   {a:'#3346c9',b:'#8a3ee0',c:'#ff9f43'},
@@ -36,7 +36,7 @@ const PLANTILLAS_BASE = {
   'Valores del mes':{titulo:'Un mes, un valor',sub:'Juntos crecemos',paleta:3,sintonia:'tranquila',ondaEstilo:'circulo',trans:'fundido'},
   'Noticias del cole':{titulo:'Noticias del cole',sub:'CEIP Capitulaciones · Santa Fe',paleta:1,sintonia:'alegre',ondaEstilo:'linea',trans:'auto'}
 };
-const CLAVES_PLANTILLA=['titulo','sub','introDur','paleta','sintonia','finTipo','fin','finDur','trans','ondaEstilo','nombre','marca','movimiento','fondo','fondoVol','mejorar'];
+const CLAVES_PLANTILLA=['introTipo','titulo','sub','introDur','paleta','sintonia','finTipo','fin','finDur','trans','ondaEstilo','nombre','marca','movimiento','fondo','fondoVol','mejorar'];
 
 const S = {
   audio:null,        // podcast original {name,buffer,dur}
@@ -46,7 +46,7 @@ const S = {
   musica:{sintonia:null,fondo:null},  // AudioBuffers propios
   synth:{},          // cache de sonidos generados
   mezcla:null, mezclaKey:'',
-  cfg:{titulo:'',sub:'',introDur:6,fin:'¡Gracias por escuchar!',finDur:6,finTipo:'micro',paleta:0,sintonia:'epica',
+  cfg:{titulo:'',sub:'',introDur:6,fin:'¡Gracias por escuchar!',finDur:6,finTipo:'micro',introTipo:'podcastulaciones',paleta:0,sintonia:'epica',
        trans:'auto',encuadre:'ajustar',formato:'h',calidad:'720',ondaEstilo:'barras',nombre:true,marca:false,movimiento:true,fondo:false,fondoVol:8,mejorar:true},
   play:{on:false,t:0,startCtx:0,startT:0,src:null,raf:0},
   nextId:1, ocupado:false
@@ -66,6 +66,7 @@ const pausa = () => new Promise(r=>setTimeout(r,0));
 function cargarCfg(){
   try{ Object.assign(S.cfg, JSON.parse(localStorage.getItem('podcastvideo_cfg')||'{}')); }catch(e){}
   // una sola vez: el nuevo final (corona que se convierte en micrófono) pasa a ser el de por defecto
+  try{ if(!localStorage.getItem('podcastvideo_intro_pc')){ S.cfg.introTipo='podcastulaciones'; localStorage.setItem('podcastvideo_intro_pc','1'); } }catch(e){}
   try{ if(!localStorage.getItem('podcastvideo_fin_micro')){ if(S.cfg.finTipo==='video') S.cfg.finTipo='micro'; localStorage.setItem('podcastvideo_fin_micro','1'); } }catch(e){}
 }
 function guardarCfg(){ try{ localStorage.setItem('podcastvideo_cfg', JSON.stringify(S.cfg)); }catch(e){} }
@@ -243,7 +244,7 @@ async function prepararVoz(){
 }
 
 /* ===================== MEZCLA FINAL ===================== */
-function claveMezcla(tl){ return JSON.stringify([S.voz&&S.voz.key,S.cfg.sintonia,S.cfg.introDur,S.cfg.fondo,S.cfg.fondoVol,$('#oFondoTipo').value,S.efectos.map(e=>[e.id,e.t,e.vol]),tl.P0,tl.finAudio,tl.total,S.cfg.finTipo,!!S.logoVid,!!S.musica.sintonia,!!S.musica.fondo]); }
+function claveMezcla(tl){ return JSON.stringify([tl.introVideo,S.voz&&S.voz.key,S.cfg.sintonia,S.cfg.introDur,S.cfg.fondo,S.cfg.fondoVol,$('#oFondoTipo').value,S.efectos.map(e=>[e.id,e.t,e.vol]),tl.P0,tl.finAudio,tl.total,S.cfg.finTipo,!!S.logoVid,!!S.musica.sintonia,!!S.musica.fondo]); }
 async function obtenerMezcla(){
   await prepararVoz();
   const tl=TL(), key=claveMezcla(tl);
@@ -260,7 +261,8 @@ async function obtenerMezcla(){
     s.start(t,offset,loop?undefined:d); if(loop) s.stop(t+d);
   };
   if(S.voz) poner(S.voz.buffer,tl.P0,1);
-  const sin=await sonidoSintonia();
+  const sin=tl.introVideo?null:await sonidoSintonia();
+  if(tl.introVideo&&S.introVid.audio) poner(S.introVid.audio,0,.9,{fadeOut:.5,dur:Math.min(S.introVid.audio.duration,tl.P0+.6)});
   if(sin){ const d=Math.min(sin.duration,tl.P0+1.6); poner(sin,0,.7,{fadeOut:S.cfg.sintonia==='propia'?1.6:.8,dur:d}); }
   const fondo=await sonidoFondo();
   if(fondo && S.voz) poner(fondo,tl.P0,S.cfg.fondoVol/100,{fadeIn:2,fadeOut:3,dur:tl.finAudio-tl.P0,loop:true});
@@ -351,6 +353,18 @@ async function cargarLogoVideo(){
   }catch(e){ console.warn('Sin vídeo del logo',e); S.logoVid=null; }
 }
 
+async function cargarIntroVideo(){
+  if(S.introVid) return;
+  try{
+    const blob=await (await fetch('intro-podcastulaciones.mp4')).blob(), v=nuevoVideo(URL.createObjectURL(blob));
+    let audio=null; try{ audio=await actx().decodeAudioData(await blob.arrayBuffer()); }catch(e){}
+    await Promise.race([esperar(v,'loadeddata').catch(()=>{}),new Promise(r=>setTimeout(r,6000))]);
+    S.introVid={el:v,dur:isFinite(v.duration)&&v.duration?v.duration:(audio?audio.duration:9.2),w:v.videoWidth||1920,h:v.videoHeight||1080,audio};
+    if(v.readyState<2) document.addEventListener('pointerdown',()=>{ v.load(); v.addEventListener('loadeddata',()=>{ S.introVid.dur=v.duration; actualizar(); },{once:true}); },{once:true});
+  }catch(e){ console.warn('Sin vídeo de intro',e); S.introVid=null; }
+}
+const introVideo=()=>S.cfg.introTipo==='podcastulaciones'&&!!S.introVid;
+
 /* ---------- lista de fotos y vídeos ---------- */
 let dragId=null;
 function pintarItems(){
@@ -417,7 +431,7 @@ function oirBuffer(b){ if(!b) return; try{ oyendo?.stop(); }catch(e){} const c=a
 
 /* ===================== LÍNEA DE TIEMPO ===================== */
 function lineaTiempo(){
-  const I=S.cfg.introDur, items=S.items, conSint=S.cfg.sintonia!=='ninguna';
+  const iv=introVideo(), I=iv?S.introVid.dur:S.cfg.introDur, items=S.items, conSint=iv||S.cfg.sintonia!=='ninguna';
   const natural=it=>it.tipo==='video'?Math.min(it.dur,VIDEO_MAX):6;
   const P0=S.audio&&conSint?I-.3:0;
   let finAudio = S.audio ? Math.max(P0+S.audio.dur, I+1) : I+items.reduce((s,it)=>s+natural(it),0)+(items.length?0:4);
@@ -439,7 +453,7 @@ function lineaTiempo(){
     if(i===scenes.length-2){ s.trans='destello'; return; }
     let t; do{ t=TRANS[Math.floor(r()*TRANS.length)]; }while(t===prev); s.trans=prev=t;
   });
-  return {scenes,total:finAudio+F,finAudio,tr,I,P0,finVideo:!!finVideo};
+  return {scenes,total:finAudio+F,finAudio,tr,I,P0,finVideo:!!finVideo,introVideo:iv};
 }
 
 /* ===================== DIBUJO ===================== */
@@ -454,7 +468,26 @@ function nivel(t,tl){
 }
 
 /* --- INTRO --- */
+function dibujarIntroVideo(g,u,W,H){
+  const v=S.introVid, el=v.el; g.fillStyle='#eef0f6'; g.fillRect(0,0,W,H);
+  if(el.readyState>=2){
+    if(Math.abs(W/H-v.w/v.h)>.05){
+      const k=Math.max(W/v.w,H/v.h); g.save(); g.filter='blur(18px)'; g.globalAlpha=.6; g.drawImage(el,(W-v.w*k)/2,(H-v.h*k)/2,v.w*k,v.h*k); g.restore();
+      const kk=W/v.w*1.15, ww=v.w*kk, hh=v.h*kk; g.drawImage(el,(W-ww)/2,(H-hh)/2,ww,hh);
+    } else g.drawImage(el,0,0,W,H);
+  }
+  // episodio (subtítulo) en una píldora al final de la intro
+  const sub=(S.cfg.sub||'').trim(), q=easeOut(clamp((u-(v.dur-3.2))/.6,0,1));
+  if(sub&&q>0){
+    const m=Math.min(W,H), P=PALETAS[S.cfg.paleta]||PALETAS[0], ss=fitFont(g,sub,W*.7,Math.round(m*.045),'800',FB);
+    const w=g.measureText(sub).width+ss*1.6, h=ss*1.8, x=W/2-w/2, y=H*(H>W?.72:.86)+(1-q)*ss;
+    g.save(); g.globalAlpha=q; g.shadowColor='rgba(0,0,0,.25)'; g.shadowBlur=m*.02;
+    const gr=g.createLinearGradient(x,0,x+w,0); gr.addColorStop(0,P.a); gr.addColorStop(1,P.b); g.fillStyle=gr; rrect(g,x,y,w,h,h/2); g.fill(); g.shadowBlur=0;
+    g.fillStyle='#fff'; g.textAlign='center'; g.textBaseline='middle'; g.fillText(sub,W/2,y+h/2+ss*.04); g.restore();
+  }
+}
 function dibujarIntro(g,u,W,H){
+  if(introVideo()) return dibujarIntroVideo(g,u,W,H);
   const P=PALETAS[S.cfg.paleta]||PALETAS[0], m=Math.min(W,H), r=rng(42), ang=u*.15;
   const gr=g.createLinearGradient(W/2-Math.cos(ang)*W,H/2-Math.sin(ang)*H,W/2+Math.cos(ang)*W,H/2+Math.sin(ang)*H);
   gr.addColorStop(0,P.a); gr.addColorStop(1,P.b); g.fillStyle=gr; g.fillRect(0,0,W,H);
@@ -666,6 +699,7 @@ function videosVisibles(tl,t){
   const out=[];
   for(const v of escenasVisibles(tl,t)){
     if(v.s.tipo==='item'&&v.s.item.tipo==='video'){ const d=Math.min(v.s.item.dur,VIDEO_MAX); out.push({el:v.s.item.src,t:clamp(v.u,0,1e9)%d}); }
+    else if(v.s.tipo==='intro'&&tl.introVideo){ out.push({el:S.introVid.el,t:clamp(v.u,0,S.introVid.dur-.05)}); }
     else if(v.s.tipo==='fin'&&tl.finVideo){ out.push({el:S.logoVid.el,t:clamp(v.u-tl.tr,0,S.logoVid.dur-.05)}); }
   }
   return out;
@@ -693,7 +727,7 @@ const cv=$('#cv'), g0=cv.getContext('2d');
 let TLcache=null;
 function TL(){ return TLcache||(TLcache=lineaTiempo()); }
 function tamPreview(){ const [w,h]=dims(S.cfg.formato,'720'), k=S.cfg.formato==='h'?1:.75; cv.width=Math.round(w*k); cv.height=Math.round(h*k); $('#pantalla').style.aspectRatio=`${w}/${h}`; }
-function todosVideos(){ const l=S.items.filter(i=>i.tipo==='video').map(i=>i.src); if(S.logoVid) l.push(S.logoVid.el); return l; }
+function todosVideos(){ const l=S.items.filter(i=>i.tipo==='video').map(i=>i.src); if(S.logoVid) l.push(S.logoVid.el); if(S.introVid) l.push(S.introVid.el); return l; }
 function sincronizarVideos(t,reproduciendo){
   const vis=new Map(videosVisibles(TL(),t).map(v=>[v.el,v.t]));
   for(const el of todosVideos()){
@@ -786,6 +820,7 @@ function actualizar(){
     if(media>25) txt+=' · 💡 con más fotos tendrá más movimiento';
   }
   $('#resumen').textContent=txt;
+  document.querySelectorAll('.solo-animada').forEach(e=>e.classList.toggle('oculto',introVideo()));
   document.querySelectorAll('.solo-imagen').forEach(e=>e.classList.toggle('oculto',!!VIDEOS_FIN[S.cfg.finTipo]));
   dibujarLinea();
   if(!S.play.on) dibujarPreview();
@@ -1018,7 +1053,7 @@ zonaSoltar($('#zonaAudio'),$('#inAudio'),fs=>cargarAudio(fs[0]));
 zonaSoltar($('#zonaFotos'),$('#inFotos'),fs=>cargarMedios(fs));
 $('#fotos').addEventListener('dragover',e=>e.preventDefault());
 
-const CAMPOS=[['#tTitulo','titulo'],['#tSub','sub'],['#tIntroDur','introDur','num'],['#tFin','fin'],['#tFinDur','finDur','num'],['#oSintonia','sintonia'],['#oFinTipo','finTipo'],
+const CAMPOS=[['#tTitulo','titulo'],['#tSub','sub'],['#tIntroDur','introDur','num'],['#tFin','fin'],['#tFinDur','finDur','num'],['#oSintonia','sintonia'],['#oIntroTipo','introTipo'],['#oFinTipo','finTipo'],
   ['#oTrans','trans'],['#oEncuadre','encuadre'],['#oFormato','formato'],['#oCalidad','calidad'],['#oOndaEstilo','ondaEstilo'],['#oNombre','nombre','check'],['#oMarca','marca','check'],
   ['#oMovimiento','movimiento','check'],['#oMejorar','mejorar','check'],['#oFondo','fondo','check'],['#oFondoVol','fondoVol','num']];
 function volcarCfg(){
@@ -1068,7 +1103,7 @@ async function iniciar(){
   try{ const im=new Image(); im.src='LOGO.jpg'; await im.decode(); S.logo=im; }catch(e){}
   try{ await Promise.all([document.fonts.load(`800 60px "Baloo 2"`),document.fonts.load('700 40px Nunito')]); }catch(e){}
   S.play.t=3; actualizar(); aviso();
-  await cargarLogoVideo(); actualizar();
+  await Promise.all([cargarLogoVideo(),cargarIntroVideo()]); actualizar();
 }
 iniciar();
 if('serviceWorker' in navigator) navigator.serviceWorker.register('sw.js').catch(()=>{});

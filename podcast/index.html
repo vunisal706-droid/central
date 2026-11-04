@@ -58,10 +58,16 @@
     <div class="paso">
       <h2><span class="num">3</span> La intro</h2>
       <div class="campos">
-        <label class="campo ancho">Nombre del podcast<input id="tTitulo" maxlength="60" placeholder="Radio Capitulaciones"></label>
+        <label class="campo ancho">Tipo de intro
+          <select id="oIntroTipo">
+            <option value="podcastulaciones">🎙️ Podcastulaciones (vídeo con música y «¡Bienvenidos!»)</option>
+            <option value="animada">✨ Animada con tu título y sintonía</option>
+          </select>
+        </label>
+        <label class="campo ancho">Nombre del podcast<input id="tTitulo" maxlength="60" placeholder="Podcastulaciones"></label>
         <label class="campo ancho">Subtítulo<input id="tSub" maxlength="80" placeholder="Episodio 1 · Nuestro cole"></label>
-        <label class="campo">Duración <span><b id="vIntro">6</b> s</span><input type="range" id="tIntroDur" min="4" max="12" step="1"></label>
-        <div class="campo">Sintonía
+        <label class="campo solo-animada">Duración <span><b id="vIntro">6</b> s</span><input type="range" id="tIntroDur" min="4" max="12" step="1"></label>
+        <div class="campo solo-animada">Sintonía
           <div class="con-boton">
             <select id="oSintonia">
               <option value="epica">👑 Majestuosa</option>
