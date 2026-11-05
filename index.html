@@ -414,7 +414,7 @@ a.kpi{color:inherit;transition:box-shadow .15s ease}
     <h3 id="titNov">✨ Novedades de Capitoolappciones</h3>
     <p class="sub">Novedades:</p>
     <ul>
-      <li>🆕 <b>Podcast a Vídeo</b> (pestaña <b>Pedagógico</b>): junta el audio de un podcast con fotos, vídeos, sintonía, efectos y el vídeo del logo, y saca el vídeo, un clip para redes o el MP3.</li>
+      <li>🆕 <b>PDF a Word</b> (pestaña <b>Gestión</b>): convierte un PDF en un Word (.docx) o en Markdown para poder editarlo.</li>
     </ul>
     <div class="botones"><button class="btn prim" id="btnNovOk">Entendido</button></div>
   </div>
@@ -440,6 +440,7 @@ const I = {
   aulapt:'<path d="M4 20V9l8-5 8 5v11"/><path d="M9 20v-5h6v5"/><path d="M8.5 11.5h.01M15.5 11.5h.01"/><path d="M12 8.2l.9 1.6 1.8.3-1.3 1.2.3 1.8-1.7-.9-1.6.9.3-1.8-1.3-1.2 1.8-.3z"/>',
   refuerzo:'<path d="M4 19.5V6a1.5 1.5 0 0 1 1.5-1.5H12v15H5.5A1.5 1.5 0 0 0 4 21"/><path d="M12 4.5h6.5A1.5 1.5 0 0 1 20 6v13.5"/><path d="M15 9.5h2.5M16.25 8.25v2.5"/><path d="M7 9h2.5M7 12.5h2.5"/>',
   programas:'<path d="M12 3l2.5 5 5.5.8-4 3.9.9 5.5L12 15.6 7.1 18.2l.9-5.5-4-3.9 5.5-.8z"/><path d="M4 21h16"/>',
+  pdfword:'<path d="M14 3H7a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h10a2 2 0 0 0 2-2V8z"/><path d="M14 3v5h5"/><path d="M8.5 12.5l1.2 4.5 1.3-3.5 1.3 3.5 1.2-4.5"/><path d="M15.5 14.5h3m-1.2-1.3 1.3 1.3-1.3 1.3"/>',
   podcast:'<rect x="9" y="3" width="6" height="11" rx="3"/><path d="M5.5 11a6.5 6.5 0 0 0 13 0"/><path d="M12 17.5V21M8.5 21h7"/>',
   chev:'<path d="m9 6 6 6-6 6"/>'
 };
@@ -469,6 +470,8 @@ const APPS = [
    desc:'App del Plan de Lectura y del Plan de Resolución de Problemas'},
   {id:'registro', nom:'Registro Lectura y Problemas', corto:'Registro lectura', ic:'registro', cat:'pedagogico', url:'https://vunisal706-droid.github.io/lecturayproblemas/',
    desc:'Registro semanal del trabajo de lectura y de resolución de problemas por curso'},
+  {id:'pdfword', nom:'PDF a Word', corto:'PDF a Word', ic:'pdfword', cat:'gestion', url:'https://vunisal706-droid.github.io/pdfaword/',
+   desc:'Convierte un PDF en un documento de Word (.docx) o en Markdown para poder editarlo'},
   {id:'podcast', nom:'Podcast a Vídeo', corto:'Podcast', ic:'podcast', cat:'pedagogico', url:'https://vunisal706-droid.github.io/central/podcast/',
    desc:'Junta el audio de un podcast con fotos, vídeos, sintonía y efectos, y saca el vídeo, un clip para redes o el MP3'},
   {id:'parte', nom:'Parte de Convivencia', corto:'Parte de convivencia', ic:'parte', cat:'alumnado', url:'https://vunisal706-droid.github.io/parteconvivencia/',
@@ -509,7 +512,7 @@ function fila(a){
 
 /* ---------- Acciones rápidas ---------- */
 const MAX_RAP = 99;
-const ORDEN_INICIO = ['teletrabajo','sda','registro','parte','gestorevalu','agora','refuerzo','convive','resolucion','podcast','aulapt','tablon','agenda','programas','pcentro','capiguia','web','portal'];
+const ORDEN_INICIO = ['teletrabajo','sda','registro','parte','gestorevalu','agora','refuerzo','convive','resolucion','podcast','pdfword','aulapt','tablon','agenda','programas','pcentro','capiguia','web','portal'];
 const POR_DEFECTO = [...ORDEN_INICIO, ...APPS.map(a=>a.id).filter(id=>!ORDEN_INICIO.includes(id))];
 let favoritas = ls.get('capi-rapidas', POR_DEFECTO).filter(id=>porId[id]).slice(0,MAX_RAP);
 // Una sola vez: añadir la Web del cole a quien ya tenía sus acciones guardadas
@@ -535,6 +538,10 @@ if (!ls.get('capi-apps-orden-v2', false)){
   ls.set('capi-rapidas', favoritas); ls.set('capi-apps-orden-v2', true);
 }
 // Una sola vez: añadir Podcast a Vídeo a quien ya tenía su lista guardada
+if (!ls.get('capi-apps-pdfword', false)){
+  if (!favoritas.includes('pdfword')){ const i = favoritas.indexOf('podcast'); favoritas.splice(i<0?favoritas.length:i+1, 0, 'pdfword'); }
+  ls.set('capi-rapidas', favoritas); ls.set('capi-apps-pdfword', true);
+}
 if (!ls.get('capi-apps-podcast', false)){
   if (!favoritas.includes('podcast')){ const i = favoritas.indexOf('resolucion'); favoritas.splice(i<0?favoritas.length:i+1, 0, 'podcast'); }
   ls.set('capi-rapidas', favoritas); ls.set('capi-apps-podcast', true);
@@ -855,7 +862,7 @@ document.getElementById('campana').onclick = ()=>{
 document.getElementById('tablon').addEventListener('click', e=>{ if (e.target.closest('a')) marcarVistos(); });
 
 /* ---------- Novedades (una sola vez por dispositivo) ---------- */
-const NOV = 'capi-novedades-seneca-v17';
+const NOV = 'capi-novedades-seneca-v18';
 const veloNov = document.getElementById('veloNov');
 if(!ls.get(NOV,false)) setTimeout(()=>veloNov.classList.add('abierto'), 500);
 document.getElementById('btnNovOk').onclick = ()=>{ ls.set(NOV,true); veloNov.classList.remove('abierto'); };
