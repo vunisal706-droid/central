@@ -189,6 +189,12 @@ a.kpi{color:inherit;transition:box-shadow .15s ease}
 .pest .raya{width:26px;height:3px;border-radius:3px;background:transparent;margin-top:-2px}
 
 /* Asistente del cole */
+.as-modos{display:grid;grid-template-columns:1fr 1fr;gap:10px;margin:12px 0 14px}@media(max-width:620px){.as-modos{grid-template-columns:1fr}}
+.as-modo{display:flex;flex-direction:column;gap:4px;text-align:left;padding:12px 14px;border-radius:14px;border:2px solid #d5deeb;background:#fff;color:inherit;font:inherit;cursor:pointer}
+.as-modo b{font-size:1rem}.as-modo span{font-size:.86rem;line-height:1.35;opacity:.85}.as-modo span b{font-size:inherit}
+.as-modo.on{border-color:#1d6fc4;background:#eef5fd;box-shadow:0 0 0 3px rgba(29,111,196,.15)}
+.as-ia{background:#f5f8ff;border:1px solid #d5deeb;border-radius:14px;padding:14px;margin-top:6px;text-align:center}.as-ia p{margin:0 0 12px;font-size:.92rem;line-height:1.4;text-align:left}
+.as-ia-btn{display:inline-block;text-decoration:none;padding:12px 22px;border-radius:12px;background:#1d6fc4;color:#fff;font-weight:700}
 .as-entrada{display:flex;align-items:center;gap:14px;width:100%;text-align:left;margin-top:18px;padding:14px 16px;border-radius:16px;background:linear-gradient(135deg,#0d4a8f,#1d6fc4);color:#fff;box-shadow:0 6px 18px rgba(13,74,143,.25)}
 .as-entrada .ic{width:46px;height:46px;border-radius:50%;background:rgba(255,255,255,.18);display:grid;place-items:center;flex:0 0 auto}
 .as-entrada .ic svg{width:26px;height:26px;color:#fff}
@@ -312,7 +318,7 @@ a.kpi{color:inherit;transition:box-shadow .15s ease}
 
     <button class="as-entrada" id="irAsistente" type="button">
       <span class="ic"><img src="asistente-robot.png" alt="" class="robot"></span>
-      <span class="txt"><b>¿Tienes una duda del cole?</b><span>Plan de Centro, programaciones, criterios de cada curso, Agenda…</span></span>
+      <span class="txt"><b>¿Tienes una duda del cole?</b><span>Busca en el Plan de Centro o pregúntale a la IA del cole</span></span>
       <svg class="ico chev" viewBox="0 0 24 24"><path d="m9 6 6 6-6 6"/></svg>
     </button>
 
@@ -350,10 +356,24 @@ a.kpi{color:inherit;transition:box-shadow .15s ease}
 
   <div id="vista-asistente" class="vista oculto">
     <div class="tab-cab"><h2><img src="asistente-robot.png" alt="" class="robot-tit">Asistente del cole</h2><p>Pregunta cualquier duda del centro. Respondo con el Plan de Centro, las programaciones, los criterios de cada curso, los planes de lectura y de resolución de problemas, la atención a la diversidad, la CapiGuía, la Agenda y los protocolos.</p></div>
+    <div class="as-modos" role="radiogroup" aria-label="Cómo quieres resolver tu duda">
+      <button type="button" class="as-modo" data-asmodo="buscar" role="radio">
+        <b>🔎 Buscar en los documentos</b>
+        <span>Respuesta al momento con el <b>texto literal</b> del Plan de Centro, las programaciones y la Agenda, y el enlace al apartado. No usa IA ni envía nada fuera. Ideal para saber <b>dónde pone</b> algo exactamente.</span>
+      </button>
+      <button type="button" class="as-modo" data-asmodo="ia" role="radio">
+        <b>🤖 Preguntar a la IA (Gemini)</b>
+        <span>Te lo <b>explica con sus palabras</b>, en pasos y citando el apartado del Plan de Centro. Puedes repreguntar o pedir una versión para WhatsApp. Se abre en Gemini con tu cuenta del cole. Puede equivocarse: comprueba el apartado que cite y <b>no escribas nombres de alumnos</b>.</span>
+      </button>
+    </div>
     <form id="asForm" class="as-form" autocomplete="off">
       <input id="asPregunta" type="search" placeholder="Escribe tu pregunta… (p. ej. ¿qué hago si llueve?)" aria-label="Escribe tu pregunta">
       <button type="submit" class="as-btn" aria-label="Preguntar"><svg class="ico" viewBox="0 0 24 24"><circle cx="10.5" cy="10.5" r="6.5"/><path d="m20 20-4.8-4.8"/></svg></button>
     </form>
+    <div id="asIA" class="as-ia oculto">
+      <p>Escribe arriba tu duda y pulsa <b>🤖 Preguntar a Gemini</b>: se copia tu pregunta y se abre el asistente del cole en Gemini. Allí solo tienes que <b>pegarla</b> (mantén pulsado → Pegar, o Ctrl+V) y enviar.</p>
+      <p id="asIAok" style="font-weight:700;color:#1d6fc4;margin:0 0 10px;text-align:center"></p><a class="btn prim as-ia-btn" id="asIABtn" href="https://gemini.google.com/gem/1vZe5KVYFw0SanrdjAwxQX2gdXxU9dZ5c?usp=sharing" target="_blank" rel="noopener">🤖 Preguntar a Gemini</a>
+    </div>
     <div id="asRespuesta" class="as-resp"></div>
   </div>
 
@@ -414,7 +434,7 @@ a.kpi{color:inherit;transition:box-shadow .15s ease}
     <h3 id="titNov">✨ Novedades de Capitoolappciones</h3>
     <p class="sub">Novedades:</p>
     <ul>
-      <li>🆕 <b>PDF a Word</b> (pestaña <b>Gestión</b>): convierte un PDF en un Word (.docx) o en Markdown para poder editarlo.</li>
+      <li>🤖 <b>Asistente del cole con IA</b>: ahora puedes elegir entre <b>buscar en los documentos</b> (texto literal del Plan de Centro) o <b>preguntar a la IA</b> del cole en Gemini, que te lo explica paso a paso.</li>
     </ul>
     <div class="botones"><button class="btn prim" id="btnNovOk">Entendido</button></div>
   </div>
@@ -594,6 +614,29 @@ function irA(v){
 }
 document.querySelectorAll('.pest').forEach(p=> p.onclick = ()=> irA(p.dataset.vista));
 document.getElementById('irAsistente').onclick = ()=>{ irA('asistente'); setTimeout(()=>document.getElementById('asPregunta').focus(), 350); };
+// Asistente: elegir entre el buscador de documentos o la IA del cole (Gem de Gemini)
+(function(){
+  const GEM = 'https://gemini.google.com/gem/1vZe5KVYFw0SanrdjAwxQX2gdXxU9dZ5c?usp=sharing';
+  let modo = 'buscar'; try { modo = localStorage.getItem('capi-asistente-modo') || 'buscar'; } catch(e){}
+  const inp = document.getElementById('asPregunta'), ia = document.getElementById('asIA'), resp = document.getElementById('asRespuesta'), form = document.getElementById('asForm');
+  function poner(m){
+    modo = m; try { localStorage.setItem('capi-asistente-modo', m); } catch(e){}
+    document.querySelectorAll('[data-asmodo]').forEach(b => { const on = b.dataset.asmodo === m; b.classList.toggle('on', on); b.setAttribute('aria-checked', on); });
+    ia.classList.toggle('oculto', m !== 'ia'); resp.classList.toggle('oculto', m === 'ia');
+    inp.placeholder = m === 'ia' ? 'Escribe tu duda para la IA… (p. ej. ¿cómo justifico la no promoción en 2.º?)' : 'Escribe tu pregunta… (p. ej. ¿qué hago si llueve?)';
+  }
+  document.querySelectorAll('[data-asmodo]').forEach(b => b.onclick = () => { poner(b.dataset.asmodo); inp.focus(); });
+  async function abrirGem(e){
+    if (e) e.preventDefault();
+    const q = inp.value.trim();
+    if (q) { try { await navigator.clipboard.writeText(q); const n = document.getElementById('asIAok'); if (n) { n.textContent = '📋 Pregunta copiada. En Gemini, pégala y envíala.'; } } catch(er){} }
+    window.open(GEM, '_blank', 'noopener');
+  }
+  document.getElementById('asIABtn').onclick = abrirGem;
+  // En modo IA, «Enter» o la lupa también abren Gemini (el buscador no se lanza)
+  form.addEventListener('submit', e => { if (modo === 'ia') { e.preventDefault(); e.stopImmediatePropagation(); abrirGem(); } }, true);
+  poner(modo);
+})();
 
 /* ---------- Buscador ---------- */
 const busca = document.getElementById('busca'), borrar = document.getElementById('borrarBusca');
@@ -862,7 +905,7 @@ document.getElementById('campana').onclick = ()=>{
 document.getElementById('tablon').addEventListener('click', e=>{ if (e.target.closest('a')) marcarVistos(); });
 
 /* ---------- Novedades (una sola vez por dispositivo) ---------- */
-const NOV = 'capi-novedades-seneca-v18';
+const NOV = 'capi-novedades-seneca-v19';
 const veloNov = document.getElementById('veloNov');
 if(!ls.get(NOV,false)) setTimeout(()=>veloNov.classList.add('abierto'), 500);
 document.getElementById('btnNovOk').onclick = ()=>{ ls.set(NOV,true); veloNov.classList.remove('abierto'); };
