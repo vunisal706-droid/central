@@ -1,0 +1,17 @@
+name: Desatascar publicación
+on:
+  push:
+    paths: ['.github/workflows/desatascar-pages.yml']
+permissions:
+  pages: write
+  contents: read
+jobs:
+  cancelar:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Cancelar la publicación atascada
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          gh api -X POST repos/${{ github.repository }}/pages/deployments/862bdfcb7233a1e7fa3fae89870bd1c76a0890c0/cancel || true
+          gh api repos/${{ github.repository }}/pages/deployments/862bdfcb7233a1e7fa3fae89870bd1c76a0890c0 || true
