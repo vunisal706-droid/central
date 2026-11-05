@@ -77,9 +77,14 @@ const CAPI_ACC={
     return {la:P[0]*q+(1-q)*[0,90,170,90][k],ra:P[1]*q+(1-q)*[-90,-170,-90,-90][k],hTilt:[8,-8,0,4][k]*q,dy:-q*3,o:.2,ojoG:.9}; }},
   fiesta:{frases:['¡Yupi!','¡Fiesta!'],prop:'🎉',confeti:true,pose:(u,lv)=>{ const s=saltoP(u,.95,30); return {la:150+S_(u,2,12),ra:-150+S_(u,2,12,1),ca:.3,cra:-.3,dy:s.dy,sx:s.sx,sy:s.sy,o:.9,llift:s.air,rlift:s.air,ll:s.air?14:0,rl:s.air?-14:0,ojoG:1.1}; }},
   sigue:{frases:['¡No te vayas!','¡Ahora viene lo mejor!','¡Sigue viendo!'],pose:(u,lv)=>({la:20,ra:-100+S_(u,1.8,20),cra:-.2,hTilt:S_(u,1.6,7),tilt:-4,mira:-1.5,sonrisa:1,o:0})},
-  escondite:{frases:['¡Cucú!','¿Me ves?'],asoma:true,pose:(u,lv)=>({la:150,ra:-60,ca:-.5,hTilt:-18,mira:-2,blink:(u%1.4)<.12?1:0,sonrisa:1})}
+  rie:{pose:(u,lv)=>{ const k=Math.abs(S_(u,3.2)); return {la:35,ra:-35,ca:.9,cra:-.9,tilt:S_(u,6,3),hTilt:-12+S_(u,3.2,6),hDy:-k*2,dy:-k*5,blink:1,o:.55+.35*k,ceja:2.5,sx:1+k*.03,sy:1-k*.03}; }},
+  tumba:{giro:u=>{ const a=u<.8?ease(u/.8):u<3.7?1:1-ease(clamp((u-3.7)/.6,0,1)); return a; },
+    pose:(u,lv)=>{ const tumb=u>.8&&u<3.7, k=S_(u,1.4); return tumb?{la:160,ra:-160,ca:.6,cra:-.6,ll:25+k*30,rl:-5-k*30,cl:.4,cr:-.4,blink:(u%2.2)<.14?1:0,sonrisa:1,hTilt:-6}:{la:60,ra:-60,ca:.3,cra:-.3,o:.3,sonrisa:1}; }},
+  corre:{corre:true,pose:(u,lv)=>{ const c=S_(u,2.6); return {ll:c*38,rl:-c*38,cl:.5,cr:-.5,llift:c>.3,rlift:c<-.3,la:-30-c*55,ra:30-c*55,ca:.4,cra:-.4,dy:-Math.abs(c)*6,tilt:8,hTilt:4,o:.25,ojoG:1.05}; }},
+  voltereta:{voltereta:true,pose:(u,lv)=>{ const s=saltoP(u,1.5,46); return {la:s.air?150:50,ra:s.air?-150:-50,ca:.3,cra:-.3,dy:s.dy,sx:s.sx,sy:s.sy,ll:s.air?-35:0,rl:s.air?35:0,llift:s.air,rlift:s.air,o:s.air?.5:0,sonrisa:1,alto:s.air?-s.dy/46:0}; }},
+  escondite:{asoma:true,pose:(u,lv)=>({la:150,ra:-60,ca:-.5,hTilt:-18,mira:-2,blink:(u%1.4)<.12?1:0,sonrisa:1})}
 };
-const CAPI_FUERTE=['fiesta','salta','aplaude'], CAPI_MEDIO=['baila','escucha','robot','salta'], CAPI_CALMA=['saluda','sigue','escondite','vuela'];
+const CAPI_FUERTE=['voltereta','salta','rie','fiesta','aplaude'], CAPI_MEDIO=['corre','baila','rie','robot','salta'], CAPI_CALMA=['saluda','escondite','tumba','corre','vuela'];
 
 /* ---------- cuándo aparece: en los momentos en que la voz sube ---------- */
 function apariciones(tl){
@@ -99,7 +104,7 @@ function apariciones(tl){
   let ant='';
   return todos.filter(e=>e.t>=ini&&e.t<=fin).map((e,i)=>{
     const lista=e.v===0?CAPI_CALMA:e.v>=p90?CAPI_FUERTE:CAPI_MEDIO; let id; do{ id=lista[Math.floor(r()*lista.length)]; }while(id===ant&&lista.length>1); ant=id;
-    const a=CAPI_ACC[id]; return {t0:Math.max(ini,e.t-.9),id,acc:a,lado:i%2?1:-1,frase:a.frases?a.frases[Math.floor(r()*a.frases.length)]:'',seed:Math.floor(r()*1e6)};
+    const a=CAPI_ACC[id]; return {t0:Math.max(ini,e.t-.9),id,acc:a,lado:i%2?1:-1,frase:'',seed:Math.floor(r()*1e6)};
   });
 }
 
@@ -121,9 +126,8 @@ function dibujarCapitulin(g,t,tl,W,H){
   // vida extra: respira, parpadea y se mueve con la voz
   p=Object.assign({resp:S_(u,.6,1.2),hDy:0},p);
   if(p.blink===undefined){ const bk=(u+(A.seed%100)/40)%2.6; p.blink=bk<.13?Math.sin(bk/.13*Math.PI):0; }
-  if(!ac.vuela&&!ac.asoma&&A.id!=='duerme'&&A.id!=='robot'){ p.hDy=(p.hDy||0)+lv*2.5; p.hTilt=(p.hTilt||0)+S_(u,.9,2); }
+  if(!ac.vuela&&!ac.asoma&&!ac.giro&&!ac.voltereta&&A.id!=='duerme'&&A.id!=='robot'){ p.hDy=(p.hDy||0)+lv*2.5; p.hTilt=(p.hTilt||0)+S_(u,.9,2); }
   // al hablar abre y cierra la boca
-  const fIni=ac.zzz?2.75:.65, habla=A.frase&&u>fIni+.05&&u<fIni+.95; if(habla&&!(p.o>.5)) p.o=.35+.35*Math.abs(S_(u,4.5));
   // entrada: sube desde abajo estirándose; salida: se encoge y baja
   let ox=0, oy=0, rot=0, sx=p.sx||1, sy=p.sy||1;
   if(!ac.vuela&&!ac.asoma){
@@ -145,12 +149,19 @@ function dibujarCapitulin(g,t,tl,W,H){
   } else {
     x=der?W-ancho*.92:-ancho*.08; y=H-alto*.98+oy*alto;
   }
-  g.save(); g.translate(x+ancho/2,y+alto/2); g.rotate(rot); if(!der&&!ac.asoma) g.scale(-1,1);
+  let espejo=!der&&!ac.asoma;
+  if(ac.corre){ // corre de un lado a otro de la pantalla y vuelve
+    const q=clamp((u-.5)/(CAPI_DUR-1.1),0,1), xa=der?W-ancho*.92:-ancho*.08, xb=der?ancho*.1:W-ancho*1.1, ida=q<.5, k=ida?ease(q*2):ease((q-.5)*2);
+    x=ida?lerp(xa,xb,k):lerp(xb,xa,k); const haciaDer=ida?xb>xa:xa>xb; espejo=!haciaDer;
+  }
+  if(ac.voltereta){ const per=1.5, ph=(u%per)/per; if(ph>.18&&ph<.75) rot=(der?-1:1)*Math.PI*2*ease((ph-.18)/.57); }
+  if(ac.giro){ const a=ac.giro(u); rot=(der?-1:1)*a*Math.PI/2; y+=a*alto*.3; x+=(der?-1:1)*a*ancho*.12; }
+  g.save(); g.translate(x+ancho/2,y+alto/2); g.rotate(rot); if(espejo) g.scale(-1,1);
   g.scale(esc,esc); g.translate(-60,-62.5);
   g.shadowColor='rgba(0,0,0,.25)'; g.shadowBlur=8;
   const manos=capiDibujar(g,p);
   g.shadowBlur=0;
-  if(ac.prop&&u>.5&&u<CAPI_DUR-.6){ g.save(); if(!der&&!ac.asoma) g.scale(-1,1); g.font=`36px ${EMO}`; g.textAlign='center'; const mx=(manos.manoI[0]+manos.manoD[0])/2*(!der&&!ac.asoma?-1:1); g.fillText(ac.prop,mx,Math.min(manos.manoI[1],manos.manoD[1])-12+S_(u,2,3)); g.restore(); }
+  if(ac.prop&&u>.5&&u<CAPI_DUR-.6){ g.save(); if(espejo) g.scale(-1,1); g.font=`36px ${EMO}`; g.textAlign='center'; const mx=(manos.manoI[0]+manos.manoD[0])/2*(espejo?-1:1); g.fillText(ac.prop,mx,Math.min(manos.manoI[1],manos.manoD[1])-12+S_(u,2,3)); g.restore(); }
   g.restore();
   // zzz
   if(ac.zzz&&u<2.4){ g.save(); g.font=`800 ${Math.round(m*.05)}px ${FB}`; g.fillStyle='#fff'; g.strokeStyle='#1c2070'; g.lineWidth=m*.006;
@@ -162,7 +173,4 @@ function dibujarCapitulin(g,t,tl,W,H){
   if(ac.confeti&&u>.4){ const cols=['#ffc93c','#3a55c4','#ef4444','#22c55e','#ffffff'];
     for(let k=0;k<70;k++){ const ang=-Math.PI/2+(r()-.5)*2.4, v=(.4+r())*m*.9, dt=u-.4, cx=x+ancho/2+Math.cos(ang)*v*dt, cy=y+alto*.2+Math.sin(ang)*v*dt+m*.9*dt*dt;
       g.save(); g.translate(cx,cy); g.rotate(dt*8+k); g.globalAlpha=clamp(1-dt/2.5,0,1); g.fillStyle=cols[k%5]; g.fillRect(-m*.009,-m*.006,m*.018,m*.012); g.restore(); } }
-  // bocadillo
-  if(A.frase&&u>fIni&&u<CAPI_DUR-.75){ const q=easeBack(clamp((u-fIni)/.35,0,1)), s=m*.042*q;
-    if(s>2){ const bx=ac.asoma?(der?W-ancho*.7:ancho*.7):x+ancho/2, by=ac.asoma?y+alto*.05:y+alto*.05; bocadillo(g,clamp(bx,m*.18,W-m*.18),by,A.frase,s,!der); } }
 }

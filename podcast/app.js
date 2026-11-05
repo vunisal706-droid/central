@@ -11,7 +11,7 @@ const fmtD = s => { s=Math.max(0,s); return `${Math.floor(s/60)}:${(s%60).toFixe
 function rng(seed){ return ()=>{ seed|=0; seed=seed+0x6D2B79F5|0; let t=Math.imul(seed^seed>>>15,1|seed); t=t+Math.imul(t^t>>>7,61|t)^t; return ((t^t>>>14)>>>0)/4294967296; }; }
 const escapar = s => String(s).replace(/[&<>"]/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c]));
 const FB='"Baloo 2",Nunito,"Arial Rounded MT Bold",Arial,sans-serif', FN='Nunito,Arial,sans-serif';
-const AVISO_ID='2026-11-04-v7', AVISO_TXT='Capitulín tiene más vida: se mueve suave, respira, parpadea, habla y aparece cuando en el podcast hay risas o emoción, reaccionando a la voz.';
+const AVISO_ID='2026-11-05-v8', AVISO_TXT='Capitulín ya no habla con bocadillos: solo se mueve. Ahora también se ríe, se tumba en el suelo, corre de un lado a otro y da volteretas.';
 
 const PALETAS = [
   {a:'#3346c9',b:'#8a3ee0',c:'#ff9f43'},
