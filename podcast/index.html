@@ -13,37 +13,60 @@
 <link rel="stylesheet" href="app.css">
 </head>
 <body>
-<header class="cab">
-  <img src="LOGO.jpg" alt="CEIP Capitulaciones" class="logo">
-  <div>
-    <h1>Podcast a Vídeo</h1>
-    <p>Junta tu podcast con fotos, vídeos, música y efectos, y sale un vídeo listo para compartir.</p>
+<header class="hero">
+  <div class="hero-in">
+    <img src="LOGO.jpg" alt="CEIP Capitulaciones" class="logo" width="84" height="84">
+    <div class="hero-txt">
+      <span class="hero-marca">CEIP Capitulaciones · Podcastulaciones</span>
+      <h1>Podcast a Vídeo</h1>
+      <p>Junta tu podcast con fotos, vídeos, música y efectos, y sale un vídeo listo para compartir.</p>
+    </div>
+    <div class="hero-eq" aria-hidden="true"><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i></div>
+    <div class="plantillas-cab">
+      <select id="selPlantilla" title="Plantillas" aria-label="Plantillas"><option value="">📁 Plantillas…</option></select>
+      <button class="btn-mini" id="btnGuardarPlantilla" type="button">💾 Guardar estilo</button>
+    </div>
   </div>
-  <div class="plantillas-cab">
-    <select id="selPlantilla" title="Plantillas"><option value="">📁 Plantillas…</option></select>
-    <button class="btn-mini" id="btnGuardarPlantilla" type="button">💾 Guardar estilo</button>
-  </div>
+  <svg class="hero-ola" viewBox="0 0 1440 60" preserveAspectRatio="none" aria-hidden="true"><path d="M0 30 C 180 60 360 0 540 26 S 900 58 1080 28 S 1320 4 1440 30 V60 H0Z"/></svg>
 </header>
+
+<nav class="pasos-nav" id="pasosNav" aria-label="Pasos"></nav>
 
 <main class="layout">
   <section class="panel">
     <!-- 1 AUDIO -->
-    <div class="paso">
-      <h2><span class="num">1</span> El audio del podcast</h2>
+    <div class="paso" data-paso="1">
+      <header class="paso-cab c1"><span class="paso-ico" aria-hidden="true">🎙️</span>
+        <div class="paso-tit"><span class="paso-n">Paso 1 de 6</span><h2>El audio del podcast</h2><p>Sube la grabación o grábala aquí mismo.</p></div></header>
+      <div class="paso-cuerpo">
       <label class="soltar" id="zonaAudio">
         <input type="file" id="inAudio" accept="audio/*,video/mp4,.mp3,.m4a,.wav,.ogg,.aac" hidden>
         <span class="ico">🎙️</span>
         <span id="audioTxt"><b>Elige el audio</b> (mp3, m4a, wav…) o arrástralo aquí</span>
       </label>
       <div class="fila-opc">
+        <button class="btn-grabar" id="btnGrabar" type="button">⏺ Grabar aquí con el micrófono</button>
+        <span class="nota" id="grabTxt"></span>
+      </div>
+      <div class="recorte" id="recorte" hidden>
+        <b>✂️ Recortar</b>
+        <label>Quitar del principio <input type="number" id="rIni" min="0" step="0.5" value="0"> s</label>
+        <label>Quitar del final <input type="number" id="rFin" min="0" step="0.5" value="0"> s</label>
+        <span class="nota" id="rTxt"></span>
+      </div>
+      <div class="fila-opc">
         <label class="interruptor"><input type="checkbox" id="oMejorar"><span></span> ✨ Mejorar la voz <small>(iguala el volumen, quita ruido y zumbidos)</small></label>
       </div>
       <p class="consejo">💡 Si tiene mucho ruido, pásalo antes por <a href="https://podcast.adobe.com/es/enhance" target="_blank" rel="noopener">Adobe Mejorar la voz</a> y súbelo aquí.</p>
+    <div class="paso-pie"><button type="button" class="btn sec" data-ir="-1">← Anterior</button><button type="button" class="btn" data-ir="1">Siguiente →</button></div>
+      </div>
     </div>
 
     <!-- 2 FOTOS -->
-    <div class="paso">
-      <h2><span class="num">2</span> Fotos y vídeos <small id="fotosInfo"></small></h2>
+    <div class="paso" data-paso="2">
+      <header class="paso-cab c2"><span class="paso-ico" aria-hidden="true">🖼️</span>
+        <div class="paso-tit"><span class="paso-n">Paso 2 de 6</span><h2>Fotos y vídeos</h2><p>Arrástralos para ordenarlos y ponles un pie de foto.</p></div><small id="fotosInfo"></small></header>
+      <div class="paso-cuerpo">
       <label class="soltar" id="zonaFotos">
         <input type="file" id="inFotos" accept="image/*,video/*" multiple hidden>
         <span class="ico">🖼️</span>
@@ -52,11 +75,15 @@
       <div class="fila-opc"><label class="campo" style="flex-direction:row;align-items:center;gap:8px">Encuadre
         <select id="oEncuadre"><option value="ajustar">🔲 Ajustar a la pantalla (se ven enteras)</option><option value="llenar">⛶ Llenar la pantalla (se recortan)</option></select></label></div>
       <div class="fotos" id="fotos"></div>
+    <div class="paso-pie"><button type="button" class="btn sec" data-ir="-1">← Anterior</button><button type="button" class="btn" data-ir="1">Siguiente →</button></div>
+      </div>
     </div>
 
     <!-- 3 INTRO -->
-    <div class="paso">
-      <h2><span class="num">3</span> La intro</h2>
+    <div class="paso" data-paso="3">
+      <header class="paso-cab c3"><span class="paso-ico" aria-hidden="true">🎬</span>
+        <div class="paso-tit"><span class="paso-n">Paso 3 de 6</span><h2>La intro</h2><p>Así empieza el vídeo: título, sintonía y colores.</p></div></header>
+      <div class="paso-cuerpo">
       <div class="campos">
         <label class="campo ancho">Tipo de intro
           <select id="oIntroTipo">
@@ -84,11 +111,15 @@
           <div class="paletas" id="paletas"></div>
         </div>
       </div>
+    <div class="paso-pie"><button type="button" class="btn sec" data-ir="-1">← Anterior</button><button type="button" class="btn" data-ir="1">Siguiente →</button></div>
+      </div>
     </div>
 
     <!-- 4 FINAL -->
-    <div class="paso">
-      <h2><span class="num">4</span> El final</h2>
+    <div class="paso" data-paso="4">
+      <header class="paso-cab c4"><span class="paso-ico" aria-hidden="true">👑</span>
+        <div class="paso-tit"><span class="paso-n">Paso 4 de 6</span><h2>El final</h2><p>El cierre con el logo del cole.</p></div></header>
+      <div class="paso-cuerpo">
       <div class="campos">
         <label class="campo ancho">Cierre
           <select id="oFinTipo">
@@ -101,12 +132,16 @@
         <label class="campo solo-imagen">Duración <span><b id="vFin">6</b> s</span><input type="range" id="tFinDur" min="3" max="12" step="1"></label>
         <label class="campo solo-imagen">Logo<span class="mini"><img id="logoMini" src="LOGO.jpg" alt=""><button class="btn-link" id="btnLogo" type="button">Cambiar</button></span><input type="file" id="inLogo" accept="image/*" hidden></label>
       </div>
+    <div class="paso-pie"><button type="button" class="btn sec" data-ir="-1">← Anterior</button><button type="button" class="btn" data-ir="1">Siguiente →</button></div>
+      </div>
     </div>
 
     <!-- 5 SONIDOS -->
-    <div class="paso">
-      <h2><span class="num">5</span> Efectos y música</h2>
-      <p class="consejo">Pulsa un efecto y sonará en el minuto donde esté la vista previa. Luego puedes moverlo.</p>
+    <div class="paso" data-paso="5">
+      <header class="paso-cab c5"><span class="paso-ico" aria-hidden="true">🎶</span>
+        <div class="paso-tit"><span class="paso-n">Paso 5 de 6</span><h2>Efectos y música</h2><p>Aplausos, campanas y música suave de fondo.</p></div></header>
+      <div class="paso-cuerpo">
+      <p class="consejo">Pulsa un efecto y sonará en el minuto donde esté la vista previa. Luego arrástralo por la línea de tiempo para moverlo.</p>
       <div class="sfx-botones" id="sfxBotones"></div>
       <div class="efectos" id="efectos"></div>
       <div class="fila-opc">
@@ -117,11 +152,15 @@
       <p class="consejo">🎧 Música y efectos gratis: <a href="https://www.fiftysounds.com/es/" target="_blank" rel="noopener">FiftySounds</a> y <a href="https://pixabay.com/es/sound-effects/" target="_blank" rel="noopener">Pixabay</a>. Revisa si piden citar al autor.</p>
       <input type="file" id="inMusica" accept="audio/*" hidden>
       <input type="file" id="inSfx" accept="audio/*" hidden>
+    <div class="paso-pie"><button type="button" class="btn sec" data-ir="-1">← Anterior</button><button type="button" class="btn" data-ir="1">Siguiente →</button></div>
+      </div>
     </div>
 
     <!-- 6 ESTILO -->
-    <div class="paso">
-      <h2><span class="num">6</span> Estilo</h2>
+    <div class="paso" data-paso="6">
+      <header class="paso-cab c6"><span class="paso-ico" aria-hidden="true">🎨</span>
+        <div class="paso-tit"><span class="paso-n">Paso 6 de 6</span><h2>Estilo</h2><p>Transiciones, ondas de sonido y Capitulín.</p></div></header>
+      <div class="paso-cuerpo">
       <div class="campos">
         <label class="campo">Transiciones
           <select id="oTrans">
@@ -153,18 +192,23 @@
           <label style="gap:6px">¿Cuánto? <select id="oCapiFrec" class="sel-peq"><option value="poco">Poco</option><option value="normal">Normal</option><option value="mucho">Mucho</option></select></label>
         </div>
       </div>
+    <div class="paso-pie"><button type="button" class="btn sec" data-ir="-1">← Anterior</button><button type="button" class="btn" data-ir="1">🎬 ¡A crear el vídeo!</button></div>
+      </div>
     </div>
   </section>
 
   <section class="visor">
+    <header class="visor-cab"><span class="paso-ico" aria-hidden="true">📺</span>
+      <div class="paso-tit"><h2>Vista previa</h2><p id="resumen">Añade el audio y las fotos o vídeos para empezar.</p></div>
+      <span class="estado" id="estado"></span></header>
     <div class="pantalla" id="pantalla"><canvas id="cv"></canvas></div>
     <div class="controles">
-      <button class="btn-play" id="btnPlay" disabled>▶</button>
+      <button class="btn-play" id="btnPlay" aria-label="Reproducir o pausar" disabled>▶</button>
       <span class="tiempo" id="tiempo">0:00 / 0:00</span>
-      <span class="estado" id="estado"></span>
+      <span class="ayuda-t">Toca la línea para moverte · arrastra los efectos</span>
     </div>
-    <canvas class="linea-t" id="lineaT" height="84"></canvas>
-    <p class="resumen" id="resumen">Añade el audio y las fotos o vídeos para empezar.</p>
+    <canvas class="linea-t" id="lineaT" height="104"></canvas>
+    <h3 class="sub-cab">🚀 Crear y descargar</h3>
     <div class="exportar">
       <label class="campo">Formato
         <select id="oFormato">
@@ -184,11 +228,12 @@
     <div class="extras">
       <button class="btn-extra" id="btnClip" disabled>📱 Clip para redes</button>
       <button class="btn-extra" id="btnMp3" disabled>🎧 Solo audio MP3</button>
+      <button class="btn-extra" id="btnPortada">🖼️ Portada</button>
     </div>
   </section>
 </main>
 
-<div class="modal-fondo" id="modal" hidden><div class="modal" id="modalCaja"></div></div>
+<div class="modal-fondo" id="modal" hidden><div class="modal" id="modalCaja" role="dialog" aria-modal="true"></div></div>
 <div class="toast" id="toast"></div>
 
 <script src="mp4-muxer.js"></script>
