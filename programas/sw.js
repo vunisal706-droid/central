@@ -1,4 +1,4 @@
-// versión automática: b2611121421
+// versión automática: b2611121428
 // Programas del cole se ha mudado a https://vunisal706-droid.github.io/programas/
 // Este service worker borra la versión antigua y lleva a la nueva dirección.
 self.addEventListener('install', () => self.skipWaiting());
