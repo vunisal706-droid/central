@@ -363,7 +363,7 @@ a.kpi{color:inherit;transition:box-shadow .15s ease}
       </button>
       <button type="button" class="as-modo" data-asmodo="ia" role="radio">
         <b>🤖 Preguntar a la IA (NotebookLM)</b>
-        <span>Te lo <b>explica con sus palabras</b>, en pasos y citando el apartado del Plan de Centro. Responde solo con los documentos del centro y puedes repreguntar. Se abre en NotebookLM con tu cuenta del cole (@g.educaand.es). Puede equivocarse: comprueba el apartado que cite y <b>no escribas nombres de alumnos</b>.</span>
+        <span>Te lo <b>explica con sus palabras</b>, en pasos y citando el apartado del Plan de Centro. Responde solo con los documentos del centro y puedes repreguntar. Se abre en NotebookLM con cualquier cuenta de Google. Puede equivocarse: comprueba el apartado que cite y <b>no escribas nombres de alumnos</b>.</span>
       </button>
     </div>
     <form id="asForm" class="as-form" autocomplete="off">
@@ -372,7 +372,7 @@ a.kpi{color:inherit;transition:box-shadow .15s ease}
     </form>
     <div id="asIA" class="as-ia oculto">
       <p>Escribe arriba tu duda y pulsa <b>🤖 Preguntar a la IA</b>: se copia tu pregunta y se abre el asistente del cole en NotebookLM. Allí solo tienes que <b>pegarla</b> (mantén pulsado → Pegar, o Ctrl+V) y enviar.</p>
-      <p id="asIAok" style="font-weight:700;color:#1d6fc4;margin:0 0 10px;text-align:center"></p><a class="btn prim as-ia-btn" id="asIABtn" href="https://notebook.google.com/notebook/77ab415b-4e14-4945-b6d3-693841b6e537" target="_blank" rel="noopener">🤖 Preguntar a la IA</a>
+      <p id="asIAok" style="font-weight:700;color:#1d6fc4;margin:0 0 10px;text-align:center"></p><a class="btn prim as-ia-btn" id="asIABtn" href="https://notebook.google.com/notebook/72a22df2-d911-4c27-9e8b-1020cd6c4bd1" target="_blank" rel="noopener">🤖 Preguntar a la IA</a>
     </div>
     <div id="asRespuesta" class="as-resp"></div>
   </div>
@@ -616,7 +616,7 @@ document.querySelectorAll('.pest').forEach(p=> p.onclick = ()=> irA(p.dataset.vi
 document.getElementById('irAsistente').onclick = ()=>{ irA('asistente'); setTimeout(()=>document.getElementById('asPregunta').focus(), 350); };
 // Asistente: elegir entre el buscador de documentos o la IA del cole (cuaderno de NotebookLM)
 (function(){
-  const GEM = 'https://notebook.google.com/notebook/77ab415b-4e14-4945-b6d3-693841b6e537';
+  const GEM = 'https://notebook.google.com/notebook/72a22df2-d911-4c27-9e8b-1020cd6c4bd1';
   let modo = 'buscar'; try { modo = localStorage.getItem('capi-asistente-modo') || 'buscar'; } catch(e){}
   const inp = document.getElementById('asPregunta'), ia = document.getElementById('asIA'), resp = document.getElementById('asRespuesta'), form = document.getElementById('asForm');
   function poner(m){
