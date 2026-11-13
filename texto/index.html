@@ -3,6 +3,9 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width,initial-scale=1">
+<meta name="theme-color" content="#1f5fbf">
+<meta name="description" content="Procesador de textos del CEIP Capitulaciones de Santa Fe">
+<link rel="manifest" href="./manifest.webmanifest">
 <title>Capitexto · Procesador de textos del CEIP Capitulaciones</title>
 <link rel="icon" href="logo-cole.png">
 <style>
@@ -38,6 +41,14 @@ button,select,input{font-family:inherit}
 .col:hover{background:#e4ebf7}
 .col i{display:block;width:18px;height:4px;border-radius:2px;margin-top:1px}
 .col input{position:absolute;inset:0;opacity:0;cursor:pointer;width:100%;height:100%}
+/* pestañas estilo cinta de Word */
+.pestanas{display:flex;align-items:stretch;gap:2px;padding:0 10px;background:#fff;border-bottom:1px solid var(--linea);flex:none}
+.pestanas button{border:0;background:transparent;color:#344054;padding:8px 15px 7px;font-size:13px;cursor:pointer;border-bottom:3px solid transparent}
+.pestanas button:hover{background:#edf2fa}
+.pestanas button.activa{color:var(--azul2);font-weight:700;border-bottom-color:var(--azul)}
+.cinta .grp[data-panel]{display:none}
+.cinta .grp[data-panel].visible{display:flex}
+@media(max-width:820px){.pestanas{overflow-x:auto}.pestanas button{padding:8px 11px}}
 /* zona de trabajo */
 .ws{flex:1;overflow:auto;padding:22px 12px 60px;position:relative}
 .hoja{--mt:25mm;--mr:25mm;--mb:25mm;--ml:25mm;width:210mm;max-width:100%;min-height:297mm;margin:0 auto;background:#fff;box-shadow:0 2px 14px rgba(40,60,100,.18);padding:var(--mt) var(--mr) var(--mb) var(--ml);outline:none;font-family:Calibri,Carlito,"Segoe UI",Arial,sans-serif;font-size:11pt;line-height:1.35;color:#1b1b1b;overflow-wrap:break-word;
@@ -93,7 +104,7 @@ button,select,input{font-family:inherit}
 @media(max-width:820px){.hoja{padding:14mm 9mm;min-height:60vh;background-image:none}.tb .marca{display:none}.ws{padding:10px 6px 50px}}
 @media print{
   body{display:block;overflow:visible;background:#fff}
-  .tb,.menu,.cinta,.sb,.ibar,.vel,.aviso{display:none!important}
+  .tb,.menu,.pestanas,.cinta,.sb,.ibar,.vel,.aviso{display:none!important}
   .ws{overflow:visible;padding:0}
   .hoja{width:auto;min-height:0;box-shadow:none;padding:0;background-image:none;zoom:1!important}
   .hoja .cap-hf{outline:0;color:#444}
@@ -122,13 +133,20 @@ button,select,input{font-family:inherit}
   <input type="file" id="f-abrir" accept=".docx,.txt,.html,.htm" hidden>
   <input type="file" id="f-img" accept="image/*" hidden>
 </div>
+<nav class="pestanas" id="pestanas" aria-label="Pestañas de herramientas">
+  <button class="activa" data-panel-tab="inicio">Inicio</button>
+  <button data-panel-tab="insertar">Insertar</button>
+  <button data-panel-tab="disposicion">Disposición</button>
+  <button data-panel-tab="revisar">Revisar</button>
+  <button data-panel-tab="vista">Vista</button>
+</nav>
 <div class="cinta" id="cinta">
-  <div class="grp"><div class="fila">
+  <div class="grp" data-panel="inicio"><div class="fila">
     <button class="b" data-c="undo" title="Deshacer (Ctrl+Z)">↶</button>
     <button class="b" data-c="redo" title="Rehacer (Ctrl+Y)">↷</button>
   </div><div class="tit">Deshacer</div></div>
 
-  <div class="grp"><div class="fila">
+  <div class="grp" data-panel="inicio"><div class="fila">
     <select id="s-fuente" title="Tipo de letra">
       <option>Arial</option><option>Arial Narrow</option><option>Aptos</option><option>Aptos Display</option><option>Calibri</option><option>Cambria</option><option>Candara</option><option>Century Gothic</option><option>Comic Sans MS</option><option>Consolas</option><option>Constantia</option><option>Courier New</option><option>Franklin Gothic Medium</option><option>Garamond</option><option>Georgia</option><option>Helvetica</option><option>Lucida Sans</option><option>Palatino Linotype</option><option>Segoe UI</option><option>Tahoma</option><option>Times New Roman</option><option>Trebuchet MS</option><option>Verdana</option>
     </select>
@@ -145,7 +163,7 @@ button,select,input{font-family:inherit}
     <button class="b" data-c="removeFormat" title="Quitar el formato">⌫</button>
   </div><div class="tit">Fuente</div></div>
 
-  <div class="grp"><div class="fila">
+  <div class="grp" data-panel="inicio"><div class="fila">
     <button class="b" data-c="justifyLeft" title="Alinear a la izquierda"><svg viewBox="0 0 16 16"><path d="M2 3h12M2 6.5h8M2 10h12M2 13.5h8"/></svg></button>
     <button class="b" data-c="justifyCenter" title="Centrar"><svg viewBox="0 0 16 16"><path d="M2 3h12M4 6.5h8M2 10h12M4 13.5h8"/></svg></button>
     <button class="b" data-c="justifyRight" title="Alinear a la derecha"><svg viewBox="0 0 16 16"><path d="M2 3h12M6 6.5h8M2 10h12M6 13.5h8"/></svg></button>
@@ -157,13 +175,13 @@ button,select,input{font-family:inherit}
     <button class="b" data-c="indent" title="Aumentar sangría">⇥</button>
   </div><div class="tit">Párrafo</div></div>
 
-  <div class="grp"><div class="fila">
+  <div class="grp" data-panel="inicio"><div class="fila">
     <select id="s-estilo" title="Estilo">
       <option value="P">Normal</option><option value="H1">Título 1</option><option value="H2">Título 2</option><option value="H3">Título 3</option>
     </select>
   </div><div class="fila">&nbsp;</div><div class="tit">Estilos</div></div>
 
-  <div class="grp"><div class="fila">
+  <div class="grp" data-panel="insertar"><div class="fila">
     <button class="b" id="b-tabla" title="Insertar tabla">▦ Tabla</button>
     <button class="b" id="b-img" title="Insertar imagen">🖼 Imagen</button>
     <button class="b" id="b-link" title="Insertar enlace">🔗 Enlace</button>
@@ -182,10 +200,15 @@ button,select,input{font-family:inherit}
     <button class="b" data-t="del" title="Eliminar la tabla">🗑</button>
   </div><div class="tit">Tabla</div></div>
 
-  <div class="grp"><div class="fila">
-    <button class="b" id="b-buscar" title="Buscar y reemplazar (Ctrl+H)">🔎 Buscar</button>
-    <button class="b" id="b-pagina" title="Configurar página, márgenes y encabezado/pie">📐 Página</button>
-  </div><div class="fila">&nbsp;</div><div class="tit">Edición · Ctrl+V conserva formato</div></div>
+  <div class="grp" data-panel="disposicion"><div class="fila">
+    <button class="b" id="b-pagina" title="Configurar página, márgenes y encabezado/pie">📐 Configurar página</button>
+  </div><div class="fila">&nbsp;</div><div class="tit">Diseño de página</div></div>
+  <div class="grp" data-panel="revisar"><div class="fila">
+    <button class="b" id="b-buscar" title="Buscar y reemplazar (Ctrl+H)">🔎 Buscar y reemplazar</button>
+  </div><div class="fila">&nbsp;</div><div class="tit">Revisión</div></div>
+  <div class="grp" data-panel="vista"><div class="fila">
+    <button class="b" data-zoom="80">80 %</button><button class="b" data-zoom="100">100 %</button><button class="b" data-zoom="120">120 %</button>
+  </div><div class="fila">&nbsp;</div><div class="tit">Zoom del documento</div></div>
 </div>
 
 <main class="ws" id="ws">
@@ -237,11 +260,11 @@ async function guardar(){
   try{ await BD.guardar(DOC); localStorage.setItem('capitexto_actual',DOC.id); $('est').textContent='Guardado en este dispositivo'; }
   catch(e){ $('est').textContent='⚠️ No se ha podido guardar'; }
 }
-function limpiaHTML(){ const c=hoja.cloneNode(true); c.querySelectorAll('.cap-hf,img.sel').forEach(i=>i.remove()); return c.innerHTML.replace(/\u200B/g,''); }
+function limpiaHTML(){ const c=hoja.cloneNode(true); quitarPag(c); c.querySelectorAll('.cap-hf,img.sel').forEach(i=>i.remove()); return c.innerHTML.replace(/\u200B/g,''); }
 function datosHF(){return {header:hoja.querySelector('[data-cap-hf=header]')?.innerHTML||'',footer:hoja.querySelector('[data-cap-hf=footer]')?.innerHTML||''};}
 function ponerHF(d={}){const h=hoja.querySelector('[data-cap-hf=header]'),f=hoja.querySelector('[data-cap-hf=footer]');if(h)h.innerHTML=d.header||'';if(f)f.innerHTML=d.footer||'';}
 function insertarZonasHF(){if(!hoja.querySelector('[data-cap-hf=header]'))hoja.insertAdjacentHTML('afterbegin','<div class="cap-hf cap-header" contenteditable="true" data-cap-hf="header" data-placeholder="Haz clic para escribir el encabezado…"></div>');if(!hoja.querySelector('[data-cap-hf=footer]'))hoja.insertAdjacentHTML('beforeend','<div class="cap-hf cap-footer" contenteditable="true" data-cap-hf="footer" data-placeholder="Haz clic para escribir el pie de página…"></div>');}
-function cargar(d){ DOC=d; titulo.value=d.titulo||''; hoja.innerHTML=d.html||VACIO; insertarZonasHF(); ponerHF(d.hf||{}); aplicarMargenes(d.margenes||{}); ocultarIbar(); contar(); estado(); document.title=(d.titulo||'Documento sin título')+' · Capitexto'; }
+function cargar(d){ setTimeout(paginar,60); DOC=d; titulo.value=d.titulo||''; hoja.innerHTML=d.html||VACIO; insertarZonasHF(); ponerHF(d.hf||{}); aplicarMargenes(d.margenes||{}); ocultarIbar(); contar(); estado(); document.title=(d.titulo||'Documento sin título')+' · Capitexto'; }
 function docNuevo(){ cargar({id:nuevoId(),titulo:'',html:VACIO,hf:{header:'',footer:''},margenes:{...MARGEN_DEF},mod:Date.now()}); guardar(); hoja.focus(); }
 
 // ═════ selección y órdenes de formato ═════
@@ -266,6 +289,13 @@ function orden(c,v){ restaurar(); document.execCommand(c,false,v==null?null:v); 
 try{ document.execCommand('defaultParagraphSeparator',false,'p'); document.execCommand('styleWithCSS',false,true); }catch(e){}
 
 $('cinta').addEventListener('mousedown',e=>{ if(e.target.closest('button')) e.preventDefault(); });
+function activarPanel(nombre){
+  document.querySelectorAll('[data-panel-tab]').forEach(b=>b.classList.toggle('activa',b.dataset.panelTab===nombre));
+  document.querySelectorAll('.cinta .grp[data-panel]').forEach(g=>g.classList.toggle('visible',g.dataset.panel===nombre));
+}
+document.querySelectorAll('[data-panel-tab]').forEach(b=>b.addEventListener('click',()=>activarPanel(b.dataset.panelTab)));
+activarPanel('inicio');
+document.querySelectorAll('[data-zoom]').forEach(b=>b.addEventListener('click',()=>{const v=+b.dataset.zoom;$('zoom').value=v;hoja.style.zoom=v/100;$('zt').textContent=v+' %';ocultarIbar();paginarLuego();}));
 $('ibar').addEventListener('mousedown',e=>e.preventDefault());
 document.querySelectorAll('[data-c]').forEach(b=>b.addEventListener('click',()=>orden(b.dataset.c)));
 
@@ -347,7 +377,8 @@ $('b-tabla').addEventListener('click',()=>{
   rj.addEventListener('click',e=>{const i=e.target.closest('i');if(!i)return;f=+i.dataset.f;c=+i.dataset.k;cerrar();
     insertarBloque('<table><tbody>'+('<tr>'+'<td><br></td>'.repeat(c)+'</tr>').repeat(f)+'</tbody></table><p><br></p>');});
 });
-document.querySelectorAll('[data-t]').forEach(b=>b.addEventListener('click',()=>{
+document.querySelectorAll('[data-t]').forEach(b=>b.addEventListener('click',()=>{ setTimeout(paginarLuego,0);
+  quitarPag(hoja);
   const td=celdaActual(); if(!td) return; const tr=td.parentElement, tb=td.closest('table'), k=td.cellIndex, op=b.dataset.t;
   if(op==='fila+'){ const n=tr.cloneNode(true); n.querySelectorAll('td,th').forEach(x=>x.innerHTML='<br>'); tr.after(n); }
   if(op==='fila-'){ if(tb.rows.length>1) tr.remove(); else tb.remove(); }
@@ -411,7 +442,7 @@ $('b-memb').addEventListener('click',async()=>{
 });
 
 // ═════ diseño de página: márgenes, encabezado y pie ═════
-function aplicarMargenes(m={}){
+function aplicarMargenes(m={}){ paginarLuego();
   estadoMargenes={top:+m.top||2.5,right:+m.right||2.5,bottom:+m.bottom||2.5,left:+m.left||2.5};
   hoja.style.setProperty('--mt',estadoMargenes.top+'cm');hoja.style.setProperty('--mr',estadoMargenes.right+'cm');
   hoja.style.setProperty('--mb',estadoMargenes.bottom+'cm');hoja.style.setProperty('--ml',estadoMargenes.left+'cm');
@@ -515,8 +546,8 @@ hoja.addEventListener('paste',async e=>{
   }
   if(texto){ e.preventDefault(); insertarHTML(htmlDesdeTexto(texto)); normalizar(); sucio(); }
 });
-$('f-abrir').addEventListener('change',async e=>{
-  const f=e.target.files[0]; e.target.value=''; if(!f) return;
+async function procesarArchivo(f){
+  if(!f) return;
   const nombre=f.name.replace(/\.[^.]+$/,''), ext=(f.name.split('.').pop()||'').toLowerCase();
   try{
     let html='';
@@ -531,12 +562,22 @@ $('f-abrir').addEventListener('change',async e=>{
     } else if(ext==='html'||ext==='htm'){
       html=sanear(await f.text());
     } else if(ext==='doc'){ aviso('Los .doc antiguos no se pueden abrir: guárdalo antes como .docx'); return; }
-    else { aviso('Ese tipo de archivo no se puede abrir'); return; }
+    else { aviso('Formato no compatible. Abre DOCX, TXT o HTML.'); return; }
     await guardar();
-    cargar({id:nuevoId(),titulo:nombre,html:html||VACIO,mod:Date.now()}); await guardar();
+    cargar({id:nuevoId(),titulo:nombre,html:html||VACIO,hf:{header:'',footer:''},margenes:{...MARGEN_DEF},mod:Date.now()});
+    await guardar();
     aviso('Abierto: '+f.name+' · revisa la paginación y los elementos complejos');
   }catch(er){ aviso('No se ha podido abrir el archivo'); console.error(er); }
-});
+}
+$('f-abrir').addEventListener('change',async e=>{const f=e.target.files[0];e.target.value='';await procesarArchivo(f);});
+// Integración de apertura de archivos del sistema operativo (PWA instalada en Edge/Chrome).
+if('launchQueue' in window){
+  window.launchQueue.setConsumer(async params=>{
+    if(!params.files||!params.files.length) return;
+    const file=await params.files[0].getFile();
+    await procesarArchivo(file);
+  });
+}
 
 // ═════ guardar como Word (.docx) ═════
 const hex=c=>{ const m=String(c).match(/rgba?\((\d+),\s*(\d+),\s*(\d+)(?:,\s*([\d.]+))?/); if(!m) return null; if(m[4]!==undefined&&+m[4]===0) return null;
@@ -668,7 +709,7 @@ async function exportarDocx(){
   const D=window.docx; ocultarIbar();
   const z=hoja.style.zoom; hoja.style.zoom='';            // medir sin zoom
   let children,headerChildren=[],footerChildren=[];
-  try{ const body=hoja.cloneNode(true); body.querySelectorAll('.cap-hf').forEach(x=>x.remove()); children=await bloques(D,body,{inst:0});
+  try{ const body=hoja.cloneNode(true); quitarPag(body); body.querySelectorAll('.cap-hf').forEach(x=>x.remove()); children=await bloques(D,body,{inst:0});
     const hf=datosHF(); for(const [key,target] of [['header',headerChildren],['footer',footerChildren]]){const tmp=document.createElement('div');tmp.innerHTML=hf[key]||'';const bs=await bloques(D,tmp,{inst:0});target.push(...bs);}
   } finally{ hoja.style.zoom=z; }
   if(!children.length) children=[new D.Paragraph({children:[]})];
@@ -699,14 +740,16 @@ $('m-docx').addEventListener('click',async e=>{
 // ═════ varios ═════
 function contar(){ const t=hoja.innerText.replace(/[\u00a0\u200B]/g,' ').trim(); const p=t?t.split(/\s+/).length:0;
   $('cuenta').textContent=p+' palabra'+(p===1?'':'s')+' · '+t.replace(/\s/g,'').length+' caracteres'; }
-hoja.addEventListener('input',()=>{ if(!hoja.firstChild) hoja.innerHTML=VACIO; fijaTam(); normalizar(); sucio(); });
+hoja.addEventListener('input',()=>{ if(!hoja.firstChild) hoja.innerHTML=VACIO; fijaTam(); normalizar(); sucio(); paginarLuego(); });
 titulo.addEventListener('input',()=>{ document.title=(titulo.value.trim()||'Documento sin título')+' · Capitexto'; sucio(); });
-$('zoom').addEventListener('input',e=>{ hoja.style.zoom=(e.target.value/100); $('zt').textContent=e.target.value+' %'; ocultarIbar(); });
+$('zoom').addEventListener('input',e=>{ hoja.style.zoom=(e.target.value/100); $('zt').textContent=e.target.value+' %'; ocultarIbar(); paginarLuego(); });
 document.addEventListener('keydown',e=>{
   if(!(e.ctrlKey||e.metaKey)) { if(e.key==='Escape') cerrar(); return; }
   const k=e.key.toLowerCase();
-  if(k==='s'){ e.preventDefault(); guardar().then(()=>aviso('Guardado')); }
-  if(k==='h'){ e.preventDefault(); abrirBuscar(); }
+  if(k==='s'){ e.preventDefault(); if(e.shiftKey) $('m-docx').click(); else guardar().then(()=>aviso('Guardado')); }
+  if(k==='o'){ e.preventDefault(); $('f-abrir').click(); }
+  if(k==='n'){ e.preventDefault(); $('m-nuevo').click(); }
+  if(k==='h'){ e.preventDefault(); activarPanel('revisar'); abrirBuscar(); }
   if(k==='p'){ e.preventDefault(); ocultarIbar(); window.print(); }
 });
 // Intro en una viñeta vacía: salir de la lista (como en Word)
@@ -729,15 +772,72 @@ hoja.addEventListener('keydown',e=>{
 hoja.addEventListener('keydown',e=>{ if(e.key==='Tab'&&!celdaActual()){ e.preventDefault(); document.execCommand('insertHTML',false,'&emsp;'); } });
 window.addEventListener('beforeunload',()=>{ if(tGuardar){ DOC.titulo=titulo.value.trim(); DOC.html=limpiaHTML(); DOC.hf=datosHF(); DOC.margenes=estadoMargenes; DOC.mod=Date.now(); BD.guardar(DOC); } });
 
+// Instalar como aplicación y mantener disponibles los recursos esenciales sin conexión.
+if('serviceWorker' in navigator && location.protocol.startsWith('http')){
+  window.addEventListener('load',()=>navigator.serviceWorker.register('./sw.js').catch(err=>console.warn('No se pudo registrar el service worker',err)));
+}
+
 (async function inicio(){
   let d=null;
   try{ const id=localStorage.getItem('capitexto_actual'); if(id) d=await BD.leer(id); }catch(e){}
   if(d) cargar(d); else docNuevo();
   window._listo=true;
 })();
+
+// ═════ Paginación visual: ningún bloque se queda en la separación entre folios ═════
+function quitarPag(root){ root.querySelectorAll('tr.pgap').forEach(x=>x.remove());
+  root.querySelectorAll('[data-pgap]').forEach(x=>{x.style.marginTop='';x.removeAttribute('data-pgap');if(!x.getAttribute('style'))x.removeAttribute('style');}); }
+var _pagT=null, _pagOn=true;
+function paginarLuego(){ clearTimeout(_pagT); _pagT=setTimeout(paginar,120); }
+function paginar(){
+  if(!_pagOn) return;
+  const cs=getComputedStyle(hoja);
+  quitarPag(hoja);
+  if(cs.backgroundImage==='none'){ hoja.style.minHeight=''; return; }   // móvil: sin hojas
+  const MM=96/25.4, STEP=309*MM, PH=297*MM;
+  const mt=parseFloat(cs.paddingTop), mb=parseFloat(cs.paddingBottom), util=PH-mt-mb;
+  const hr=hoja.getBoundingClientRect(), sc=(hr.height/hoja.offsetHeight)||1;
+  const pos=el=>{const r=el.getBoundingClientRect(), h0=hoja.getBoundingClientRect();return {top:(r.top-h0.top)/sc,bot:(r.bottom-h0.top)/sc};};
+  const bloques=[];
+  [...hoja.children].forEach(el=>{
+    if(el.tagName==='TABLE') [...el.rows].forEach((tr,i)=>bloques.push({el:tr,tabla:el,primera:i===0}));
+    else if((el.tagName==='UL'||el.tagName==='OL')&&el.children.length) [...el.children].forEach((li,i)=>bloques.push({el:li,lista:el,primera:i===0}));
+    else bloques.push({el});
+  });
+  let forzar=false;
+  for(const b of bloques){
+    const el=b.el;
+    if(el.classList&&el.classList.contains('salto')){ forzar=true; continue; }
+    const {top,bot}=pos(el); if(bot-top<=0&&!forzar) continue;
+    const k=Math.floor(top/STEP), fin=k*STEP+PH-mb, ini=k*STEP+mt;
+    let destino=null;
+    if(forzar){ destino=(k+1)*STEP+mt; if(top>=ini-1&&top<=ini+2&&k>0) destino=null; forzar=false; }
+    else if(top>fin-1) destino=(k+1)*STEP+mt;                        // empieza en la separación
+    else if(bot>fin+0.5 && (bot-top)<=util) destino=(k+1)*STEP+mt;     // cruzaría la separación
+    if(destino===null) continue;
+    const dy=destino-top; if(dy<=0) continue;
+    if(b.tabla&&!b.primera){                                          // fila de tabla: fila separadora
+      const n=Math.max(...[...b.tabla.rows].map(r=>[...r.cells].reduce((a,c)=>a+(c.colSpan||1),0)));
+      const tr=document.createElement('tr'); tr.className='pgap'; tr.contentEditable='false';
+      tr.innerHTML='<td colspan="'+n+'" style="height:'+dy.toFixed(1)+'px;padding:0;border-left:0;border-right:0;background:transparent"></td>';
+      el.before(tr);
+    }else{
+      const t=b.tabla&&b.primera?b.tabla:(b.lista&&b.primera?b.lista:el);
+      const mtOrig=parseFloat(getComputedStyle(t).marginTop)||0;
+      t.style.marginTop=(mtOrig+dy).toFixed(1)+'px'; t.setAttribute('data-pgap','1');
+    }
+  }
+  const alto=hoja.scrollHeight/1, pags=Math.max(1,Math.ceil((alto+12*MM)/STEP));
+  hoja.style.minHeight=(pags*STEP-12*MM).toFixed(0)+'px';
+}
+window.addEventListener('beforeprint',()=>{_pagOn=false;quitarPag(hoja);hoja.style.minHeight='';});
+window.addEventListener('afterprint',()=>{_pagOn=true;paginar();});
+window.addEventListener('resize',paginarLuego);
+hoja.addEventListener('load',e=>{if(e.target.tagName==='IMG')paginarLuego();},true);
+
 /* Aviso de novedades: una sola vez por dispositivo */
-(function(){var K='capitexto-novedad',ID='2026-11-13-fase1';try{if(localStorage.getItem(K)===ID)return;localStorage.setItem(K,ID);}catch(e){return;}
- setTimeout(function(){var a=document.getElementById('aviso');aviso('Novedad: márgenes, encabezado y pie de página, más fuentes y mejor pegado desde Word.');clearTimeout(aviso._t);aviso._t=setTimeout(function(){a.classList.remove('v')},7000);},900);})();
+(function(){var K='capitexto-novedad',ID='2026-11-13-paginas';try{if(localStorage.getItem(K)===ID)return;localStorage.setItem(K,ID);}catch(e){return;}
+ setTimeout(function(){aviso('Novedad: el texto y las tablas ya no se quedan en la separación entre folios.');clearTimeout(aviso._t);aviso._t=setTimeout(function(){$('aviso').classList.remove('v')},7000);},900);})();
 </script>
 </body>
 </html>
