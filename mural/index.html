@@ -1,0 +1,322 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Mural Gigante · CEIP Capitulaciones</title>
+<meta name="theme-color" content="#3b5bdb">
+<link rel="manifest" href="manifest.json">
+<link rel="icon" href="icons/icon-192.png">
+<link rel="apple-touch-icon" href="icons/icon-192.png">
+<link href="https://fonts.googleapis.com/css2?family=Fredoka:wght@500;600;700&family=Nunito:wght@400;600;700;800&display=swap" rel="stylesheet">
+<script src="https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
+<style>
+:root{--ink:#1f2a44;--muted:#5d6b84;--brand:#3b5bdb;--brand-d:#24399c;--ok:#0f9d6b;--card:rgba(255,255,255,.88);--line:#dde3f0;--r:18px}
+*{box-sizing:border-box}
+html,body{margin:0;min-height:100%}
+body{font-family:Nunito,system-ui,sans-serif;color:var(--ink);
+  background:linear-gradient(-45deg,#e8f0ff,#fff3e6,#e9fbf3,#f6ecff,#fffbe6);background-size:400% 400%;animation:bg 22s ease infinite}
+@keyframes bg{0%{background-position:0% 50%}50%{background-position:100% 50%}100%{background-position:0% 50%}}
+header{display:flex;align-items:center;gap:14px;padding:14px 22px;max-width:1200px;margin:0 auto}
+header img{width:62px;height:62px;border-radius:14px;background:#fff;box-shadow:0 4px 14px rgba(36,57,156,.12)}
+header h1{font:700 1.65rem/1.1 Fredoka,sans-serif;margin:0;color:var(--brand-d)}
+header p{margin:2px 0 0;color:var(--muted);font-weight:600}
+main{max-width:1200px;margin:0 auto;padding:6px 22px 40px;display:grid;grid-template-columns:360px 1fr;gap:20px}
+@media (max-width:900px){main{grid-template-columns:1fr}}
+.card{background:var(--card);backdrop-filter:blur(6px);border:1px solid rgba(255,255,255,.7);border-radius:var(--r);box-shadow:0 8px 30px rgba(31,42,68,.08);padding:18px}
+.card h2{font:600 1.05rem Fredoka,sans-serif;margin:0 0 10px;color:var(--brand-d);display:flex;gap:8px;align-items:center}
+.step{display:inline-grid;place-items:center;width:24px;height:24px;border-radius:50%;background:var(--brand);color:#fff;font:700 .8rem Fredoka}
+.drop{border:2.5px dashed #b7c4ea;border-radius:16px;padding:22px 14px;text-align:center;cursor:pointer;background:#f7f9ff;transition:.2s}
+.drop:hover,.drop.over{border-color:var(--brand);background:#eef2ff}
+.drop b{display:block;font:600 1.05rem Fredoka;color:var(--brand-d)}
+.drop small{color:var(--muted)}
+.file{margin-top:8px;font-size:.9rem;color:var(--muted);word-break:break-all}
+label.f{display:block;font-weight:800;font-size:.86rem;margin:14px 0 6px}
+.seg{display:flex;background:#eef1f8;border-radius:12px;padding:4px;gap:4px}
+.seg button{flex:1;border:0;background:transparent;padding:8px 6px;border-radius:9px;font:700 .88rem Nunito;color:var(--muted);cursor:pointer}
+.seg button.on{background:#fff;color:var(--brand-d);box-shadow:0 2px 8px rgba(31,42,68,.1)}
+.row{display:flex;align-items:center;gap:10px}
+input[type=range]{flex:1;accent-color:var(--brand)}
+.num{min-width:44px;text-align:center;font:700 1.1rem Fredoka;color:var(--brand-d);background:#eef2ff;border-radius:10px;padding:4px 8px}
+select,input[type=number]{width:100%;padding:9px 10px;border:1px solid var(--line);border-radius:10px;font:600 .95rem Nunito;background:#fff;color:var(--ink)}
+.chk{display:flex;gap:8px;align-items:flex-start;margin:8px 0;font-size:.92rem;cursor:pointer}
+.chk input{margin-top:3px;accent-color:var(--brand)}
+.hint{font-size:.82rem;color:var(--muted);margin-top:4px}
+.go{width:100%;margin-top:16px;border:0;border-radius:14px;padding:14px;font:700 1.1rem Fredoka;color:#fff;cursor:pointer;
+  background:linear-gradient(135deg,#3b5bdb,#6d5bd0);box-shadow:0 8px 20px rgba(59,91,219,.3)}
+.go:disabled{opacity:.45;cursor:not-allowed;box-shadow:none}
+.stats{display:grid;grid-template-columns:repeat(3,1fr);gap:10px;margin-bottom:14px}
+.stat{background:#fff;border:1px solid var(--line);border-radius:14px;padding:10px 12px}
+.stat span{display:block;font-size:.76rem;font-weight:800;color:var(--muted);text-transform:uppercase;letter-spacing:.04em}
+.stat b{font:700 1.3rem Fredoka;color:var(--brand-d)}
+#stage{position:relative;background:repeating-conic-gradient(#f1f3f8 0 25%,#fff 0 50%) 0 0/22px 22px;border-radius:14px;min-height:380px;display:grid;place-items:center;overflow:hidden;border:1px solid var(--line)}
+#prev{max-width:100%;display:block}
+.empty{color:var(--muted);text-align:center;padding:30px;font-weight:600}
+.empty div{font-size:3rem}
+.pages{display:flex;gap:6px;flex-wrap:wrap;margin-top:10px}
+.pages button{border:1px solid var(--line);background:#fff;border-radius:9px;padding:5px 10px;font:700 .85rem Nunito;cursor:pointer}
+.pages button.on{background:var(--brand);color:#fff;border-color:var(--brand)}
+.how{margin-top:16px}
+.how ol{margin:6px 0 0;padding-left:20px}
+.how li{margin-bottom:6px}
+#msg{position:fixed;left:50%;bottom:22px;transform:translateX(-50%);background:#fff;border:1px solid var(--line);box-shadow:0 10px 30px rgba(0,0,0,.12);border-radius:14px;padding:12px 18px;font-weight:700;display:none;z-index:9;max-width:90vw}
+#busy{position:fixed;inset:0;background:rgba(255,255,255,.75);display:none;place-items:center;z-index:8}
+#busy .box{background:#fff;border-radius:18px;padding:22px 28px;box-shadow:0 10px 40px rgba(0,0,0,.12);text-align:center;font-weight:700;min-width:260px}
+.bar{height:10px;background:#eef1f8;border-radius:6px;overflow:hidden;margin-top:12px}
+.bar i{display:block;height:100%;width:0;background:linear-gradient(90deg,#3b5bdb,#0f9d6b);transition:width .2s}
+</style>
+</head>
+<body>
+<header>
+  <img src="icons/logo-512.png" alt="CEIP Capitulaciones">
+  <div><h1>Mural Gigante</h1><p>Sube un PDF o una foto y lo trocea en folios para montar un mural</p></div>
+</header>
+
+<main>
+<section>
+  <div class="card">
+    <h2><span class="step">1</span> Elige el documento</h2>
+    <div class="drop" id="drop">
+      <b>📄 Pulsa o arrastra aquí</b>
+      <small>PDF, JPG, PNG o foto del móvil</small>
+    </div>
+    <input type="file" id="file" accept="application/pdf,image/*" hidden>
+    <div class="file" id="fname"></div>
+    <div class="pages" id="pages"></div>
+  </div>
+
+  <div class="card" style="margin-top:16px">
+    <h2><span class="step">2</span> Tamaño del mural</h2>
+    <label class="f">Papel</label>
+    <div class="seg" id="paper"><button data-v="a4" class="on">A4</button><button data-v="a3">A3</button></div>
+    <label class="f">Folios</label>
+    <div class="seg" id="orient"><button data-v="p" class="on">Verticales</button><button data-v="l">Horizontales</button></div>
+    <label class="f">Folios de ancho</label>
+    <div class="row"><input type="range" id="cols" min="1" max="12" value="3"><span class="num" id="colsN">3</span></div>
+    <div class="hint">El alto se calcula solo para que no se deforme el dibujo.</div>
+    <label class="f">Girar el documento</label>
+    <div class="seg" id="rot"><button data-v="0" class="on">0°</button><button data-v="90">90°</button><button data-v="180">180°</button><button data-v="270">270°</button></div>
+  </div>
+
+  <div class="card" style="margin-top:16px">
+    <h2><span class="step">3</span> Opciones de impresión</h2>
+    <label class="f">Solape entre folios</label>
+    <div class="row"><input type="range" id="ov" min="0" max="30" value="10"><span class="num" id="ovN">10 mm</span></div>
+    <div class="hint">Franja repetida en cada unión para encajar y pegar.</div>
+    <label class="f">Margen blanco de la impresora</label>
+    <div class="row"><input type="range" id="mg" min="3" max="15" value="6"><span class="num" id="mgN">6 mm</span></div>
+    <label class="chk"><input type="checkbox" id="marks" checked> Marcas de corte y código de cada folio (A1, A2…)</label>
+    <label class="chk"><input type="checkbox" id="map" checked> Añadir al principio una hoja-guía de montaje</label>
+    <label class="f">Calidad</label>
+    <select id="dpi"><option value="120">Normal (archivo ligero)</option><option value="170" selected>Alta</option><option value="230">Muy alta (tarda más)</option></select>
+    <button class="go" id="go" disabled>🖨️ Crear PDF para imprimir</button>
+  </div>
+</section>
+
+<section>
+  <div class="card">
+    <div class="stats">
+      <div class="stat"><span>Folios</span><b id="sN">—</b></div>
+      <div class="stat"><span>Distribución</span><b id="sG">—</b></div>
+      <div class="stat"><span>Mural final</span><b id="sS">—</b></div>
+    </div>
+    <div id="stage"><div class="empty" id="empty"><div>🖼️</div>Aquí verás cómo queda el mural troceado</div><canvas id="prev" hidden></canvas></div>
+    <div class="how">
+      <h2>🧩 Cómo montarlo</h2>
+      <ol>
+        <li>Imprime el PDF al <b>100 % / tamaño real</b> (sin «Ajustar a la página»).</li>
+        <li>Coloca los folios en orden siguiendo la hoja-guía: <b>letras = filas</b>, <b>números = columnas</b>.</li>
+        <li>En cada folio, salvo la primera fila y la primera columna, <b>recorta el margen blanco de arriba y de la izquierda</b> por la línea de corte.</li>
+        <li>Pon ese borde encima del folio anterior, haz coincidir el dibujo de la franja de solape y pega con celo por detrás.</li>
+      </ol>
+    </div>
+  </div>
+</section>
+</main>
+
+<div id="busy"><div class="box"><div id="busyT">Preparando…</div><div class="bar"><i id="busyB"></i></div></div></div>
+<div id="msg"></div>
+
+<script>
+/* ---------- Aviso de novedades (una vez por dispositivo) ---------- */
+(function(){var K='mural-novedad',ID='2026-11-13-v1';try{if(localStorage.getItem(K)===ID)return;localStorage.setItem(K,ID);}catch(e){return;}
+ setTimeout(function(){toast('✨ Nueva app: trocea un PDF o una foto en folios para hacer un mural gigante.',5000)},800);})();
+
+pdfjsLib.GlobalWorkerOptions.workerSrc='https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.worker.min.js';
+const $=id=>document.getElementById(id);
+const PAPER={a4:[210,297],a3:[297,420]};
+const S={src:null,pdf:null,page:1,name:'mural',paper:'a4',orient:'p',cols:3,rot:0,ov:10,mg:6};
+
+function toast(t,ms=3000){const m=$('msg');m.textContent=t;m.style.display='block';clearTimeout(toast.t);toast.t=setTimeout(()=>m.style.display='none',ms)}
+function busy(on,t,p){$('busy').style.display=on?'grid':'none';if(t)$('busyT').textContent=t;$('busyB').style.width=(p||0)+'%'}
+const tick=()=>new Promise(r=>setTimeout(r,0));
+
+/* ---------- segmentados ---------- */
+function seg(id,key,conv){$(id).addEventListener('click',e=>{const b=e.target.closest('button');if(!b)return;
+  [...$(id).children].forEach(x=>x.classList.toggle('on',x===b));S[key]=conv?conv(b.dataset.v):b.dataset.v;update()})}
+seg('paper','paper');seg('orient','orient');seg('rot','rot',Number);
+$('cols').oninput=e=>{S.cols=+e.target.value;$('colsN').textContent=S.cols;update()};
+$('ov').oninput=e=>{S.ov=+e.target.value;$('ovN').textContent=S.ov+' mm';update()};
+$('mg').oninput=e=>{S.mg=+e.target.value;$('mgN').textContent=S.mg+' mm';update()};
+['marks','map'].forEach(i=>$(i).onchange=update);
+
+/* ---------- carga ---------- */
+const drop=$('drop');
+drop.onclick=()=>$('file').click();
+drop.ondragover=e=>{e.preventDefault();drop.classList.add('over')};
+drop.ondragleave=()=>drop.classList.remove('over');
+drop.ondrop=e=>{e.preventDefault();drop.classList.remove('over');if(e.dataTransfer.files[0])load(e.dataTransfer.files[0])};
+$('file').onchange=e=>{if(e.target.files[0])load(e.target.files[0])};
+
+async function load(f){
+  S.name=f.name.replace(/\.[^.]+$/,'')||'mural';$('fname').textContent='📎 '+f.name;$('pages').innerHTML='';S.pdf=null;S.page=1;
+  try{
+    busy(true,'Abriendo el documento…',20);
+    if(f.type==='application/pdf'||/\.pdf$/i.test(f.name)){
+      S.pdf=await pdfjsLib.getDocument({data:await f.arrayBuffer()}).promise;
+      if(S.pdf.numPages>1){const box=$('pages');box.insertAdjacentHTML('beforeend','<small style="width:100%;color:var(--muted);font-weight:700">Página a convertir en mural:</small>');
+        for(let i=1;i<=Math.min(S.pdf.numPages,40);i++){const b=document.createElement('button');b.textContent=i;if(i===1)b.className='on';
+          b.onclick=async()=>{[...box.querySelectorAll('button')].forEach(x=>x.classList.toggle('on',x===b));S.page=i;busy(true,'Cargando página…',40);S.src=await renderPdf(1600);busy(false);update()};box.appendChild(b)}}
+      S.src=await renderPdf(1600);
+    }else{
+      const url=URL.createObjectURL(f);const img=new Image();img.decoding='async';
+      await new Promise((ok,ko)=>{img.onload=ok;img.onerror=ko;img.src=url});S.src=img;S.srcUrl=url;
+    }
+    busy(false);$('go').disabled=false;$('empty').hidden=true;$('prev').hidden=false;update();
+  }catch(err){busy(false);console.error(err);toast('No se ha podido abrir ese archivo 😕')}
+}
+/* renderiza la página del PDF con el lado largo = px */
+async function renderPdf(px){
+  const pg=await S.pdf.getPage(S.page);const v0=pg.getViewport({scale:1});
+  const sc=px/Math.max(v0.width,v0.height);const vp=pg.getViewport({scale:sc});
+  const c=document.createElement('canvas');c.width=Math.round(vp.width);c.height=Math.round(vp.height);
+  const x=c.getContext('2d');x.fillStyle='#fff';x.fillRect(0,0,c.width,c.height);
+  await pg.render({canvasContext:x,viewport:vp}).promise;return c;
+}
+const sw=s=>s.naturalWidth||s.width, sh=s=>s.naturalHeight||s.height;
+
+/* ---------- geometría (todo en mm) ---------- */
+function layout(){
+  let [pw,ph]=PAPER[S.paper];if(S.orient==='l')[pw,ph]=[ph,pw];
+  const m=S.mg,o=S.ov,aw=pw-2*m,ah=ph-2*m;           // zona imprimible
+  let iw=sw(S.src),ih=sh(S.src);if(S.rot%180)[iw,ih]=[ih,iw];
+  const cols=S.cols,W=cols*aw-(cols-1)*o;             // ancho del mural
+  const Hneed=W*ih/iw;
+  const rows=Math.max(1,Math.ceil((Hneed-o)/(ah-o)-1e-9));
+  const H=rows*ah-(rows-1)*o;
+  const offY=(H-Hneed)/2;                               // centrado vertical
+  return {pw,ph,m,o,aw,ah,cols,rows,W,H,Hneed,offY,iw,ih};
+}
+const code=(r,c)=>String.fromCharCode(65+r)+(c+1);
+
+/* dibuja el documento (girado) en el contexto: ocupa w x h a partir de (x,y) */
+function drawSrc(ctx,src,x,y,w,h){
+  ctx.save();ctx.translate(x+w/2,y+h/2);ctx.rotate(S.rot*Math.PI/180);
+  const r=S.rot%180?[h,w]:[w,h];ctx.drawImage(src,-r[0]/2,-r[1]/2,r[0],r[1]);ctx.restore();
+}
+
+/* ---------- vista previa ---------- */
+function update(){
+  if(!S.src)return;const L=layout();
+  $('sN').textContent=L.cols*L.rows;$('sG').textContent=L.cols+' × '+L.rows;
+  $('sS').textContent=(L.W/10).toFixed(0)+' × '+(L.Hneed/10).toFixed(0)+' cm';
+  const cv=$('prev'),box=$('stage'),maxW=box.clientWidth-30,maxH=Math.max(380,window.innerHeight*.62);
+  const k=Math.min(maxW/L.W,maxH/L.H);cv.width=Math.round(L.W*k);cv.height=Math.round(L.H*k);
+  const x=cv.getContext('2d');x.fillStyle='#fff';x.fillRect(0,0,cv.width,cv.height);
+  drawSrc(x,S.src,0,L.offY*k,L.W*k,L.Hneed*k);
+  const st=L.aw-L.o;
+  x.fillStyle='rgba(59,91,219,.13)';
+  for(let c=1;c<L.cols;c++)x.fillRect(c*st*k,0,L.o*k,cv.height);
+  for(let r=1;r<L.rows;r++)x.fillRect(0,r*(L.ah-L.o)*k,cv.width,L.o*k);
+  x.strokeStyle='rgba(36,57,156,.85)';x.lineWidth=1.5;x.setLineDash([6,4]);
+  for(let r=0;r<L.rows;r++)for(let c=0;c<L.cols;c++)x.strokeRect(c*st*k+.5,r*(L.ah-L.o)*k+.5,L.aw*k-1,L.ah*k-1);
+  x.setLineDash([]);const fs=Math.max(11,Math.min(26,L.aw*k/5));x.font=`700 ${fs}px Fredoka, sans-serif`;x.textAlign='center';x.textBaseline='middle';
+  for(let r=0;r<L.rows;r++)for(let c=0;c<L.cols;c++){const cx=(c*st+L.aw/2)*k,cy=(r*(L.ah-L.o)+L.ah/2)*k,t=code(r,c);
+    x.fillStyle='rgba(255,255,255,.85)';x.beginPath();x.arc(cx,cy,fs*1.05,0,7);x.fill();x.fillStyle='#24399c';x.fillText(t,cx,cy+1)}
+}
+window.addEventListener('resize',()=>update());
+
+/* ---------- PDF ---------- */
+$('go').onclick=async()=>{
+  if(!S.src)return;const L=layout(),DPI=+$('dpi').value,pxmm=DPI/25.4;
+  try{
+    busy(true,'Preparando el documento a gran tamaño…',3);await tick();
+    // fuente a alta resolución: el mural completo a DPI, con límite de memoria
+    let big=S.src;
+    const needPx=Math.max(L.W,L.Hneed)*pxmm, LIMIT=16e6;
+    if(S.pdf){let px=Math.min(needPx,Math.sqrt(LIMIT*Math.max(L.W,L.Hneed)/Math.min(L.W,L.Hneed)));px=Math.max(1600,Math.min(px,9000));big=await renderPdf(px)}
+    const {jsPDF}=window.jspdf;
+    const doc=new jsPDF({orientation:L.pw>L.ph?'l':'p',unit:'mm',format:[L.pw,L.ph],compress:true});
+    let first=true;
+    if($('map').checked){guide(doc,L);first=false}
+    const tw=Math.round(L.aw*pxmm),th=Math.round(L.ah*pxmm),t=document.createElement('canvas');t.width=tw;t.height=th;const tx=t.getContext('2d');
+    const total=L.cols*L.rows;let n=0;
+    for(let r=0;r<L.rows;r++)for(let c=0;c<L.cols;c++){
+      n++;busy(true,`Creando folio ${code(r,c)} (${n} de ${total})…`,5+90*n/total);await tick();
+      const X=c*(L.aw-L.o),Y=r*(L.ah-L.o);              // origen del folio en el mural (mm)
+      tx.setTransform(1,0,0,1,0,0);tx.fillStyle='#fff';tx.fillRect(0,0,tw,th);
+      tx.setTransform(pxmm,0,0,pxmm,-X*pxmm,-Y*pxmm);   // coordenadas del mural en mm
+      tx.imageSmoothingQuality='high';drawSrc(tx,big,0,L.offY,L.W,L.Hneed);
+      if(!first)doc.addPage([L.pw,L.ph],L.pw>L.ph?'l':'p');first=false;
+      doc.addImage(t.toDataURL('image/jpeg',.9),'JPEG',L.m,L.m,L.aw,L.ah,undefined,'FAST');
+      if($('marks').checked)marks(doc,L,r,c);
+    }
+    busy(true,'Guardando el PDF…',98);await tick();
+    doc.save(`Mural_${S.name}_${L.cols}x${L.rows}_${S.paper.toUpperCase()}.pdf`);
+    busy(false);toast('✅ PDF creado. Imprímelo al 100 % (tamaño real).',5000);
+  }catch(err){console.error(err);busy(false);toast('Algo ha fallado. Prueba con calidad «Normal» o menos folios.',5000)}
+};
+
+/* marcas de corte, solape y código en el margen blanco */
+function marks(doc,L,r,c){
+  const {pw,ph,m,o,aw,ah}=L;doc.setLineWidth(.2);doc.setDrawColor(120,130,150);
+  const t=Math.min(m-1,5);
+  // líneas de corte (borde de la imagen) en las 4 esquinas, por fuera
+  [[m,m],[pw-m,m],[m,ph-m],[pw-m,ph-m]].forEach(([x,y])=>{
+    const sx=x<pw/2?-1:1,sy=y<ph/2?-1:1;doc.line(x,y+sy*.8,x,y+sy*(t+.8));doc.line(x+sx*.8,y,x+sx*(t+.8),y)});
+  // líneas de solape (dónde termina la franja repetida): izquierda/arriba si hay vecino antes; derecha/abajo si hay vecino después
+  doc.setDrawColor(59,91,219);doc.setLineDashPattern([1,1],0);
+  const L1=(x1,y1,x2,y2)=>doc.line(x1,y1,x2,y2);
+  if(c>0){L1(m+o,m-.8,m+o,m-t-.8);L1(m+o,ph-m+.8,m+o,ph-m+t+.8)}
+  if(c<L.cols-1){L1(pw-m-o,m-.8,pw-m-o,m-t-.8);L1(pw-m-o,ph-m+.8,pw-m-o,ph-m+t+.8)}
+  if(r>0){L1(m-.8,m+o,m-t-.8,m+o);L1(pw-m+.8,m+o,pw-m+t+.8,m+o)}
+  if(r<L.rows-1){L1(m-.8,ph-m-o,m-t-.8,ph-m-o);L1(pw-m+.8,ph-m-o,pw-m+t+.8,ph-m-o)}
+  doc.setLineDashPattern([],0);
+  // código
+  doc.setFont('helvetica','bold');doc.setFontSize(Math.min(9,m*1.6));doc.setTextColor(36,57,156);
+  const lab=`${code(r,c)}  ·  fila ${String.fromCharCode(65+r)}, columna ${c+1}  ·  mural ${L.cols}×${L.rows}`;
+  doc.text(lab,pw-m,ph-m/2+1.2,{align:'right'});
+  doc.setFont('helvetica','normal');doc.setTextColor(120,130,150);
+  const tip=(r>0||c>0)?'Recorta el margen '+(c>0&&r>0?'izquierdo y superior':c>0?'izquierdo':'superior'):'Este folio no se recorta';
+  doc.text(tip,m,ph-m/2+1.2);
+}
+
+/* hoja-guía */
+function guide(doc,L){
+  const {pw,ph}=L;doc.setFont('helvetica','bold');doc.setFontSize(20);doc.setTextColor(36,57,156);
+  doc.text('Hoja-guía del mural',pw/2,20,{align:'center'});
+  doc.setFont('helvetica','normal');doc.setFontSize(11);doc.setTextColor(60,70,90);
+  doc.text(`${S.name}  ·  ${L.cols*L.rows} folios ${S.paper.toUpperCase()} (${L.cols} de ancho × ${L.rows} de alto)  ·  ${(L.W/10).toFixed(0)} × ${(L.Hneed/10).toFixed(0)} cm`,pw/2,28,{align:'center',maxWidth:pw-24});
+  const bw=pw-30,bh=ph-90,k=Math.min(bw/L.W,bh/L.H),gw=L.W*k,gh=L.H*k,x0=(pw-gw)/2,y0=38;
+  const c=document.createElement('canvas'),q=6;c.width=Math.round(gw*q);c.height=Math.round(gh*q);
+  const x=c.getContext('2d');x.fillStyle='#fff';x.fillRect(0,0,c.width,c.height);drawSrc(x,S.src,0,L.offY*k*q,gw*q,L.Hneed*k*q);
+  doc.addImage(c.toDataURL('image/jpeg',.85),'JPEG',x0,y0,gw,gh);
+  const st=L.aw-L.o;doc.setDrawColor(36,57,156);doc.setLineWidth(.35);
+  doc.setFont('helvetica','bold');const fs=Math.max(7,Math.min(16,L.aw*k*.9));doc.setFontSize(fs);
+  for(let r=0;r<L.rows;r++)for(let cc=0;cc<L.cols;cc++){
+    const gx=x0+cc*st*k,gy=y0+r*(L.ah-L.o)*k;doc.rect(gx,gy,L.aw*k,L.ah*k);
+    doc.setFillColor(255,255,255);doc.circle(gx+L.aw*k/2,gy+L.ah*k/2,fs*.42,'F');doc.setTextColor(36,57,156);
+    doc.text(code(r,cc),gx+L.aw*k/2,gy+L.ah*k/2+fs*.13,{align:'center'})}
+  doc.setFont('helvetica','normal');doc.setFontSize(9.5);doc.setTextColor(60,70,90);
+  const tips=['1. Imprime al 100 % (tamaño real), sin "Ajustar a la página".',
+    '2. Letras = filas (A arriba) y números = columnas (1 a la izquierda).',
+    '3. Recorta el margen izquierdo y superior de cada folio, salvo la primera fila y la primera columna.',
+    '4. Coloca ese borde sobre el folio anterior haciendo coincidir el dibujo de la franja de solape y pega por detrás.'];
+  let yy=y0+gh+9;tips.forEach(t=>{doc.text(t,15,yy,{maxWidth:pw-30});yy+=5.6});
+}
+
+if('serviceWorker' in navigator)navigator.serviceWorker.register('sw.js').catch(()=>{});
+</script>
+</body>
+</html>

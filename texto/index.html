@@ -40,9 +40,13 @@ button,select,input{font-family:inherit}
 .col input{position:absolute;inset:0;opacity:0;cursor:pointer;width:100%;height:100%}
 /* zona de trabajo */
 .ws{flex:1;overflow:auto;padding:22px 12px 60px;position:relative}
-.hoja{width:210mm;max-width:100%;min-height:297mm;margin:0 auto;background:#fff;box-shadow:0 2px 14px rgba(40,60,100,.18);padding:25mm;outline:none;font-family:Calibri,Carlito,"Segoe UI",Arial,sans-serif;font-size:11pt;line-height:1.35;color:#1b1b1b;overflow-wrap:break-word;
-  background-image:repeating-linear-gradient(to bottom,transparent 0,transparent calc(297mm - 2px),#c3ccdc calc(297mm - 2px),#c3ccdc 297mm)}
+.hoja{--mt:25mm;--mr:25mm;--mb:25mm;--ml:25mm;width:210mm;max-width:100%;min-height:297mm;margin:0 auto;background:#fff;box-shadow:0 2px 14px rgba(40,60,100,.18);padding:var(--mt) var(--mr) var(--mb) var(--ml);outline:none;font-family:Calibri,Carlito,"Segoe UI",Arial,sans-serif;font-size:11pt;line-height:1.35;color:#1b1b1b;overflow-wrap:break-word;
+  background-image:repeating-linear-gradient(to bottom,#fff 0,#fff 297mm,#dfe5ee 297mm,#dfe5ee 309mm);background-size:100% 309mm}
 .hoja p{margin:0 0 8pt}
+.hoja .cap-hf{font-size:9pt;color:#555;min-height:14pt;outline:1px dashed #d7deea;padding:2pt 4pt;margin:0 0 8pt;white-space:normal}
+.hoja .cap-footer{margin:12pt 0 0;border-top:1px solid #d7deea;padding-top:4pt}
+.hoja .cap-hf:empty:before{content:attr(data-placeholder);color:#9aa3b2}
+.hoja .cap-hf:focus{outline:1px solid #8aafe8}
 .hoja h1{font-size:20pt;margin:14pt 0 6pt;color:#1f3864;line-height:1.2}
 .hoja h2{font-size:15pt;margin:12pt 0 5pt;color:#2e5597;line-height:1.25}
 .hoja h3{font-size:12.5pt;margin:10pt 0 4pt;color:#2e5597}
@@ -92,6 +96,9 @@ button,select,input{font-family:inherit}
   .tb,.menu,.cinta,.sb,.ibar,.vel,.aviso{display:none!important}
   .ws{overflow:visible;padding:0}
   .hoja{width:auto;min-height:0;box-shadow:none;padding:0;background-image:none;zoom:1!important}
+  .hoja .cap-hf{outline:0;color:#444}
+  .hoja .cap-hf:empty:before{content:""}
+  .hoja .cap-footer{position:relative}
   .hoja img.sel{outline:0}
   .salto{border:0;margin:0;height:0;page-break-after:always;break-after:page}.salto span{display:none}
   .hoja *{-webkit-print-color-adjust:exact;print-color-adjust:exact}
@@ -123,7 +130,7 @@ button,select,input{font-family:inherit}
 
   <div class="grp"><div class="fila">
     <select id="s-fuente" title="Tipo de letra">
-      <option>Calibri</option><option>Arial</option><option>Times New Roman</option><option>Georgia</option><option>Verdana</option><option>Comic Sans MS</option><option>Courier New</option>
+      <option>Arial</option><option>Arial Narrow</option><option>Aptos</option><option>Aptos Display</option><option>Calibri</option><option>Cambria</option><option>Candara</option><option>Century Gothic</option><option>Comic Sans MS</option><option>Consolas</option><option>Constantia</option><option>Courier New</option><option>Franklin Gothic Medium</option><option>Garamond</option><option>Georgia</option><option>Helvetica</option><option>Lucida Sans</option><option>Palatino Linotype</option><option>Segoe UI</option><option>Tahoma</option><option>Times New Roman</option><option>Trebuchet MS</option><option>Verdana</option>
     </select>
     <select id="s-tam" title="Tamaño de letra">
       <option>8</option><option>9</option><option>10</option><option selected>11</option><option>12</option><option>14</option><option>16</option><option>18</option><option>20</option><option>24</option><option>28</option><option>36</option><option>48</option><option>72</option>
@@ -177,11 +184,12 @@ button,select,input{font-family:inherit}
 
   <div class="grp"><div class="fila">
     <button class="b" id="b-buscar" title="Buscar y reemplazar (Ctrl+H)">🔎 Buscar</button>
-  </div><div class="fila">&nbsp;</div><div class="tit">Edición</div></div>
+    <button class="b" id="b-pagina" title="Configurar página, márgenes y encabezado/pie">📐 Página</button>
+  </div><div class="fila">&nbsp;</div><div class="tit">Edición · Ctrl+V conserva formato</div></div>
 </div>
 
 <main class="ws" id="ws">
-  <div class="hoja" id="hoja" contenteditable="true" spellcheck="true" lang="es"></div>
+  <div class="hoja" id="hoja" contenteditable="true" spellcheck="true" lang="es"><div class="cap-hf cap-header" contenteditable="true" data-cap-hf="header" data-placeholder="Haz clic para escribir el encabezado…"></div><p><br></p><div class="cap-hf cap-footer" contenteditable="true" data-cap-hf="footer" data-placeholder="Haz clic para escribir el pie de página…"></div></div>
   <div class="ibar" id="ibar">
     <button class="b" data-i="25">25 %</button><button class="b" data-i="50">50 %</button><button class="b" data-i="75">75 %</button><button class="b" data-i="100">100 %</button>
     <button class="b" data-i="izq" title="A la izquierda">⇤</button><button class="b" data-i="cen" title="Centrada">↔</button><button class="b" data-i="der" title="A la derecha">⇥</button>
@@ -218,18 +226,23 @@ const BD={
   todos(){return this.tx('readonly',s=>s.getAll());},
   borrar(id){return this.tx('readwrite',s=>s.delete(id));}
 };
-let DOC={id:null,titulo:'',html:VACIO,mod:0};
+const MARGEN_DEF={top:2.5,right:2.5,bottom:2.5,left:2.5};
+let estadoMargenes={...MARGEN_DEF};
+let DOC={id:null,titulo:'',html:VACIO,hf:{header:'',footer:''},margenes:{...MARGEN_DEF},mod:0};
 const nuevoId=()=>'d'+Date.now().toString(36)+Math.random().toString(36).slice(2,6);
 let tGuardar=null;
 function sucio(){ $('est').textContent='Guardando…'; clearTimeout(tGuardar); tGuardar=setTimeout(guardar,700); contar(); }
 async function guardar(){
-  DOC.titulo=titulo.value.trim(); DOC.html=limpiaHTML(); DOC.mod=Date.now();
+  DOC.titulo=titulo.value.trim(); DOC.html=limpiaHTML(); DOC.hf=datosHF(); DOC.margenes=estadoMargenes; DOC.mod=Date.now();
   try{ await BD.guardar(DOC); localStorage.setItem('capitexto_actual',DOC.id); $('est').textContent='Guardado en este dispositivo'; }
   catch(e){ $('est').textContent='⚠️ No se ha podido guardar'; }
 }
-function limpiaHTML(){ const c=hoja.cloneNode(true); c.querySelectorAll('img.sel').forEach(i=>i.classList.remove('sel')); return c.innerHTML.replace(/\u200B/g,''); }
-function cargar(d){ DOC=d; titulo.value=d.titulo||''; hoja.innerHTML=d.html||VACIO; ocultarIbar(); contar(); estado(); document.title=(d.titulo||'Documento sin título')+' · Capitexto'; }
-function docNuevo(){ cargar({id:nuevoId(),titulo:'',html:VACIO,mod:Date.now()}); guardar(); hoja.focus(); }
+function limpiaHTML(){ const c=hoja.cloneNode(true); c.querySelectorAll('.cap-hf,img.sel').forEach(i=>i.remove()); return c.innerHTML.replace(/\u200B/g,''); }
+function datosHF(){return {header:hoja.querySelector('[data-cap-hf=header]')?.innerHTML||'',footer:hoja.querySelector('[data-cap-hf=footer]')?.innerHTML||''};}
+function ponerHF(d={}){const h=hoja.querySelector('[data-cap-hf=header]'),f=hoja.querySelector('[data-cap-hf=footer]');if(h)h.innerHTML=d.header||'';if(f)f.innerHTML=d.footer||'';}
+function insertarZonasHF(){if(!hoja.querySelector('[data-cap-hf=header]'))hoja.insertAdjacentHTML('afterbegin','<div class="cap-hf cap-header" contenteditable="true" data-cap-hf="header" data-placeholder="Haz clic para escribir el encabezado…"></div>');if(!hoja.querySelector('[data-cap-hf=footer]'))hoja.insertAdjacentHTML('beforeend','<div class="cap-hf cap-footer" contenteditable="true" data-cap-hf="footer" data-placeholder="Haz clic para escribir el pie de página…"></div>');}
+function cargar(d){ DOC=d; titulo.value=d.titulo||''; hoja.innerHTML=d.html||VACIO; insertarZonasHF(); ponerHF(d.hf||{}); aplicarMargenes(d.margenes||{}); ocultarIbar(); contar(); estado(); document.title=(d.titulo||'Documento sin título')+' · Capitexto'; }
+function docNuevo(){ cargar({id:nuevoId(),titulo:'',html:VACIO,hf:{header:'',footer:''},margenes:{...MARGEN_DEF},mod:Date.now()}); guardar(); hoja.focus(); }
 
 // ═════ selección y órdenes de formato ═════
 let rango=null;
@@ -397,6 +410,22 @@ $('b-memb').addEventListener('click',async()=>{
   }catch(e){ aviso('No se ha podido cargar el logo'); }
 });
 
+// ═════ diseño de página: márgenes, encabezado y pie ═════
+function aplicarMargenes(m={}){
+  estadoMargenes={top:+m.top||2.5,right:+m.right||2.5,bottom:+m.bottom||2.5,left:+m.left||2.5};
+  hoja.style.setProperty('--mt',estadoMargenes.top+'cm');hoja.style.setProperty('--mr',estadoMargenes.right+'cm');
+  hoja.style.setProperty('--mb',estadoMargenes.bottom+'cm');hoja.style.setProperty('--ml',estadoMargenes.left+'cm');
+  let st=$('estilo-pagina-print');if(!st){st=document.createElement('style');st.id='estilo-pagina-print';document.head.appendChild(st);}
+  st.textContent='@media print{@page{size:A4;margin:'+estadoMargenes.top+'cm '+estadoMargenes.right+'cm '+estadoMargenes.bottom+'cm '+estadoMargenes.left+'cm}}';
+}
+$('b-pagina').addEventListener('click',()=>{
+  const m=estadoMargenes;
+  dialogo('<h3>Diseño de página</h3><p style="font-size:13px;color:var(--gris)">Márgenes A4 en centímetros. El encabezado y el pie se editan directamente en la hoja.</p>'+['top:Superior','right:Derecho','bottom:Inferior','left:Izquierdo'].map(x=>{const [k,l]=x.split(':');return '<label>'+l+'</label><input type="number" id="m-'+k+'" min="0.5" max="5" step="0.1" value="'+m[k]+'">';}).join('')+'<div class="pie"><button class="bt" data-x>Cancelar</button><button class="bt p" id="m-aplicar">Aplicar</button></div>');
+  $('m-aplicar').addEventListener('click',()=>{const n={};['top','right','bottom','left'].forEach(k=>n[k]=Math.max(.5,Math.min(5,parseFloat($('m-'+k).value)||2.5)));aplicarMargenes(n);sucio();cerrar();aviso('Márgenes actualizados');});
+});
+// El corrector nativo del navegador está activado en el documento y en los campos de encabezado/pie.
+hoja.addEventListener('input',e=>{if(e.target.closest('[data-cap-hf]'))sucio();});
+
 // ═════ buscar y reemplazar ═════
 function textos(){ const w=document.createTreeWalker(hoja,NodeFilter.SHOW_TEXT), a=[]; let n; while(n=w.nextNode()) a.push(n); return a; }
 function abrirBuscar(){
@@ -437,10 +466,55 @@ async function misDocs(){
     await BD.borrar(b.dataset.bo); if(b.dataset.bo===DOC.id) docNuevo(); misDocs(); }));
 }
 function cargarScript(src){ return new Promise((ok,ko)=>{ const s=document.createElement('script'); s.src=src; s.onload=ok; s.onerror=()=>ko(new Error('No se ha podido cargar '+src)); document.head.appendChild(s); }); }
-function sanear(html){ const d=new DOMParser().parseFromString(html,'text/html');
-  d.querySelectorAll('script,style,link,meta,iframe,object,embed,form').forEach(n=>n.remove());
-  d.querySelectorAll('*').forEach(n=>[...n.attributes].forEach(a=>{ if(/^on/i.test(a.name)||(/^(href|src)$/i.test(a.name)&&/^\s*javascript:/i.test(a.value))) n.removeAttribute(a.name); }));
-  return d.body.innerHTML; }
+function sanear(html){
+  const d=new DOMParser().parseFromString(String(html||''),'text/html');
+  d.querySelectorAll('script,style,link,meta,iframe,object,embed,form,base').forEach(n=>n.remove());
+  // Word y algunas aplicaciones introducen nodos auxiliares de Office sin contenido útil.
+  d.querySelectorAll('o\\:p, w\\:proofErr').forEach(n=>n.replaceWith(...n.childNodes));
+  const permitidos=new Set(['color','background-color','font-family','font-size','font-weight','font-style','text-decoration','text-align','vertical-align','white-space','margin','margin-left','margin-right','margin-top','margin-bottom','text-indent','width','height','max-width','border','border-top','border-right','border-bottom','border-left','border-collapse','padding','padding-left','padding-right','padding-top','padding-bottom','list-style-type']);
+  d.querySelectorAll('*').forEach(n=>{
+    [...n.attributes].forEach(a=>{
+      const k=a.name.toLowerCase(), v=a.value.trim();
+      if(k.startsWith('on') || k==='srcdoc' || k==='formaction') { n.removeAttribute(a.name); return; }
+      if((k==='href'||k==='src') && !/^(https?:|mailto:|tel:|data:image\/(png|jpeg|gif|webp);base64,|#)/i.test(v)) n.removeAttribute(a.name);
+      if(k==='style'){
+        const reglas=[];
+        v.split(';').forEach(regla=>{
+          const i=regla.indexOf(':'); if(i<1) return;
+          const prop=regla.slice(0,i).trim().toLowerCase(), val=regla.slice(i+1).trim();
+          if(permitidos.has(prop) && !/(expression|javascript:|url\s*\(|@import|behavior|\-moz-binding)/i.test(val)) reglas.push(prop+':'+val);
+        });
+        if(reglas.length) n.setAttribute('style',reglas.join(';')); else n.removeAttribute('style');
+      }
+    });
+  });
+  return d.body.innerHTML;
+}
+function htmlDesdeTexto(texto){
+  return String(texto||'').replace(/\r\n?/g,'\n').split('\n').map(l=>'<p>'+(l?esc(l):'<br>')+'</p>').join('');
+}
+// Pegado enriquecido: conserva negritas, cursivas, listas, tablas, enlaces e imágenes.
+hoja.addEventListener('paste',async e=>{
+  const cd=e.clipboardData; if(!cd) return;
+  const html=cd.getData('text/html');
+  const texto=cd.getData('text/plain');
+  const imagenes=[...(cd.items||[])].filter(x=>x.kind==='file' && /^image\//i.test(x.type));
+  if(html){
+    e.preventDefault();
+    const limpio=sanear(html);
+    if(limpio.trim()) insertarHTML(limpio); else if(texto) insertarHTML(htmlDesdeTexto(texto));
+    normalizar(); sucio();
+    return;
+  }
+  if(imagenes.length){
+    e.preventDefault();
+    const f=imagenes[0].getAsFile();
+    if(f){ try{ const u=await reducirImagen(f); insertarHTML('<img src="'+u+'" alt="Imagen pegada">'); }
+      catch(err){ aviso('No se ha podido pegar la imagen'); } }
+    return;
+  }
+  if(texto){ e.preventDefault(); insertarHTML(htmlDesdeTexto(texto)); normalizar(); sucio(); }
+});
 $('f-abrir').addEventListener('change',async e=>{
   const f=e.target.files[0]; e.target.value=''; if(!f) return;
   const nombre=f.name.replace(/\.[^.]+$/,''), ext=(f.name.split('.').pop()||'').toLowerCase();
@@ -451,6 +525,7 @@ $('f-abrir').addEventListener('change',async e=>{
       if(!window.mammoth) await cargarScript('mammoth.browser.min.js');
       const r=await mammoth.convertToHtml({arrayBuffer:await f.arrayBuffer()},{styleMap:["u => u","strike => s"]});
       html=sanear(r.value);
+      if(r.messages && r.messages.some(m=>m.type==='warning')) console.info('Avisos al importar Word:',r.messages);
     } else if(ext==='txt'){
       html=(await f.text()).split(/\r?\n/).map(l=>'<p>'+(esc(l)||'<br>')+'</p>').join('');
     } else if(ext==='html'||ext==='htm'){
@@ -459,7 +534,7 @@ $('f-abrir').addEventListener('change',async e=>{
     else { aviso('Ese tipo de archivo no se puede abrir'); return; }
     await guardar();
     cargar({id:nuevoId(),titulo:nombre,html:html||VACIO,mod:Date.now()}); await guardar();
-    aviso('Abierto: '+f.name);
+    aviso('Abierto: '+f.name+' · revisa la paginación y los elementos complejos');
   }catch(er){ aviso('No se ha podido abrir el archivo'); console.error(er); }
 });
 
@@ -592,8 +667,10 @@ async function exportarDocx(){
   if(!window.docx) await cargarScript('docx-9.5.1.iife.js');
   const D=window.docx; ocultarIbar();
   const z=hoja.style.zoom; hoja.style.zoom='';            // medir sin zoom
-  let children;
-  try{ children=await bloques(D,hoja,{inst:0}); } finally{ hoja.style.zoom=z; }
+  let children,headerChildren=[],footerChildren=[];
+  try{ const body=hoja.cloneNode(true); body.querySelectorAll('.cap-hf').forEach(x=>x.remove()); children=await bloques(D,body,{inst:0});
+    const hf=datosHF(); for(const [key,target] of [['header',headerChildren],['footer',footerChildren]]){const tmp=document.createElement('div');tmp.innerHTML=hf[key]||'';const bs=await bloques(D,tmp,{inst:0});target.push(...bs);}
+  } finally{ hoja.style.zoom=z; }
   if(!children.length) children=[new D.Paragraph({children:[]})];
   const niveles=fmt=>[0,1,2,3].map(l=>Object.assign({level:l,alignment:D.AlignmentType.LEFT,style:{paragraph:{indent:{left:720*(l+1),hanging:360}}}},fmt(l)));
   const doc=new D.Document({
@@ -605,7 +682,7 @@ async function exportarDocx(){
     numbering:{config:[
       {reference:'vin',levels:niveles(l=>({format:D.LevelFormat.BULLET,text:['•','◦','▪','•'][l]}))},
       {reference:'num',levels:niveles(l=>({format:[D.LevelFormat.DECIMAL,D.LevelFormat.LOWER_LETTER,D.LevelFormat.LOWER_ROMAN,D.LevelFormat.DECIMAL][l],text:'%'+(l+1)+'.'}))}]},
-    sections:[{properties:{page:{size:{width:11906,height:16838},margin:{top:1417,bottom:1417,left:1417,right:1417}}},children}]
+    sections:[{properties:{page:{size:{width:11906,height:16838},margin:{top:Math.round(estadoMargenes.top*567),bottom:Math.round(estadoMargenes.bottom*567),left:Math.round(estadoMargenes.left*567),right:Math.round(estadoMargenes.right*567)}}},headers:headerChildren.length?{default:new D.Header({children:headerChildren})}:undefined,footers:footerChildren.length?{default:new D.Footer({children:footerChildren})}:undefined,children}]
   });
   const blob=await D.Packer.toBlob(doc);
   const a=document.createElement('a'); a.href=URL.createObjectURL(blob);
@@ -650,7 +727,7 @@ hoja.addEventListener('keydown',e=>{
   sucio(); estado();
 });
 hoja.addEventListener('keydown',e=>{ if(e.key==='Tab'&&!celdaActual()){ e.preventDefault(); document.execCommand('insertHTML',false,'&emsp;'); } });
-window.addEventListener('beforeunload',()=>{ if(tGuardar){ DOC.titulo=titulo.value.trim(); DOC.html=limpiaHTML(); DOC.mod=Date.now(); BD.guardar(DOC); } });
+window.addEventListener('beforeunload',()=>{ if(tGuardar){ DOC.titulo=titulo.value.trim(); DOC.html=limpiaHTML(); DOC.hf=datosHF(); DOC.margenes=estadoMargenes; DOC.mod=Date.now(); BD.guardar(DOC); } });
 
 (async function inicio(){
   let d=null;
@@ -658,6 +735,9 @@ window.addEventListener('beforeunload',()=>{ if(tGuardar){ DOC.titulo=titulo.val
   if(d) cargar(d); else docNuevo();
   window._listo=true;
 })();
+/* Aviso de novedades: una sola vez por dispositivo */
+(function(){var K='capitexto-novedad',ID='2026-11-13-fase1';try{if(localStorage.getItem(K)===ID)return;localStorage.setItem(K,ID);}catch(e){return;}
+ setTimeout(function(){var a=document.getElementById('aviso');aviso('Novedad: márgenes, encabezado y pie de página, más fuentes y mejor pegado desde Word.');clearTimeout(aviso._t);aviso._t=setTimeout(function(){a.classList.remove('v')},7000);},900);})();
 </script>
 </body>
 </html>
