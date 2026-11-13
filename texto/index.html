@@ -115,6 +115,23 @@ button,select,input{font-family:inherit}
   .hoja *{-webkit-print-color-adjust:exact;print-color-adjust:exact}
   @page{size:A4;margin:25mm}
 }
+
+/* reglas */
+.reglaH{position:sticky;top:-22px;z-index:6;width:210mm;max-width:100%;height:22px;margin:-22px auto 8px;background:#eef2f8;border:1px solid #c9d3e3;border-radius:3px;box-shadow:0 1px 3px rgba(40,60,100,.12);user-select:none;touch-action:none}
+.reglaV{position:absolute;z-index:5;width:18px;height:297mm;background:#eef2f8;border:1px solid #c9d3e3;border-radius:3px;user-select:none;touch-action:none}
+.regla-zona{position:absolute;background:#fff}
+.regla-marca{position:absolute;background:#7b879b}
+.regla-num{position:absolute;font:9px "Segoe UI",Arial,sans-serif;color:#5b667a;transform:translate(-50%,0)}
+.reglaV .regla-num{transform:translate(0,-50%) rotate(-90deg);left:3px}
+.regla-tope{position:absolute;width:12px;height:12px;cursor:ew-resize;z-index:2}
+.reglaH .regla-tope{top:10px;margin-left:-6px;clip-path:polygon(50% 0,100% 100%,0 100%);background:#1f5fbf}
+.reglaV .regla-tope{left:6px;margin-top:-6px;cursor:ns-resize;clip-path:polygon(0 50%,100% 0,100% 100%);background:#1f5fbf}
+.regla-tope:hover{background:#0b3f8f}
+.regla-info{position:fixed;z-index:30;background:#1b2a44;color:#fff;font:600 12px "Segoe UI",sans-serif;padding:3px 8px;border-radius:6px;pointer-events:none;display:none}
+.regla-guia{position:fixed;z-index:29;pointer-events:none;display:none;border:0 dashed #1f5fbf}
+body.sin-regla .reglaH,body.sin-regla .reglaV{display:none}
+@media(max-width:820px){.reglaH,.reglaV{display:none}}
+@media print{.reglaH,.reglaV,.regla-info,.regla-guia{display:none!important}}
 </style>
 </head>
 <body>
@@ -209,9 +226,11 @@ button,select,input{font-family:inherit}
   <div class="grp" data-panel="vista"><div class="fila">
     <button class="b" data-zoom="80">80 %</button><button class="b" data-zoom="100">100 %</button><button class="b" data-zoom="120">120 %</button>
   </div><div class="fila">&nbsp;</div><div class="tit">Zoom del documento</div></div>
+  <div class="grp" data-panel="vista"><div class="fila"><button class="b" id="b-regla" title="Mostrar u ocultar la regla">📏 Regla</button></div><div class="fila">&nbsp;</div><div class="tit">Mostrar</div></div>
 </div>
 
 <main class="ws" id="ws">
+  <div class="reglaH" id="reglaH"></div><div class="reglaV" id="reglaV"></div><div class="regla-info" id="reglaInfo"></div><div class="regla-guia" id="reglaGuia"></div>
   <div class="hoja" id="hoja" contenteditable="true" spellcheck="true" lang="es"><div class="cap-hf cap-header" contenteditable="true" data-cap-hf="header" data-placeholder="Haz clic para escribir el encabezado…"></div><p><br></p><div class="cap-hf cap-footer" contenteditable="true" data-cap-hf="footer" data-placeholder="Haz clic para escribir el pie de página…"></div></div>
   <div class="ibar" id="ibar">
     <button class="b" data-i="25">25 %</button><button class="b" data-i="50">50 %</button><button class="b" data-i="75">75 %</button><button class="b" data-i="100">100 %</button>
@@ -836,8 +855,85 @@ window.addEventListener('resize',paginarLuego);
 hoja.addEventListener('load',e=>{if(e.target.tagName==='IMG')paginarLuego();},true);
 
 /* Aviso de novedades: una sola vez por dispositivo */
-(function(){var K='capitexto-novedad',ID='2026-11-13-paginas';try{if(localStorage.getItem(K)===ID)return;localStorage.setItem(K,ID);}catch(e){return;}
- setTimeout(function(){aviso('Novedad: el texto y las tablas ya no se quedan en la separación entre folios.');clearTimeout(aviso._t);aviso._t=setTimeout(function(){$('aviso').classList.remove('v')},7000);},900);})();
+(function(){var K='capitexto-novedad',ID='2026-11-13-regla';try{if(localStorage.getItem(K)===ID)return;localStorage.setItem(K,ID);}catch(e){return;}
+ setTimeout(function(){aviso('Novedad: regla para ajustar los márgenes arrastrando los triangulitos azules (se oculta en Vista).');clearTimeout(aviso._t);aviso._t=setTimeout(function(){$('aviso').classList.remove('v')},7000);},900);})();
+
+// ═════ Reglas para ajustar márgenes (como en Word) ═════
+(function(){
+  const rH=$('reglaH'), rV=$('reglaV'), info=$('reglaInfo'), guia=$('reglaGuia'), ws=$('ws');
+  const AN=21, AL=29.7, MIN_TXT=5;
+  try{ if(localStorage.getItem('capitexto-regla')==='0') document.body.classList.add('sin-regla'); }catch(e){}
+  const btn=$('b-regla'); const marcaBtn=()=>btn&&btn.classList.toggle('on',!document.body.classList.contains('sin-regla'));
+  if(btn) btn.addEventListener('click',()=>{ document.body.classList.toggle('sin-regla'); try{localStorage.setItem('capitexto-regla',document.body.classList.contains('sin-regla')?'0':'1');}catch(e){} marcaBtn(); dibujar(); });
+  marcaBtn();
+  function escala(el,largo,horiz){
+    let h='';
+    for(let mm=0;mm<=largo*10;mm+=2.5){
+      const cm=mm/10, larga=mm%10===0, media=mm%5===0;
+      const pos=(mm/(largo*10)*100).toFixed(3)+'%', t=larga?7:media?5:3;
+      h+= horiz ? '<i class="regla-marca" style="left:'+pos+';bottom:0;width:1px;height:'+t+'px"></i>'
+                : '<i class="regla-marca" style="top:'+pos+';right:0;height:1px;width:'+t+'px"></i>';
+    }
+    return h;
+  }
+  function nums(largo,ini,horiz){
+    let h='';
+    for(let cm=1;cm<largo;cm++){
+      const rel=Math.round(Math.abs(cm-ini)); if(rel===0) continue;
+      const pos=(cm/largo*100).toFixed(3)+'%';
+      h+= horiz ? '<span class="regla-num" style="left:'+pos+';top:1px">'+rel+'</span>' : '<span class="regla-num" style="top:'+pos+'">'+rel+'</span>';
+    }
+    return h;
+  }
+  function dibujar(){
+    const m=estadoMargenes, z=hoja.style.zoom||'';
+    rH.style.zoom=z; rV.style.zoom=z;
+    rH.innerHTML='<div class="regla-zona" style="top:0;bottom:0;left:'+(m.left/AN*100)+'%;right:'+(m.right/AN*100)+'%"></div>'+escala(rH,AN,true)+nums(AN,m.left,true)+
+      '<div class="regla-tope" data-lado="left" title="Margen izquierdo" style="left:'+(m.left/AN*100)+'%"></div>'+
+      '<div class="regla-tope" data-lado="right" title="Margen derecho" style="left:'+((AN-m.right)/AN*100)+'%"></div>';
+    rV.innerHTML='<div class="regla-zona" style="left:0;right:0;top:'+(m.top/AL*100)+'%;bottom:'+(m.bottom/AL*100)+'%"></div>'+escala(rV,AL,false)+nums(AL,m.top,false)+
+      '<div class="regla-tope" data-lado="top" title="Margen superior" style="top:'+(m.top/AL*100)+'%"></div>'+
+      '<div class="regla-tope" data-lado="bottom" title="Margen inferior" style="top:'+((AL-m.bottom)/AL*100)+'%"></div>';
+    colocarV();
+  }
+  function colocarV(){
+    const zf=parseFloat(hoja.style.zoom)||1, wr=ws.getBoundingClientRect(), hr=hoja.getBoundingClientRect();
+    const x=hr.left-wr.left+ws.scrollLeft-24, y=hr.top-wr.top+ws.scrollTop;   // px de pantalla
+    rV.style.left=(x/zf)+'px'; rV.style.top=(y/zf)+'px';
+  }
+  // arrastre
+  let arr=null;
+  function empezar(e){
+    const t=e.target.closest('.regla-tope'); if(!t) return;
+    e.preventDefault(); arr={lado:t.dataset.lado,regla:t.closest('.reglaH')?rH:rV}; t.setPointerCapture&&t.setPointerCapture(e.pointerId);
+    mover(e);
+  }
+  function mover(e){
+    if(!arr) return;
+    const r=arr.regla.getBoundingClientRect(), m={...estadoMargenes}, horiz=arr.regla===rH;
+    let cm = horiz ? (e.clientX-r.left)/r.width*AN : (e.clientY-r.top)/r.height*AL;
+    let v = (arr.lado==='left'||arr.lado==='top') ? cm : (horiz?AN:AL)-cm;
+    v=Math.round(v*4)/4;                                            // pasos de 0,25 cm
+    const otro = {left:'right',right:'left',top:'bottom',bottom:'top'}[arr.lado];
+    const max=(horiz?AN:AL)-m[otro]-MIN_TXT;
+    v=Math.max(0.5,Math.min(max,v));
+    if(v!==m[arr.lado]){ m[arr.lado]=v; aplicarMargenes(m); dibujar(); sucio(); }
+    const nom={left:'Margen izquierdo',right:'Margen derecho',top:'Margen superior',bottom:'Margen inferior'}[arr.lado];
+    info.textContent=nom+': '+v.toFixed(2).replace('.',',')+' cm'; info.style.display='block';
+    info.style.left=(e.clientX+14)+'px'; info.style.top=(e.clientY+14)+'px';
+    // línea guía sobre la hoja
+    const hr=hoja.getBoundingClientRect(); guia.style.display='block';
+    if(horiz){ const x=hr.left+(arr.lado==='left'?v:AN-v)/AN*hr.width; Object.assign(guia.style,{left:x+'px',top:hr.top+'px',width:'0',height:Math.min(hr.height,innerHeight)+'px',borderLeftWidth:'1px',borderTopWidth:'0'}); }
+    else { const ph=hr.width*AL/AN, y=hr.top+(arr.lado==='top'?v:AL-v)/AL*ph; Object.assign(guia.style,{left:hr.left+'px',top:y+'px',height:'0',width:hr.width+'px',borderTopWidth:'1px',borderLeftWidth:'0'}); }
+  }
+  function soltar(){ if(!arr) return; arr=null; info.style.display='none'; guia.style.display='none'; paginarLuego(); }
+  [rH,rV].forEach(r=>r.addEventListener('pointerdown',empezar));
+  window.addEventListener('pointermove',mover); window.addEventListener('pointerup',soltar); window.addEventListener('pointercancel',soltar);
+  // redibujar cuando cambian márgenes o zoom
+  new MutationObserver(dibujar).observe(hoja,{attributes:true,attributeFilter:['style']});
+  window.addEventListener('resize',colocarV);
+  setTimeout(dibujar,50);
+})();
 </script>
 </body>
 </html>
