@@ -434,7 +434,7 @@ a.kpi{color:inherit;transition:box-shadow .15s ease}
     <h3 id="titNov">✨ Novedades de Capitoolappciones</h3>
     <p class="sub">Novedades:</p>
     <ul>
-      <li>🧩 Nuevas apps: <b>Mural Gigante</b> (trocea un PDF o una foto en folios para hacer un mural) y <b>Capitexto</b>, el procesador de textos del cole.</li>
+      <li>🎓 Nuevo enlace a la web de formación <b>IA en el cole</b> en «Apps del cole».</li>
     </ul>
     <div class="botones"><button class="btn prim" id="btnNovOk">Entendido</button></div>
   </div>
@@ -464,6 +464,7 @@ const I = {
   podcast:'<rect x="9" y="3" width="6" height="11" rx="3"/><path d="M5.5 11a6.5 6.5 0 0 0 13 0"/><path d="M12 17.5V21M8.5 21h7"/>',
   texto:'<path d="M14 3H7a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h10a2 2 0 0 0 2-2V8z"/><path d="M14 3v5h5"/><path d="M8.5 12h7M8.5 15h7M8.5 18h4.5"/>',
   mural:'<rect x="3" y="4" width="18" height="16" rx="1.5"/><path d="M9 4v16M15 4v16M3 12h18"/><path d="m6 17 2.5-3 2 2 2.5-3.5 3 4.5"/>',
+  formacion:'<path d="M22 10 12 5 2 10l10 5 10-5z"/><path d="M6 12v5c3 2 9 2 12 0v-5"/><path d="M22 10v6"/>',
   chev:'<path d="m9 6 6 6-6 6"/>'
 };
 const svg = (k, cls='ico') => `<svg class="${cls}" viewBox="0 0 24 24" aria-hidden="true">${I[k]}</svg>`;
@@ -498,6 +499,8 @@ const APPS = [
    desc:'Junta el audio de un podcast con fotos, vídeos, sintonía y efectos, y saca el vídeo, un clip para redes o el MP3'},
   {id:'capitexto', nom:'Capitexto · Procesador de textos', corto:'Capitexto', ic:'texto', cat:'gestion', url:'https://vunisal706-droid.github.io/central/texto/',
    desc:'Procesador de textos tipo Word: abre y guarda .docx, márgenes, encabezado y pie, tablas e imágenes'},
+  {id:'formacion', nom:'IA en el cole · Formación', corto:'Formación', ic:'formacion', cat:'pedagogico', url:'https://vunisal706-droid.github.io/formacion/',
+   desc:'Web de la formación «IA en el cole»: crea herramientas para tu centro con inteligencia artificial'},
   {id:'mural', nom:'Mural Gigante', corto:'Mural', ic:'mural', cat:'pedagogico', url:'https://vunisal706-droid.github.io/central/mural/',
    desc:'Trocea un PDF o una foto en varios folios solapados para imprimir un mural gigante'},
   {id:'parte', nom:'Parte de Convivencia', corto:'Parte de convivencia', ic:'parte', cat:'alumnado', url:'https://vunisal706-droid.github.io/parteconvivencia/',
@@ -914,7 +917,7 @@ document.getElementById('campana').onclick = ()=>{
 document.getElementById('tablon').addEventListener('click', e=>{ if (e.target.closest('a')) marcarVistos(); });
 
 /* ---------- Novedades (una sola vez por dispositivo) ---------- */
-const NOV = 'capi-novedades-seneca-v22';
+const NOV = 'capi-novedades-seneca-v23';
 const veloNov = document.getElementById('veloNov');
 if(!ls.get(NOV,false)) setTimeout(()=>veloNov.classList.add('abierto'), 500);
 document.getElementById('btnNovOk').onclick = ()=>{ ls.set(NOV,true); veloNov.classList.remove('abierto'); };
