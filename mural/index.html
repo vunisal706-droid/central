@@ -127,8 +127,9 @@ select,input[type=number]{width:100%;padding:9px 10px;border:1px solid var(--lin
       <ol>
         <li>Imprime el PDF al <b>100 % / tamaño real</b> (sin «Ajustar a la página»).</li>
         <li>Coloca los folios en orden siguiendo la hoja-guía: <b>letras = filas</b>, <b>números = columnas</b>.</li>
-        <li>En cada folio, salvo la primera fila y la primera columna, <b>recorta el margen blanco de arriba y de la izquierda</b> por la línea de corte.</li>
-        <li>Pon ese borde encima del folio anterior, haz coincidir el dibujo de la franja de solape y pega con celo por detrás.</li>
+        <li>En cada folio, salvo la primera fila y la primera columna, <b>corta por la línea gris</b> de la izquierda y de arriba (va de borde a borde del papel).</li>
+        <li>Apoya ese borde recortado sobre la <b>línea azul de puntos</b> del folio vecino: si el dibujo coincide, la línea azul queda tapada. Pega con celo por detrás.</li>
+        <li>La hoja-guía lleva una regla de 10 cm para comprobar que la impresora no reduce.</li>
       </ol>
     </div>
   </div>
@@ -140,8 +141,8 @@ select,input[type=number]{width:100%;padding:9px 10px;border:1px solid var(--lin
 
 <script>
 /* ---------- Aviso de novedades (una vez por dispositivo) ---------- */
-(function(){var K='mural-novedad',ID='2026-11-13-v1';try{if(localStorage.getItem(K)===ID)return;localStorage.setItem(K,ID);}catch(e){return;}
- setTimeout(function(){toast('✨ Nueva app: trocea un PDF o una foto en folios para hacer un mural gigante.',5000)},800);})();
+(function(){var K='mural-novedad',ID='2026-11-13-v2';try{if(localStorage.getItem(K)===ID)return;localStorage.setItem(K,ID);}catch(e){return;}
+ setTimeout(function(){toast('✂️ Novedad: líneas de corte completas y línea azul de encaje para que los folios casen bien.',5000)},800);})();
 
 pdfjsLib.GlobalWorkerOptions.workerSrc='https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.worker.min.js';
 const $=id=>document.getElementById(id);
@@ -268,28 +269,34 @@ $('go').onclick=async()=>{
   }catch(err){console.error(err);busy(false);toast('Algo ha fallado. Prueba con calidad «Normal» o menos folios.',5000)}
 };
 
-/* marcas de corte, solape y código en el margen blanco */
+/* marcas: línea de corte completa, línea de encaje (queda tapada por el folio vecino) y código */
 function marks(doc,L,r,c){
-  const {pw,ph,m,o,aw,ah}=L;doc.setLineWidth(.2);doc.setDrawColor(120,130,150);
-  const t=Math.min(m-1,5);
-  // líneas de corte (borde de la imagen) en las 4 esquinas, por fuera
+  const {pw,ph,m,o,aw,ah}=L;const t=Math.min(m-1,5);
+  // 1) línea de corte completa, 0,25 mm por fuera de la imagen (gris claro, se corta por encima)
+  doc.setLineWidth(.2);doc.setDrawColor(150,150,150);
+  if(c>0)doc.line(m-.25,0,m-.25,ph);
+  if(r>0)doc.line(0,m-.25,pw,m-.25);
+  // 2) marcas de esquina en el resto de bordes
+  doc.setDrawColor(120,130,150);
   [[m,m],[pw-m,m],[m,ph-m],[pw-m,ph-m]].forEach(([x,y])=>{
     const sx=x<pw/2?-1:1,sy=y<ph/2?-1:1;doc.line(x,y+sy*.8,x,y+sy*(t+.8));doc.line(x+sx*.8,y,x+sx*(t+.8),y)});
-  // líneas de solape (dónde termina la franja repetida): izquierda/arriba si hay vecino antes; derecha/abajo si hay vecino después
-  doc.setDrawColor(59,91,219);doc.setLineDashPattern([1,1],0);
-  const L1=(x1,y1,x2,y2)=>doc.line(x1,y1,x2,y2);
-  if(c>0){L1(m+o,m-.8,m+o,m-t-.8);L1(m+o,ph-m+.8,m+o,ph-m+t+.8)}
-  if(c<L.cols-1){L1(pw-m-o,m-.8,pw-m-o,m-t-.8);L1(pw-m-o,ph-m+.8,pw-m-o,ph-m+t+.8)}
-  if(r>0){L1(m-.8,m+o,m-t-.8,m+o);L1(pw-m+.8,m+o,pw-m+t+.8,m+o)}
-  if(r<L.rows-1){L1(m-.8,ph-m-o,m-t-.8,ph-m-o);L1(pw-m+.8,ph-m-o,pw-m+t+.8,ph-m-o)}
+  // 3) línea de encaje: donde debe apoyarse el borde recortado del folio vecino. Queda tapada al pegar.
+  doc.setDrawColor(59,91,219);doc.setLineWidth(.3);doc.setLineDashPattern([2,1.2],0);
+  if(c<L.cols-1){doc.line(pw-m-o,m-t-.8,pw-m-o,ph-m+t+.8)}
+  if(r<L.rows-1){doc.line(m-t-.8,ph-m-o,pw-m+t+.8,ph-m-o)}
   doc.setLineDashPattern([],0);
-  // código
+  // 4) cruces de encaje en los extremos de la franja (quedan tapadas)
+  const cross=(x,y)=>{doc.line(x-2,y,x+2,y);doc.line(x,y-2,x,y+2)};
+  doc.setLineWidth(.25);
+  if(c<L.cols-1){cross(pw-m-o,m+o/2);cross(pw-m-o,ph-m-o/2)}
+  if(r<L.rows-1){cross(m+o/2,ph-m-o);cross(pw-m-o/2,ph-m-o)}
+  // 5) textos del margen
   doc.setFont('helvetica','bold');doc.setFontSize(Math.min(9,m*1.6));doc.setTextColor(36,57,156);
-  const lab=`${code(r,c)}  ·  fila ${String.fromCharCode(65+r)}, columna ${c+1}  ·  mural ${L.cols}×${L.rows}`;
-  doc.text(lab,pw-m,ph-m/2+1.2,{align:'right'});
+  doc.text(`${code(r,c)}  ·  fila ${String.fromCharCode(65+r)}, columna ${c+1}  ·  mural ${L.cols}×${L.rows}`,pw-m,ph-m/2+1.2,{align:'right'});
   doc.setFont('helvetica','normal');doc.setTextColor(120,130,150);
-  const tip=(r>0||c>0)?'Recorta el margen '+(c>0&&r>0?'izquierdo y superior':c>0?'izquierdo':'superior'):'Este folio no se recorta';
+  const tip=(r>0||c>0)?'Corta por la línea gris '+(c>0&&r>0?'de la izquierda y de arriba':c>0?'de la izquierda':'de arriba')+' y apoya ese borde en la línea azul del folio vecino':'Este folio no se recorta';
   doc.text(tip,m,ph-m/2+1.2);
+  if(c>0){doc.saveGraphicsState();doc.setFontSize(Math.min(8,m*1.4));doc.text('✂ cortar',m-.25-1,ph/2,{angle:90,align:'center'});doc.restoreGraphicsState()}
 }
 
 /* hoja-guía */
@@ -311,9 +318,13 @@ function guide(doc,L){
   doc.setFont('helvetica','normal');doc.setFontSize(9.5);doc.setTextColor(60,70,90);
   const tips=['1. Imprime al 100 % (tamaño real), sin "Ajustar a la página".',
     '2. Letras = filas (A arriba) y números = columnas (1 a la izquierda).',
-    '3. Recorta el margen izquierdo y superior de cada folio, salvo la primera fila y la primera columna.',
-    '4. Coloca ese borde sobre el folio anterior haciendo coincidir el dibujo de la franja de solape y pega por detrás.'];
+    '3. Corta por la línea gris de la izquierda y de arriba de cada folio (salvo primera fila y primera columna).',
+    '4. Apoya ese borde recortado sobre la línea azul de puntos del folio vecino: el dibujo debe coincidir y la línea azul queda tapada. Pega por detrás.'];
   let yy=y0+gh+9;tips.forEach(t=>{doc.text(t,15,yy,{maxWidth:pw-30});yy+=5.6});
+  // regla de comprobación de escala
+  yy+=3;doc.setDrawColor(36,57,156);doc.setLineWidth(.4);doc.line(15,yy,115,yy);
+  for(let i=0;i<=10;i++){doc.line(15+i*10,yy,15+i*10,yy-(i%5?1.5:3))}
+  doc.setFontSize(8.5);doc.setTextColor(36,57,156);doc.text('Esta regla debe medir 10 cm exactos. Si mide menos, la impresora está reduciendo: imprime al 100 % / tamaño real.',15,yy+5);
 }
 
 if('serviceWorker' in navigator)navigator.serviceWorker.register('sw.js').catch(()=>{});
