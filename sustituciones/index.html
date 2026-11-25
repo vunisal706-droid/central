@@ -467,31 +467,37 @@ async function pdfDia() {
     { text: 'CEIP CAPITULACIONES · SANTA FE', fontSize: 8.5, bold: true, color: C.gris, characterSpacing: 1.2 },
     { text: 'Cobertura de ausencias', fontSize: 19, bold: true, color: C.azul, margin: [0, 1, 0, 0] },
     { text: fechaTxt.charAt(0).toUpperCase() + fechaTxt.slice(1), fontSize: 11.5, bold: true, color: C.azul2 }], margin: [10, 2, 0, 0] }]] }, layout: sinBordes });
-  content.push({ table: { widths: ['*'], body: [[{ text: ' ', fontSize: 2, lineHeight: 1 }]] }, layout: { ...sinBordes, fillColor: () => C.azul2 }, margin: [0, 8, 0, 10] });
+  content.push({ table: { widths: ['*'], body: [[{ text: ' ', fontSize: 2, lineHeight: 1 }]] }, layout: { ...sinBordes, fillColor: () => C.azul2 }, margin: [0, 6, 0, 8] });
   // Quién falta: una línea
   const aus = ausenciasMarcadas(), todos = TR_CLASE();
   content.push({ table: { widths: ['*'], body: [[{ text: [{ text: 'Faltan:  ', bold: true, color: C.rojo }].concat(aus.flatMap((a, i) => [
-    i ? { text: '   ·   ', color: C.gris } : '', { text: nomCorto(a.p), bold: true }, { text: a.tramos.length === todos.length ? ' (toda la jornada)' : ' (' + a.tramos.map(t => D.tramos[t].split('-')[0]).join(', ') + ')', color: C.gris }])), fontSize: 10.5, margin: [10, 6, 10, 6] }]] },
-    layout: { ...sinBordes, fillColor: () => C.rojoClaro, vLineWidth: i => i === 0 ? 3 : 0, vLineColor: () => C.rojo }, margin: [0, 0, 0, 12] });
+    i ? { text: '   ·   ', color: C.gris } : '', { text: nomCorto(a.p), bold: true }, { text: a.tramos.length === todos.length ? ' (toda la jornada)' : ' (' + a.tramos.map(t => D.tramos[t].split('-')[0]).join(', ') + ')', color: C.gris }])), fontSize: 10.5, margin: [10, 5, 10, 5] }]] },
+    layout: { ...sinBordes, fillColor: () => C.rojoClaro, vLineWidth: i => i === 0 ? 3 : 0, vLineColor: () => C.rojo }, margin: [0, 0, 0, 9] });
   // Tabla de sustituciones (lo importante)
   const th = t => ({ text: t, bold: true, color: '#fff', fontSize: 10 });
-  const body = [[th('Tramo'), th('Grupo'), th('Lo cubre'), th('En lugar de')]];
-  let ultimo = null, par = false; const fondos = [null];
-  [...propuesta].sort((a, b) => a.ti - b.ti).forEach(x => {
-    const nuevo = x.ti !== ultimo; ultimo = x.ti; if (nuevo) par = !par; fondos.push(par ? '#ffffff' : '#f3f5fd');
-    body.push([
-      { text: nuevo ? D.tramos[x.ti].replace('-', ' – ') : '', fontSize: 11, bold: true, color: C.verde },
-      { text: x.grupo, fontSize: 12, bold: true },
-      x.sustituto ? { text: nomCorto(x.sustituto), fontSize: 12.5, bold: true, color: C.azul } : { text: 'SIN CUBRIR', fontSize: 11.5, bold: true, color: C.rojo },
-      { text: nomCorto(x.ausente), fontSize: 10.5, color: C.gris }]);
+  // Un bloque por tramo: franja de color con la hora y debajo los grupos de ese tramo
+  const body = [[th('Grupo'), th('Lo cubre'), th('En lugar de')]], tipo = ['h'], orden = [...propuesta].sort((a, b) => a.ti - b.ti);
+  const porTramo = []; orden.forEach(x => { const g = porTramo[porTramo.length - 1]; if (g && g.ti === x.ti) g.xs.push(x); else porTramo.push({ ti: x.ti, xs: [x] }); });
+  porTramo.forEach(g => {
+    const [ini, fin] = D.tramos[g.ti].split('-');
+    body.push([{ colSpan: 3, text: [{ text: `${ini} – ${fin}`, bold: true, fontSize: 11.5, color: '#fff' }, { text: g.xs.length > 1 ? `     ${g.xs.length} grupos` : '', fontSize: 9, color: '#c9d0f5' }] }, {}, {}]); tipo.push('t');
+    g.xs.forEach((x, k) => {
+      body.push([
+        { text: x.grupo, fontSize: 11.5, bold: true },
+        x.sustituto ? { text: nomCorto(x.sustituto), fontSize: 12, bold: true, color: C.azul } : { text: 'SIN CUBRIR', fontSize: 11.5, bold: true, color: C.rojo },
+        { text: nomCorto(x.ausente), fontSize: 10.5, color: C.gris }]);
+      tipo.push(k % 2 ? 'b' : 'a');
+    });
   });
-  content.push({ table: { headerRows: 1, widths: [100, 90, '*', 130], body }, layout: {
-    fillColor: i => i === 0 ? C.azul : fondos[i], hLineWidth: (i, n) => i === 0 || i === n.table.body.length ? 0 : (fondos[i] !== fondos[i - 1] ? 1 : .3), hLineColor: () => C.linea, vLineWidth: () => 0,
-    paddingTop: () => 7, paddingBottom: () => 7, paddingLeft: () => 9, paddingRight: () => 9 } });
+  content.push({ table: { headerRows: 1, widths: [110, '*', 150], body, dontBreakRows: true }, layout: {
+    fillColor: i => ({ h: C.azul, t: C.verde, a: '#ffffff', b: '#f4f6fd' })[tipo[i]],
+    hLineWidth: (i, n) => i === 0 || i === n.table.body.length || tipo[i] === 't' || tipo[i - 1] === 't' ? 0 : .5,
+    hLineColor: () => C.linea, vLineWidth: () => 0,
+    paddingTop: i => tipo[i] === 't' ? 2.5 : 3.5, paddingBottom: i => tipo[i] === 't' ? 2.5 : 3.5, paddingLeft: () => 10, paddingRight: () => 10 } });
   if (propuesta.some(x => !x.sustituto)) content.push({ text: [{ text: 'Grupos sin cubrir: ', bold: true, color: C.oro }, 'se reparte el alumnado del grupo menos numeroso, preferentemente dentro del mismo ciclo.'], fontSize: 9.5, margin: [0, 8, 0, 0] });
   content.push({ text: [{ text: 'Gracias por vuestra colaboración.  ' }, { text: yo === 'María' ? 'Jefatura de Estudios' : 'Dirección', bold: true, color: C.azul }], fontSize: 10, margin: [0, 14, 0, 0] });
   const hoy = new Date();
-  const doc = { pageSize: 'A4', pageMargins: [40, 40, 40, 50], info: { title: 'Cobertura de ausencias ' + f, author: 'CEIP Capitulaciones' },
+  const doc = { pageSize: 'A4', pageMargins: [40, 30, 40, 42], info: { title: 'Cobertura de ausencias ' + f, author: 'CEIP Capitulaciones' },
     defaultStyle: { font: 'Roboto', fontSize: 10, lineHeight: 1.2, color: C.texto },
     footer: (p, n) => ({ margin: [40, 14, 40, 0], columns: [{ text: 'CEIP Capitulaciones · Cobertura de ausencias', fontSize: 8, color: C.gris }, { text: `Generado el ${hoy.getDate()} de ${MESES[hoy.getMonth()]} · Página ${p} de ${n}`, fontSize: 8, color: C.gris, alignment: 'right' }] }), content };
   const nombre = `Sustituciones_${f}_CEIP_Capitulaciones.pdf`;
