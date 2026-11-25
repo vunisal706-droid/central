@@ -162,7 +162,7 @@ tr:nth-child(odd) td{background:#FAFCFE}
           <button class="btn pri" id="btnPdf">📄 PDF para WhatsApp</button>
           <button class="btn" onclick="print()">🖨️ Imprimir</button>
         </div>
-        <p class="small muted noprint" style="margin-top:8px">Orden de sustituciones: <span id="ordenTxt"></span>. Entre personas del mismo paso se propone a quien menos sustituciones lleva este curso.</p>
+        <p class="small muted noprint" style="margin-top:8px">Orden de sustituciones: <span id="ordenTxt"></span>. Si hay 2 o más bajas, Infantil cubre Infantil y Primaria cubre Primaria (si en un tramo no hay nadie de la misma etapa, se propone a otra persona). Entre personas del mismo paso se propone a quien menos sustituciones lleva este curso.</p>
       </div>
     </section>
 
@@ -320,7 +320,7 @@ function pintarDia() {
     c.addEventListener('keydown', e => { if ((e.key === ' ' || e.key === 'Enter') && e.target === c) { e.preventDefault(); alternar(); } });
   });
   $('#buscaPer').oninput = filtrar; filtrar(); contar();
-  try { if (localStorage.getItem('sust-nov') !== '2') { localStorage.setItem('sust-nov', '2'); toast('✨ Novedad: el profesorado sale por apartados (Infantil, Primaria, especialistas…) y con buscador.', 6000); } } catch (e) { }
+  try { if (localStorage.getItem('sust-nov') !== '3') { localStorage.setItem('sust-nov', '3'); toast('✨ Novedad: con 2 o más bajas, Infantil cubre Infantil y Primaria cubre Primaria.', 6000); } } catch (e) { }
   $('#estadoDia').textContent = guardado ? '✅ Este día ya está guardado (por ' + (guardado.por || '') + '). Si lo vuelves a guardar, se sustituye.' : '';
   if (guardado) { propuesta = guardado.asignaciones || []; pintarResultado(); } else $('#cardRes').classList.add('oculto');
 }
@@ -370,13 +370,22 @@ function cuentasCurso(curso, excluirFecha) {
 }
 const tutorDe = g => { const p = D.personas.find(x => x.tipo === 'tutor' && x.grupo && x.grupo === g); return p ? p.id : ''; };
 const ordenIdx = cat => { const i = D.orden.findIndex(o => o[0] === cat); return i < 0 ? 99 : i; };
+// Etapa: Infantil o Primaria (del grupo y de quien está disponible en ese tramo)
+const etapaGrupo = g => /^inf/i.test(String(g || '')) ? 'inf' : 'pri';
+function etapaItem(it) {
+  if (/\binf/i.test(it.t)) return 'inf';
+  const p = D.personas.find(x => x.id === it.p);
+  return p && /^inf/i.test(String(p.grupo || '')) ? 'inf' : 'pri';
+}
+let porEtapa = false;   // con 2 o más bajas el mismo día: Infantil cubre Infantil y Primaria cubre Primaria
 function candidatos(dia, ti, faltanEn, usados, grupo, cuentas) {
   const items = (D.cuadrante[dia + ti] || []).filter(it => !faltanEn.has(it.p) && !usados.has(it.p));
   const vistos = new Set(), out = [];
   items.forEach(it => { if (vistos.has(it.p)) return; vistos.add(it.p); out.push(it); });
   const g = (grupo || '').replace(/\D/g, '');
   const tut = tutorDe(grupo);
-  return out.sort((a, b) => ((b.p === tut) - (a.p === tut)) || ordenIdx(a.cat) - ordenIdx(b.cat)
+  const eg = etapaGrupo(grupo), mismaEtapa = it => porEtapa && etapaItem(it) === eg ? 1 : 0;
+  return out.sort((a, b) => ((b.p === tut) - (a.p === tut)) || (mismaEtapa(b) - mismaEtapa(a)) || ordenIdx(a.cat) - ordenIdx(b.cat)
     || ((g && b.t.includes(g)) - (g && a.t.includes(g)))
     || (cuentas[a.p] || 0) - (cuentas[b.p] || 0)
     || nombre(a.p).localeCompare(nombre(b.p)));
@@ -387,6 +396,7 @@ $('#btnCalcular').onclick = () => {
   const aus = ausenciasMarcadas();
   if (!aus.length) return toast('Marca al menos a una persona que falte.');
   const cuentas = cuentasCurso(cursoDe(f), f);
+  porEtapa = aus.length >= 2;
   propuesta = [];
   TR_CLASE().forEach(ti => {
     const faltanEn = new Set(aus.filter(a => a.tramos.includes(ti)).map(a => a.p));
@@ -421,6 +431,7 @@ function pintarResultado() {
   $('#ordenTxt').textContent = D.orden.map((o, i) => (i + 1) + 'º ' + o[1]).join(' · ');
   if (!propuesta.length) { $('#resultado').innerHTML = '<p class="okmsg">No hay grupos que cubrir.</p>'; return; }
   const aus = ausenciasMarcadas();
+  porEtapa = aus.length >= 2;
   $('#resultado').innerHTML = `<table><tr><th>Tramo</th><th>Grupo</th><th>Falta</th><th>Lo cubre</th></tr>` + propuesta.map((x, i) => {
     const faltanEn = new Set(aus.filter(a => a.tramos.includes(x.ti)).map(a => a.p));
     const otros = new Set(propuesta.filter((y, j) => j !== i && y.ti === x.ti && y.sustituto).map(y => y.sustituto));
