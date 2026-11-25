@@ -41,7 +41,8 @@ body{font-family:var(--texto);color:var(--tinta);letter-spacing:-.003em}
 header.cab{position:relative;overflow:hidden;color:#fff;padding:46px var(--marco) 104px;
   background:radial-gradient(60% 90% at 85% 30%,rgba(0,213,213,.16),transparent 60%),radial-gradient(40% 60% at 100% 90%,rgba(128,87,245,.18),transparent 70%),
   radial-gradient(70% 80% at 0% 100%,rgba(11,61,92,.9),transparent 70%),linear-gradient(165deg,#061A38 0%,#08244C 55%,#0A2F55 100%)}
-header.cab svg.red{position:absolute;right:0;top:0;height:100%;width:min(60%,820px);opacity:.55;pointer-events:none;-webkit-mask:linear-gradient(90deg,transparent,#000 40%);mask:linear-gradient(90deg,transparent,#000 40%)}
+header.cab .foto{position:absolute;right:0;top:0;height:100%;width:min(64%,900px);object-fit:cover;object-position:center 40%;pointer-events:none;-webkit-mask:linear-gradient(90deg,transparent 0%,rgba(0,0,0,.55) 30%,#000 60%);mask:linear-gradient(90deg,transparent 0%,rgba(0,0,0,.55) 30%,#000 60%)}
+@media (max-width:760px){header.cab .foto{width:100%;opacity:.35}}
 .marca{position:relative;max-width:640px}
 .etq{display:inline-flex;align-items:center;gap:8px;font:700 .82rem var(--texto);color:#7FF2F2;background:rgba(0,213,213,.1);border:1px solid rgba(0,213,213,.35);padding:5px 13px;border-radius:999px;margin-bottom:14px}
 .etq::before{content:"";width:7px;height:7px;border-radius:50%;background:var(--turquesa)}
@@ -126,7 +127,7 @@ tr:nth-child(odd) td{background:#FAFCFE}
   <div class="der"><span id="quien"></span><button class="btn sm oculto" id="btnSalir">Salir</button></div>
 </div>
 <header class="cab">
-  <svg class="red" viewBox="0 0 600 300" aria-hidden="true"><g fill="none" stroke="#00D5D5" stroke-opacity=".35" stroke-width="1"><path d="M60 220L180 150L300 190L420 90L540 140M180 150L240 60L420 90M300 190L360 260L540 140M240 60L360 120L420 90M360 120L300 190"/></g><g fill="#00D5D5"><circle cx="60" cy="220" r="3"/><circle cx="180" cy="150" r="4"/><circle cx="300" cy="190" r="3"/><circle cx="420" cy="90" r="5"/><circle cx="540" cy="140" r="3"/><circle cx="240" cy="60" r="3"/><circle cx="360" cy="260" r="3"/><circle cx="360" cy="120" r="4"/></g></svg>
+  <img class="foto" src="cole.jpg" alt="" aria-hidden="true">
   <div class="marca"><span class="etq">CEIP Capitulaciones · Jefatura y Dirección</span><h1>Cobertura de ausencias</h1><p>Quién cubre cada grupo cuando falta alguien, siguiendo el orden de sustituciones del centro.</p></div>
 </header>
 
