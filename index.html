@@ -418,7 +418,7 @@ a.kpi{color:inherit;transition:box-shadow .15s ease}
   <div class="hoja">
     <div class="asa"></div>
     <h3 id="titPers">Personalizar apps del cole</h3>
-    <p class="sub">Marca las apps que quieres ver en la página principal (<b id="cuentaSel">0</b> marcadas). Se guarda en este dispositivo.</p>
+    <p class="sub">Salen todas las apps. Desmarca las que quieras esconder (<b id="cuentaSel">0</b> visibles). Se guarda en este dispositivo.</p>
     <div id="opciones"></div>
     <div class="botones">
       <button class="btn sec" id="btnCancelar">Cancelar</button>
@@ -434,7 +434,7 @@ a.kpi{color:inherit;transition:box-shadow .15s ease}
     <h3 id="titNov">✨ Novedades de Capitoolappciones</h3>
     <p class="sub">Novedades:</p>
     <ul>
-      <li>🗓️ Nuevo enlace a <b>Cuadra Horarios</b> en «Apps del cole».</li>
+      <li>👀 Ahora salen <b>todas las apps del cole</b> por defecto. Con «Personalizar» puedes esconder las que no uses.</li>
     </ul>
     <div class="botones"><button class="btn prim" id="btnNovOk">Entendido</button></div>
   </div>
@@ -546,45 +546,11 @@ function fila(a){
 const MAX_RAP = 99;
 const ORDEN_INICIO = ['teletrabajo','sda','registro','parte','gestorevalu','agora','refuerzo','convive','resolucion','podcast','pdfword','aulapt','tablon','agenda','horario','programas','pcentro','capiguia','web','portal'];
 const POR_DEFECTO = [...ORDEN_INICIO, ...APPS.map(a=>a.id).filter(id=>!ORDEN_INICIO.includes(id))];
-let favoritas = ls.get('capi-rapidas', POR_DEFECTO).filter(id=>porId[id]).slice(0,MAX_RAP);
-// Una sola vez: añadir la Web del cole a quien ya tenía sus acciones guardadas
-if (!ls.get('capi-rapidas-web', false)){
-  if (!favoritas.includes('web')) favoritas = ['web', ...favoritas].slice(0,MAX_RAP);
-  ls.set('capi-rapidas', favoritas); ls.set('capi-rapidas-web', true);
-}
-if (!ls.get('capi-rapidas-8', false)){
-  POR_DEFECTO.forEach(id=>{ if (favoritas.length<MAX_RAP && !favoritas.includes(id)) favoritas.push(id); });
-  ls.set('capi-rapidas', favoritas); ls.set('capi-rapidas-8', true);
-}
-// Una sola vez: pasan a verse todas las apps del cole (también las que no estaban marcadas)
-if (!ls.get('capi-apps-todas', false)){
-  const nuevas = POR_DEFECTO.filter(id=>!favoritas.includes(id));
-  const arriba = ['tablon','agenda'].filter(id=>nuevas.includes(id));
-  favoritas = [...(favoritas.includes('web')?['web']:[]), ...arriba, ...favoritas.filter(id=>id!=='web'), ...nuevas.filter(id=>!arriba.includes(id))];
-  ls.set('capi-rapidas', favoritas); ls.set('capi-apps-todas', true);
-}
-// Una sola vez: nuevo orden de las apps (se respetan las que cada uno haya ocultado)
-if (!ls.get('capi-apps-orden-v2', false)){
-  const pos = id => { const i = POR_DEFECTO.indexOf(id); return i<0 ? 999 : i; };
-  favoritas = favoritas.slice().sort((a,b)=>pos(a)-pos(b));
-  ls.set('capi-rapidas', favoritas); ls.set('capi-apps-orden-v2', true);
-}
-// Una sola vez: añadir Podcast a Vídeo a quien ya tenía su lista guardada
-if (!ls.get('capi-apps-pdfword', false)){
-  if (!favoritas.includes('pdfword')){ const i = favoritas.indexOf('podcast'); favoritas.splice(i<0?favoritas.length:i+1, 0, 'pdfword'); }
-  ls.set('capi-rapidas', favoritas); ls.set('capi-apps-pdfword', true);
-}
-if (!ls.get('capi-apps-podcast', false)){
-  if (!favoritas.includes('podcast')){ const i = favoritas.indexOf('resolucion'); favoritas.splice(i<0?favoritas.length:i+1, 0, 'podcast'); }
-  ls.set('capi-rapidas', favoritas); ls.set('capi-apps-podcast', true);
-}
-// Una sola vez: añadir Cuadra Horarios a quien ya tenía su lista guardada
-if (!ls.get('capi-apps-horario', false)){
-  if (!favoritas.includes('horario')){ const i = favoritas.indexOf('agenda'); favoritas.splice(i<0?favoritas.length:i+1, 0, 'horario'); }
-  ls.set('capi-rapidas', favoritas); ls.set('capi-apps-horario', true);
-}
+// Se guarda lo que se OCULTA: por defecto salen todas las apps (también las nuevas que se añadan)
+let ocultas = ls.get('capi-ocultas', []).filter(id=>porId[id]);
+const visibles = ()=> POR_DEFECTO.filter(id=>!ocultas.includes(id));
 function pintarRapidas(){
-  document.getElementById('rapidas').innerHTML = favoritas.map(id=>{
+  document.getElementById('rapidas').innerHTML = visibles().map(id=>{
     const a = porId[id];
     return `<a class="rapida" href="${a.url}" target="_blank" rel="noopener" title="${esc(a.nom)}">${svg(a.ic)}<span>${esc(a.corto)}</span></a>`;
   }).join('');
@@ -595,22 +561,21 @@ const veloPers = document.getElementById('veloPers');
 let seleccion = [];
 function pintarOpciones(){
   document.getElementById('cuentaSel').textContent = seleccion.length;
-  document.getElementById('opciones').innerHTML = APPS.map(a=>{
-    const marcada = seleccion.includes(a.id), bloq = !marcada && seleccion.length>=MAX_RAP;
-    return `<label class="opcion${bloq?' bloq':''}"><span class="ic">${svg(a.ic)}</span><span>${esc(a.nom)}</span>
-      <input type="checkbox" data-id="${a.id}" ${marcada?'checked':''} ${bloq?'disabled':''}></label>`;
+  document.getElementById('opciones').innerHTML = POR_DEFECTO.map(id=>porId[id]).map(a=>{
+    const marcada = seleccion.includes(a.id);
+    return `<label class="opcion"><span class="ic">${svg(a.ic)}</span><span>${esc(a.nom)}</span>
+      <input type="checkbox" data-id="${a.id}" ${marcada?'checked':''}></label>`;
   }).join('');
 }
 document.getElementById('opciones').addEventListener('change', e=>{
   const id = e.target.dataset.id; if(!id) return;
-  if(e.target.checked){ if(seleccion.length<MAX_RAP) seleccion.push(id); } else seleccion = seleccion.filter(x=>x!==id);
+  if(e.target.checked){ if(!seleccion.includes(id)) seleccion.push(id); } else seleccion = seleccion.filter(x=>x!==id);
   pintarOpciones();
 });
-document.getElementById('btnPersonalizar').onclick = ()=>{ seleccion = favoritas.slice(); pintarOpciones(); veloPers.classList.add('abierto'); };
+document.getElementById('btnPersonalizar').onclick = ()=>{ seleccion = visibles(); pintarOpciones(); veloPers.classList.add('abierto'); };
 document.getElementById('btnCancelar').onclick = ()=> veloPers.classList.remove('abierto');
 document.getElementById('btnGuardar').onclick = ()=>{
-  if(!seleccion.length) seleccion = POR_DEFECTO.slice();
-  favoritas = seleccion.slice(); ls.set('capi-rapidas', favoritas); pintarRapidas(); veloPers.classList.remove('abierto');
+  ocultas = POR_DEFECTO.filter(id=>!seleccion.includes(id)); ls.set('capi-ocultas', ocultas); pintarRapidas(); veloPers.classList.remove('abierto');
 };
 veloPers.addEventListener('click', e=>{ if(e.target===veloPers) veloPers.classList.remove('abierto'); });
 
@@ -925,7 +890,7 @@ document.getElementById('campana').onclick = ()=>{
 document.getElementById('tablon').addEventListener('click', e=>{ if (e.target.closest('a')) marcarVistos(); });
 
 /* ---------- Novedades (una sola vez por dispositivo) ---------- */
-const NOV = 'capi-novedades-seneca-v24';
+const NOV = 'capi-novedades-seneca-v25';
 const veloNov = document.getElementById('veloNov');
 if(!ls.get(NOV,false)) setTimeout(()=>veloNov.classList.add('abierto'), 500);
 document.getElementById('btnNovOk').onclick = ()=>{ ls.set(NOV,true); veloNov.classList.remove('abierto'); };
