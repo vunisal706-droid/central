@@ -377,7 +377,7 @@ function pintarDia() {
     if (!todo) toast('Ahora toca las horas en que falta.');
   });
   $('#buscaPer').oninput = filtrar; filtrar(); contar();
-  try { if (localStorage.getItem('sust-nov') !== '13') { localStorage.setItem('sust-nov', '13'); toast('✨ Novedad: Paqui con R55 el jueves de 12:30 a 14:00 y el viernes de 12:30 a 13:00.', 6000); } } catch (e) { }
+  try { if (localStorage.getItem('sust-nov') !== '14') { localStorage.setItem('sust-nov', '14'); toast('✨ Novedad: las sustituciones en R55 se alternan; el control está en «Registro».', 6000); } } catch (e) { }
   $('#estadoDia').textContent = guardado ? '✅ Este día ya está guardado (por ' + (guardado.por || '') + '). Si lo vuelves a guardar, se sustituye.' : '';
   if (guardado) { propuesta = guardado.asignaciones || []; pintarResultado(); } else $('#cardRes').classList.add('oculto');
 }
@@ -420,6 +420,17 @@ function contar() {
 function ausenciasMarcadas() {
   return [...document.querySelectorAll('.per.falta')].map(c => ({ p: c.dataset.p, tramos: [...c.querySelectorAll('[data-ti]:checked')].map(x => +x.dataset.ti) })).filter(a => a.tramos.length);
 }
+// Control de R55: cuántas veces ha sustituido cada persona en su hora de R55 este curso
+function cuentasR55(curso, excluirFecha) {
+  const c = {};
+  Object.entries(DIASG).forEach(([f, d]) => {
+    if (f === excluirFecha || cursoDe(f) !== curso) return;
+    const dia = letraDia(f);
+    (d.asignaciones || []).forEach(a => { if (a.sustituto && (D.cuadrante[dia + a.ti] || []).some(i => i.p === a.sustituto && i.cat === 'r55')) c[a.sustituto] = (c[a.sustituto] || 0) + 1; });
+  });
+  return c;
+}
+let cuentasR = {};
 function cuentasCurso(curso, excluirFecha) {
   const c = {};
   Object.entries(DIASG).forEach(([f, d]) => { if (f === excluirFecha || cursoDe(f) !== curso) return; (d.asignaciones || []).forEach(a => { if (a.sustituto) c[a.sustituto] = (c[a.sustituto] || 0) + 1; }); });
@@ -448,7 +459,8 @@ function candidatos(dia, ti, faltanEn, usados, grupo, cuentas, pref) {
   const tut = tutorDe(grupo);
   const pos = new Map(out.map((it, i) => [it, i]));   // orden de la casilla del cuadrante
   const eg = etapaGrupo(grupo), mismaEtapa = it => porEtapa && etapaItem(it) === eg ? 1 : 0;
-  return out.sort((a, b) => ((b.p === tut) - (a.p === tut)) || ((b.p === pref) - (a.p === pref)) || (mismaEtapa(b) - mismaEtapa(a)) || pos.get(a) - pos.get(b)
+  return out.sort((a, b) => ((b.p === tut) - (a.p === tut)) || ((b.p === pref) - (a.p === pref)) || (mismaEtapa(b) - mismaEtapa(a)) || (a.cat === 'r55' && b.cat === 'r55' ? (cuentasR[a.p] || 0) - (cuentasR[b.p] || 0) : 0)   // R55: se alterna, primero quien menos ha sustituido
+    || pos.get(a) - pos.get(b)
     || (esDeGrupo(b.t, grupo) - esDeGrupo(a.t, grupo))
     || (cuentas[a.p] || 0) - (cuentas[b.p] || 0)
     || nombre(a.p).localeCompare(nombre(b.p)));
@@ -461,6 +473,7 @@ $('#btnCalcular').onclick = () => {
   const aus = ausenciasMarcadas();
   if (!aus.length) return toast('Marca al menos a una persona que falte.');
   const cuentas = cuentasCurso(cursoDe(f), f);
+  cuentasR = cuentasR55(cursoDe(f), f);
   porEtapa = aus.length >= 2;
   propuesta = [];
   TR_CLASE().forEach(ti => {
@@ -492,7 +505,7 @@ $('#btnCalcular').onclick = () => {
         D.personas.filter(p => p.noInf).forEach(p => bloqueo.add(p.id));
       const cand = candidatos(dia, ti, faltanEn, bloqueo, grupo, cuentas, pref[grupo]);
       const s = cand[0] ? cand[0].p : '';
-      if (s) { usados.add(s); cuentas[s] = (cuentas[s] || 0) + 1; }
+      if (s) { usados.add(s); cuentas[s] = (cuentas[s] || 0) + 1; if (cand[0].cat === 'r55') cuentasR[s] = (cuentasR[s] || 0) + 1; }
       propuesta.push({ ti, grupo, ausente: a.p, texto: celda.t || '', sustituto: s });
     });
   });
@@ -602,9 +615,10 @@ $('#btnPdfDesc').onclick = () => pdfDia(true).catch(e => { console.error(e); toa
 
 /* ---------- Registro ---------- */
 function pintarRegistro() {
-  const curso = cursoDe(hoyISO()), c = cuentasCurso(curso);
-  const filas = D.personas.map(p => [p, c[p.id] || 0]).filter(x => x[1] > 0).sort((a, b) => b[1] - a[1]);
-  $('#cuentas').innerHTML = filas.length ? `<table><tr><th>Persona</th><th>Sustituciones (curso ${curso})</th></tr>${filas.map(([p, n]) => `<tr><td>${esc(p.nombre)}</td><td>${n}</td></tr>`).join('')}</table>` : '<p class="muted">Aún no hay días guardados este curso.</p>';
+  const curso = cursoDe(hoyISO()), c = cuentasCurso(curso), r = cuentasR55(curso);
+  const conR55 = new Set(Object.values(D.cuadrante).flat().filter(i => i.cat === 'r55').map(i => i.p));
+  const filas = D.personas.map(p => [p, c[p.id] || 0, r[p.id] || 0]).filter(x => x[1] > 0 || conR55.has(x[0].id)).sort((a, b) => b[1] - a[1]);
+  $('#cuentas').innerHTML = filas.length ? `<table><tr><th>Persona</th><th>Sustituciones (curso ${curso})</th><th>De ellas en su R55</th></tr>${filas.map(([p, n, k]) => `<tr><td>${esc(p.nombre)}</td><td>${n}</td><td>${conR55.has(p.id) ? k : '—'}</td></tr>`).join('')}</table><p class="small muted" style="margin-top:6px">En las horas de R55 se propone primero a quien menos veces ha sustituido en su R55, para alternar.</p>` : '<p class="muted">Aún no hay días guardados este curso.</p>';
   const fs = Object.keys(DIASG).sort().reverse();
   $('#dias').innerHTML = fs.length ? `<table><tr><th>Día</th><th>Faltan</th><th>Sustituciones</th><th></th></tr>${fs.map(f => { const d = DIASG[f]; return `<tr><td>${f.split('-').reverse().join('/')}</td><td>${esc((d.ausencias || []).map(a => nombre(a.p)).join(', '))}</td><td>${(d.asignaciones || []).length}</td><td><button class="btn sm" data-ver="${f}">Ver</button> <button class="btn sm" data-borrar="${f}">🗑</button></td></tr>`; }).join('')}</table>` : '<p class="muted">Ninguno todavía.</p>';
   document.querySelectorAll('[data-ver]').forEach(b => b.onclick = () => { $('#fecha').value = b.dataset.ver; document.querySelector('.tab[data-t=dia]').click(); pintarDia(); });
