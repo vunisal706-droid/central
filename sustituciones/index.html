@@ -157,6 +157,7 @@ tr:nth-child(odd) td{background:#FAFCFE}
         <div class="fila"><input type="date" id="fecha"><span id="diaNombre" class="chip"></span><span class="muted small">Marca a quien falta. Por defecto, toda la jornada; desmarca los tramos en los que sí está.</span></div>
         <div class="buscador"><input type="search" id="buscaPer" placeholder="Buscar maestra o maestro…" autocomplete="off"><span id="contador" class="contador cero">Nadie marcado</span></div>
         <div id="listaPersonas"></div>
+        <div class="fila" style="margin-top:10px"><label class="small" style="display:flex;gap:6px;align-items:center"><input type="checkbox" id="hayAdmin"> Hoy está la administrativa en Secretaría <span class="muted">(si no está, siempre se deja a alguien del equipo directivo en Dirección)</span></label></div>
         <div class="fila" style="margin-top:14px"><button class="btn pri" id="btnCalcular">Proponer sustituciones</button><span id="estadoDia" class="small muted"></span></div>
       </div>
       <div class="card oculto" id="cardRes">
@@ -357,6 +358,7 @@ document.querySelectorAll('.tab').forEach(b => b.onclick = () => {
 /* ---------- Día ---------- */
 $('#fecha').onchange = pintarDia;
 function pintarDia() {
+  if ($('#hayAdmin') && $('#hayAdmin').dataset.f !== $('#fecha').value) { $('#hayAdmin').checked = adminPorDefecto($('#fecha').value); $('#hayAdmin').dataset.f = $('#fecha').value; }
   const f = $('#fecha').value, d = letraDia(f);
   $('#diaNombre').textContent = d ? DIAS_N[d] : 'Fin de semana';
   const guardado = DIASG[f];
@@ -384,7 +386,7 @@ function pintarDia() {
     if (!todo) toast('Ahora toca las horas en que falta.');
   });
   $('#buscaPer').oninput = filtrar; filtrar(); contar();
-  try { if (localStorage.getItem('sust-nov') !== '18') { localStorage.setItem('sust-nov', '18'); toast('✨ Novedad: si falta Noelia (TEA), cubre Lorena; si no está Lorena (o es jueves), Víctor.', 6000); } } catch (e) { }
+  try { if (localStorage.getItem('sust-nov') !== '19') { localStorage.setItem('sust-nov', '19'); toast('✨ Novedad: PDF en tabla con la asignatura, y sin administrativa siempre queda alguien en Dirección.', 6000); } } catch (e) { }
   $('#estadoDia').textContent = guardado ? '✅ Este día ya está guardado (por ' + (guardado.por || '') + '). Si lo vuelves a guardar, se sustituye.' : '';
   if (guardado) { propuesta = guardado.asignaciones || []; pintarResultado(); } else $('#cardRes').classList.add('oculto');
 }
@@ -438,6 +440,27 @@ function cuentasR55(curso, excluirFecha) {
   return c;
 }
 let cuentasR = {};
+// La administrativa viene lunes y miércoles, y viernes alternos (el 27/11/2026 sí vino)
+function adminPorDefecto(f) {
+  const d = new Date(f + 'T12:00'), w = d.getDay();
+  if (w === 1 || w === 3) return true;
+  if (w !== 5) return false;
+  const sem = Math.round((d - new Date('2026-11-27T12:00')) / 864e5 / 7);
+  return sem % 2 === 0;
+}
+const ED = ['victor', 'maria', 'encarna'];
+// Asignatura legible a partir del texto del horario de quien falta
+function asignaturaDe(texto, pid) {
+  let t = String(texto || '').trim();
+  const p = D.personas.find(x => x.id === pid), esp = p && (partes(p)[1] || '');
+  if (!t || /^(\d+º|INF \d AÑOS|TEA)$/i.test(t)) return /Infantil|TEA/.test(esp) || !esp ? 'Clase con su grupo' : esp.replace(/^Tutoría de /, '');
+  if (/^(AC[A-Z]+|ALCR)/.test(t)) return 'Aula TEA';
+  const M = [[/^MATE\b/i, 'Matemáticas'], [/^LENGUA\b/i, 'Lengua'], [/^C\.? ?M\.?/i, 'Conocimiento del Medio'], [/^AT\.? ?ED?VA\.?/i, 'Atención Educativa'], [/^V\. ?C[IÍ]VICOS/i, 'Valores Cívicos'],
+    [/^PL[AÁ]STICA/i, 'Plástica'], [/^M[UÚ]SICA/i, 'Música'], [/^FRANC[EÉ]S/i, 'Francés'], [/^ALTERNATIVA/i, 'Alternativa'], [/^INGL[EÉ]S/i, 'Inglés'], [/^INF \d A/i, 'Clase con su grupo']];
+  let base = t; for (const [re, n] of M) if (re.test(t)) { base = n; break; }
+  const extra = /P\.? ?lector/i.test(t) ? ' + Plan lector' : /Raz/i.test(t) ? ' + Razonamiento matemático' : '';
+  return base + extra;
+}
 function cuentasCurso(curso, excluirFecha) {
   const c = {};
   Object.entries(DIASG).forEach(([f, d]) => { if (f === excluirFecha || cursoDe(f) !== curso) return; (d.asignaciones || []).forEach(a => { if (a.sustituto) c[a.sustituto] = (c[a.sustituto] || 0) + 1; }); });
@@ -480,6 +503,7 @@ $('#btnCalcular').onclick = () => {
   if (!aus.length) return toast('Marca al menos a una persona que falte.');
   const cuentas = cuentasCurso(cursoDe(f), f);
   cuentasR = cuentasR55(cursoDe(f), f);
+  const hayAdmin = $('#hayAdmin').checked;
   porEtapa = aus.length >= 2;
   propuesta = [];
   TR_CLASE().forEach(ti => {
@@ -522,6 +546,11 @@ $('#btnCalcular').onclick = () => {
         const fijo = [dia !== 'J' ? 'lorena' : null, 'victor'].find(p => p && !faltanEn.has(p) && !usados.has(p));
         if (fijo) elegido = { p: fijo, t: 'Aula TEA', cat: 'tea' };
       }
+      // Sin administrativa, siempre queda alguien del equipo directivo en Dirección
+      if (!hayAdmin && elegido && ED.includes(elegido.p) && elegido.cat === 'direccion') {
+        const quedan = (D.cuadrante[dia + ti] || []).filter(i => i.cat === 'direccion' && ED.includes(i.p) && i.p !== elegido.p && !faltanEn.has(i.p) && !usados.has(i.p));
+        if (!quedan.length) { const otro = cand.find(c => !(ED.includes(c.p) && c.cat === 'direccion')); elegido = otro || null; }
+      }
       const s = elegido ? elegido.p : '';
       if (s) { usados.add(s); cuentas[s] = (cuentas[s] || 0) + 1; if (elegido.cat === 'r55') cuentasR[s] = (cuentasR[s] || 0) + 1; }
       propuesta.push({ ti, grupo, ausente: a.p, texto: celda.t || '', sustituto: s });
@@ -545,7 +574,7 @@ function pintarResultado() {
     const resto = D.personas.filter(p => !enCand.has(p.id) && !faltanEn.has(p.id));
     const opt = `<option value="">— Sin nadie —</option>` + cand.map(c => `<option value="${c.p}" ${c.p === x.sustituto ? 'selected' : ''}>${esc(nombre(c.p))} · ${esc(c.t)} (${ordenIdx(c.cat) + 1}º)</option>`).join('')
       + `<optgroup label="Otras personas">` + resto.map(p => `<option value="${p.id}" ${p.id === x.sustituto ? 'selected' : ''}>${esc(p.nombre)}</option>`).join('') + `</optgroup>`;
-    return `<tr><td>${esc(D.tramos[x.ti])}</td><td><b>${esc(x.grupo)}</b>${x.texto ? `<div class="small muted">${esc(x.texto)}</div>` : ''}</td><td>${esc(nombre(x.ausente))}</td>
+    return `<tr><td>${esc(D.tramos[x.ti])}</td><td><b>${esc(x.grupo)}</b><div class="small muted">${esc(asignaturaDe(x.texto, x.ausente))}</div></td><td>${esc(nombre(x.ausente))}</td>
       <td><select data-i="${i}" class="selSus">${opt}</select>${x.sustituto ? '' : '<div class="aviso small" style="margin-top:4px">Nadie libre: reparte el alumnado del grupo menos numeroso, mejor dentro del mismo ciclo.</div>'}</td></tr>`;
   }).join('') + '</table>';
   document.querySelectorAll('.selSus').forEach(s => s.onchange = () => { propuesta[+s.dataset.i].sustituto = s.value; pintarResultado(); });
@@ -591,25 +620,27 @@ async function pdfDia(soloDescargar) {
     layout: { ...sinBordes, fillColor: () => C.rojoClaro, vLineWidth: i => i === 0 ? 3 : 0, vLineColor: () => C.rojo }, margin: [0, 0, 0, 9] });
   // Tabla de sustituciones (lo importante)
   const th = t => ({ text: t, bold: true, color: '#fff', fontSize: 10 });
-  // Un bloque por tramo: franja de color con la hora y debajo los grupos de ese tramo
-  const body = [[th('Grupo'), th('Lo cubre'), th('En lugar de')]], tipo = ['h'], orden = [...propuesta].sort((a, b) => a.ti - b.ti);
-  const porTramo = []; orden.forEach(x => { const g = porTramo[porTramo.length - 1]; if (g && g.ti === x.ti) g.xs.push(x); else porTramo.push({ ti: x.ti, xs: [x] }); });
-  porTramo.forEach(g => {
-    const [ini, fin] = D.tramos[g.ti].split('-');
-    body.push([{ colSpan: 3, text: [{ text: `${ini} – ${fin}`, bold: true, fontSize: 11.5, color: '#fff' }, { text: g.xs.length > 1 ? `     ${g.xs.length} grupos` : '', fontSize: 9, color: '#c9d0f5' }] }, {}, {}]); tipo.push('t');
-    g.xs.forEach((x, k) => {
-      body.push([
-        { text: x.grupo, fontSize: 11.5, bold: true },
-        x.sustituto ? { text: nomCorto(x.sustituto), fontSize: 12, bold: true, color: C.azul } : { text: 'SIN CUBRIR', fontSize: 11.5, bold: true, color: C.rojo },
-        { text: nomCorto(x.ausente), fontSize: 10.5, color: C.gris }]);
-      tipo.push(k % 2 ? 'b' : 'a');
-    });
+  // Tabla: una fila por grupo; la hora solo en la primera fila de cada tramo y una línea gruesa entre tramos
+  const body = [[th('Hora'), th('Curso'), th('Asignatura'), th('Falta'), th('Lo cubre')]], fondo = [C.azul], corte = [false];
+  const orden = [...propuesta].sort((a, b) => a.ti - b.ti);
+  let tPrev = -1, par = 0;
+  orden.forEach(x => {
+    const nuevo = x.ti !== tPrev; if (nuevo) { par ^= 1; tPrev = x.ti; }
+    const [ini, fin] = D.tramos[x.ti].split('-');
+    body.push([
+      nuevo ? { text: [{ text: ini, bold: true, fontSize: 11.5, color: C.azul }, { text: '\n' + fin, fontSize: 8.5, color: C.gris }] } : { text: '' },
+      { text: x.grupo, fontSize: 11, bold: true },
+      { text: asignaturaDe(x.texto, x.ausente), fontSize: 9.5 },
+      { text: nomCorto(x.ausente), fontSize: 9.5, color: C.gris },
+      x.sustituto ? { text: nomCorto(x.sustituto), fontSize: 11.5, bold: true, color: C.verde } : { text: 'SIN CUBRIR', fontSize: 11, bold: true, color: C.rojo }]);
+    fondo.push(par ? '#ffffff' : C.claro); corte.push(nuevo);
   });
-  content.push({ table: { headerRows: 1, widths: [110, '*', 150], body, dontBreakRows: true }, layout: {
-    fillColor: i => ({ h: C.azul, t: C.verde, a: '#ffffff', b: '#f4f6fd' })[tipo[i]],
-    hLineWidth: (i, n) => i === 0 || i === n.table.body.length || tipo[i] === 't' || tipo[i - 1] === 't' ? 0 : .5,
-    hLineColor: () => C.linea, vLineWidth: () => 0,
-    paddingTop: i => tipo[i] === 't' ? 2.5 : 3.5, paddingBottom: i => tipo[i] === 't' ? 2.5 : 3.5, paddingLeft: () => 10, paddingRight: () => 10 } });
+  content.push({ table: { headerRows: 1, widths: [44, 62, '*', 92, 110], body, dontBreakRows: true }, layout: {
+    fillColor: i => fondo[i],
+    hLineWidth: (i, n) => i === 0 || i === n.table.body.length ? 0 : i === 1 ? 0 : corte[i] ? 1.6 : .4,
+    hLineColor: i => corte[i] ? C.azul2 : C.linea,
+    vLineWidth: (i, n) => i === 0 || i === n.table.widths.length ? 0 : .4, vLineColor: () => C.linea,
+    paddingTop: () => 4, paddingBottom: () => 4, paddingLeft: () => 7, paddingRight: () => 7 } });
   if (propuesta.some(x => !x.sustituto)) content.push({ text: [{ text: 'Grupos sin cubrir: ', bold: true, color: C.oro }, 'se reparte el alumnado del grupo menos numeroso, preferentemente dentro del mismo ciclo.'], fontSize: 9.5, margin: [0, 8, 0, 0] });
   content.push({ text: [{ text: 'Gracias por vuestra colaboración.  ' }, { text: yo === 'María' ? 'Jefatura de Estudios' : 'Dirección', bold: true, color: C.azul }], fontSize: 10, margin: [0, 14, 0, 0] });
   const hoy = new Date();
