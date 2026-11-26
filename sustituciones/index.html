@@ -299,6 +299,11 @@ function normalizar() {
     D.orden.forEach(o => { if (o[0] === 'planes') o[1] = 'Planes y proyectos (STEAM, PA, Coord. bilingüe, Biblioteca, TDE)'; if (o[0] === 'sistematico') o[1] = 'Refuerzo sistemático (María y Estela)'; });
     D.parches.push('horarios-dir-1'); cambio = true;
   }
+  if (!D.parches.includes('victor-x6-dir')) {   // miércoles 12:30-13:00 Víctor: Dirección
+    (D.horarios.victor = D.horarios.victor || {}).X6 = { t: 'DIR', c: false, g: null };
+    D.cuadrante.X6 = (D.cuadrante.X6 || []).filter(i => i.p !== 'victor').concat([{ p: 'victor', t: 'Víctor Dirección', cat: 'direccion' }]);
+    D.parches.push('victor-x6-dir'); cambio = true;
+  }
   if (cambio) db.ref('sustituciones/datos').set(D).catch(() => { });
 }
 const TR_CLASE = () => D.tramos.map((t, i) => i).filter(i => i !== 5);   // sin recreo
@@ -339,7 +344,7 @@ function pintarDia() {
     c.addEventListener('keydown', e => { if ((e.key === ' ' || e.key === 'Enter') && e.target === c) { e.preventDefault(); alternar(); } });
   });
   $('#buscaPer').oninput = filtrar; filtrar(); contar();
-  try { if (localStorage.getItem('sust-nov') !== '6') { localStorage.setItem('sust-nov', '6'); toast('✨ Novedad: horarios de Víctor, Encarna y María actualizados; Dirección, Secretaría y Jefatura cuentan en el último paso.', 6000); } } catch (e) { }
+  try { if (localStorage.getItem('sust-nov') !== '7') { localStorage.setItem('sust-nov', '7'); toast('✨ Novedad: horarios de Víctor (miércoles 12:30 Dirección), Encarna y María actualizados.', 6000); } } catch (e) { }
   $('#estadoDia').textContent = guardado ? '✅ Este día ya está guardado (por ' + (guardado.por || '') + '). Si lo vuelves a guardar, se sustituye.' : '';
   if (guardado) { propuesta = guardado.asignaciones || []; pintarResultado(); } else $('#cardRes').classList.add('oculto');
 }
