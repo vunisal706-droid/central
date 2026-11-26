@@ -164,7 +164,8 @@ tr:nth-child(odd) td{background:#FAFCFE}
         <div id="resultado"></div>
         <div class="fila noprint" style="margin-top:14px">
           <button class="btn ok" id="btnGuardar">💾 Guardar el día</button>
-          <button class="btn pri" id="btnPdf">📄 PDF para WhatsApp</button>
+          <button class="btn pri" id="btnPdf">📤 Compartir PDF (WhatsApp)</button>
+          <button class="btn" id="btnPdfDesc">⬇️ Descargar PDF</button>
           <button class="btn" onclick="print()">🖨️ Imprimir</button>
         </div>
         <p class="small muted noprint" style="margin-top:8px">Orden de sustituciones: <span id="ordenTxt"></span>. Si hay 2 o más bajas, Infantil cubre Infantil y Primaria cubre Primaria (si en un tramo no hay nadie de la misma etapa, se propone a otra persona). Si en el grupo que se queda sin maestro hay refuerzo puntual en ese tramo, lo cubre esa persona. Entre personas del mismo paso se propone a quien menos sustituciones lleva este curso.</p>
@@ -354,7 +355,7 @@ function pintarDia() {
     if (!todo) toast('Ahora toca las horas en que falta.');
   });
   $('#buscaPer').oninput = filtrar; filtrar(); contar();
-  try { if (localStorage.getItem('sust-nov') !== '8') { localStorage.setItem('sust-nov', '8'); toast('✨ Novedad: horas de ausencia más claras: ✕ rojo = falta, ✓ verde = está; y botón «Solo unas horas».', 6000); } } catch (e) { }
+  try { if (localStorage.getItem('sust-nov') !== '9') { localStorage.setItem('sust-nov', '9'); toast('✨ Novedad: botón «Descargar PDF» y horas más claras (✕ rojo = falta, ✓ verde = está).', 6000); } } catch (e) { }
   $('#estadoDia').textContent = guardado ? '✅ Este día ya está guardado (por ' + (guardado.por || '') + '). Si lo vuelves a guardar, se sustituye.' : '';
   if (guardado) { propuesta = guardado.asignaciones || []; pintarResultado(); } else $('#cardRes').classList.add('oculto');
 }
@@ -511,7 +512,7 @@ function pdfmakeListo() {
 }
 function logoData() { return fetch('../podcast/LOGO.jpg').then(r => r.ok ? r.blob() : null).then(b => !b ? null : new Promise(ok => { const f = new FileReader(); f.onload = () => ok(f.result); f.onerror = () => ok(null); f.readAsDataURL(b); })).catch(() => null); }
 const MESES = ['enero', 'febrero', 'marzo', 'abril', 'mayo', 'junio', 'julio', 'agosto', 'septiembre', 'octubre', 'noviembre', 'diciembre'];
-async function pdfDia() {
+async function pdfDia(soloDescargar) {
   const f = $('#fecha').value, dia = letraDia(f);
   if (!propuesta.length) return toast('Primero pulsa «Proponer sustituciones».');
   toast('Preparando el PDF…');
@@ -564,16 +565,17 @@ async function pdfDia() {
   const nombre = `Sustituciones_${f}_CEIP_Capitulaciones.pdf`;
   const pdf = pdfMake.createPdf(doc);
   // En el móvil se abre directamente «Compartir» (WhatsApp); en el ordenador se descarga
-  if (navigator.canShare) {
+  if (!soloDescargar && navigator.canShare) {
     try {
       const blob = await new Promise(ok => pdf.getBlob(ok));
       const file = new File([blob], nombre, { type: 'application/pdf' });
       if (navigator.canShare({ files: [file] }) && /Android|iPhone|iPad/i.test(navigator.userAgent)) { await navigator.share({ files: [file], title: 'Sustituciones ' + fechaTxt }); return; }
     } catch (e) { if (e && e.name === 'AbortError') return; }
   }
-  pdf.download(nombre); toast('PDF descargado. Adjúntalo en WhatsApp.');
+  pdf.download(nombre); toast('PDF descargado.');
 }
-$('#btnPdf').onclick = () => pdfDia().catch(e => { console.error(e); toast('No se pudo crear el PDF. Revisa la conexión.'); });
+$('#btnPdf').onclick = () => pdfDia(false).catch(e => { console.error(e); toast('No se pudo crear el PDF. Revisa la conexión.'); });
+$('#btnPdfDesc').onclick = () => pdfDia(true).catch(e => { console.error(e); toast('No se pudo crear el PDF. Revisa la conexión.'); });
 
 /* ---------- Registro ---------- */
 function pintarRegistro() {
