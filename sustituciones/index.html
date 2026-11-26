@@ -162,7 +162,7 @@ tr:nth-child(odd) td{background:#FAFCFE}
           <button class="btn pri" id="btnPdf">📄 PDF para WhatsApp</button>
           <button class="btn" onclick="print()">🖨️ Imprimir</button>
         </div>
-        <p class="small muted noprint" style="margin-top:8px">Orden de sustituciones: <span id="ordenTxt"></span>. Si hay 2 o más bajas, Infantil cubre Infantil y Primaria cubre Primaria (si en un tramo no hay nadie de la misma etapa, se propone a otra persona). Entre personas del mismo paso se propone a quien menos sustituciones lleva este curso.</p>
+        <p class="small muted noprint" style="margin-top:8px">Orden de sustituciones: <span id="ordenTxt"></span>. Si hay 2 o más bajas, Infantil cubre Infantil y Primaria cubre Primaria (si en un tramo no hay nadie de la misma etapa, se propone a otra persona). Si en el grupo que se queda sin maestro hay refuerzo puntual en ese tramo, lo cubre esa persona. Entre personas del mismo paso se propone a quien menos sustituciones lleva este curso.</p>
       </div>
     </section>
 
@@ -328,7 +328,7 @@ function pintarDia() {
     c.addEventListener('keydown', e => { if ((e.key === ' ' || e.key === 'Enter') && e.target === c) { e.preventDefault(); alternar(); } });
   });
   $('#buscaPer').oninput = filtrar; filtrar(); contar();
-  try { if (localStorage.getItem('sust-nov') !== '4') { localStorage.setItem('sust-nov', '4'); toast('✨ Novedad: Manolo ya no cubre Infantil si hay otro curso que cubrir, y «Cris» aparece como Cristina ZTS.', 6000); } } catch (e) { }
+  try { if (localStorage.getItem('sust-nov') !== '5') { localStorage.setItem('sust-nov', '5'); toast('✨ Novedad: si hay refuerzo puntual en el grupo que se queda sin maestro, lo cubre esa persona.', 6000); } } catch (e) { }
   $('#estadoDia').textContent = guardado ? '✅ Este día ya está guardado (por ' + (guardado.por || '') + '). Si lo vuelves a guardar, se sustituye.' : '';
   if (guardado) { propuesta = guardado.asignaciones || []; pintarResultado(); } else $('#cardRes').classList.add('oculto');
 }
@@ -385,16 +385,21 @@ function etapaItem(it) {
   const p = D.personas.find(x => x.id === it.p);
   return p && /^inf/i.test(String(p.grupo || '')) ? 'inf' : 'pri';
 }
+// ¿El texto del cuadrante («Manolo 4º», «Cristina ZTS inf 4») es de ese grupo?
+function esDeGrupo(t, grupo) {
+  const d = String(grupo || '').replace(/\D/g, ''); if (!d) return false;
+  t = String(t || '');
+  return /^inf/i.test(grupo) ? new RegExp('inf\\.?\\s*' + d + '(?!\\d)', 'i').test(t) : !/\binf/i.test(t) && new RegExp('(^|\\D)' + d + '\\s*º').test(t);
+}
 let porEtapa = false;   // con 2 o más bajas el mismo día: Infantil cubre Infantil y Primaria cubre Primaria
-function candidatos(dia, ti, faltanEn, usados, grupo, cuentas) {
+function candidatos(dia, ti, faltanEn, usados, grupo, cuentas, pref) {
   const items = (D.cuadrante[dia + ti] || []).filter(it => !faltanEn.has(it.p) && !usados.has(it.p));
   const vistos = new Set(), out = [];
   items.forEach(it => { if (vistos.has(it.p)) return; vistos.add(it.p); out.push(it); });
-  const g = (grupo || '').replace(/\D/g, '');
   const tut = tutorDe(grupo);
   const eg = etapaGrupo(grupo), mismaEtapa = it => porEtapa && etapaItem(it) === eg ? 1 : 0;
-  return out.sort((a, b) => ((b.p === tut) - (a.p === tut)) || (mismaEtapa(b) - mismaEtapa(a)) || ordenIdx(a.cat) - ordenIdx(b.cat)
-    || ((g && b.t.includes(g)) - (g && a.t.includes(g)))
+  return out.sort((a, b) => ((b.p === tut) - (a.p === tut)) || ((b.p === pref) - (a.p === pref)) || (mismaEtapa(b) - mismaEtapa(a)) || ordenIdx(a.cat) - ordenIdx(b.cat)
+    || (esDeGrupo(b.t, grupo) - esDeGrupo(a.t, grupo))
     || (cuentas[a.p] || 0) - (cuentas[b.p] || 0)
     || nombre(a.p).localeCompare(nombre(b.p)));
 }
@@ -421,13 +426,19 @@ $('#btnCalcular').onclick = () => {
     const enCuadrante = new Set((D.cuadrante[dia + ti] || []).map(i => i.p));
     const reservados = new Set(necesidades.map(n => tutorDe(n.grupo)).filter(t => t && enCuadrante.has(t) && !faltanEn.has(t)));
     necesidades.sort((x, y) => (reservados.has(tutorDe(y.grupo)) - reservados.has(tutorDe(x.grupo))) || ((etapaGrupo(x.grupo) === 'inf') - (etapaGrupo(y.grupo) === 'inf')));
+    // Si en un grupo con ausencia hay refuerzo puntual en ese tramo, va esa persona a ese grupo
+    const pref = {}, prefUsados = new Set();
+    necesidades.forEach(n => {
+      const it = (D.cuadrante[dia + ti] || []).find(i => i.cat === 'puntual' && !faltanEn.has(i.p) && !reservados.has(i.p) && !prefUsados.has(i.p) && esDeGrupo(i.t, n.grupo));
+      if (it && !(reservados.has(tutorDe(n.grupo)))) { pref[n.grupo] = it.p; prefUsados.add(it.p); }
+    });
     necesidades.forEach(({ a, celda, grupo }) => {
       const propio = tutorDe(grupo);
-      const bloqueo = new Set([...usados, ...[...reservados].filter(t => t !== propio)]);
+      const bloqueo = new Set([...usados, ...[...reservados].filter(t => t !== propio), ...[...prefUsados].filter(p => p !== pref[grupo])]);
       // Quien tiene «noInf» (Manolo) no va a Infantil si en ese tramo hay otro curso de Primaria que cubrir
       if (etapaGrupo(grupo) === 'inf' && necesidades.some(n => etapaGrupo(n.grupo) === 'pri'))
         D.personas.filter(p => p.noInf).forEach(p => bloqueo.add(p.id));
-      const cand = candidatos(dia, ti, faltanEn, bloqueo, grupo, cuentas);
+      const cand = candidatos(dia, ti, faltanEn, bloqueo, grupo, cuentas, pref[grupo]);
       const s = cand[0] ? cand[0].p : '';
       if (s) { usados.add(s); cuentas[s] = (cuentas[s] || 0) + 1; }
       propuesta.push({ ti, grupo, ausente: a.p, texto: celda.t || '', sustituto: s });
