@@ -377,7 +377,7 @@ function pintarDia() {
     if (!todo) toast('Ahora toca las horas en que falta.');
   });
   $('#buscaPer').oninput = filtrar; filtrar(); contar();
-  try { if (localStorage.getItem('sust-nov') !== '14') { localStorage.setItem('sust-nov', '14'); toast('✨ Novedad: las sustituciones en R55 se alternan; el control está en «Registro».', 6000); } } catch (e) { }
+  try { if (localStorage.getItem('sust-nov') !== '15') { localStorage.setItem('sust-nov', '15'); toast('✨ Novedad: corregido el orden: el PT en Infantil ya no se adelanta a planes ni a refuerzo sistemático.', 6000); } } catch (e) { }
   $('#estadoDia').textContent = guardado ? '✅ Este día ya está guardado (por ' + (guardado.por || '') + '). Si lo vuelves a guardar, se sustituye.' : '';
   if (guardado) { propuesta = guardado.asignaciones || []; pintarResultado(); } else $('#cardRes').classList.add('oculto');
 }
@@ -440,8 +440,7 @@ const tutorDe = g => { const p = D.personas.find(x => x.tipo === 'tutor' && x.gr
 const ordenIdx = cat => { const i = D.orden.findIndex(o => o[0] === cat); return i < 0 ? 99 : i; };
 // Etapa: Infantil o Primaria (del grupo y de quien está disponible en ese tramo)
 const etapaGrupo = g => /^inf/i.test(String(g || '')) ? 'inf' : 'pri';
-function etapaItem(it) {
-  if (/\binf/i.test(it.t)) return 'inf';
+function etapaItem(it) {   // «de Infantil» = tutoras de Infantil (el PT o el refuerzo que pasa por Infantil no cuenta)
   const p = D.personas.find(x => x.id === it.p);
   return p && /^inf/i.test(String(p.grupo || '')) ? 'inf' : 'pri';
 }
