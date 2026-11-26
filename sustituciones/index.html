@@ -110,8 +110,13 @@ tr:nth-child(odd) td{background:#FAFCFE}
 .tramos{display:flex;gap:5px;flex-wrap:wrap;padding-top:8px;border-top:1px dashed #fed7aa}
 .tramos label{cursor:pointer}
 .tramos input{position:absolute;opacity:0;pointer-events:none}
-.tramos label span{display:inline-block;font:700 .76rem var(--texto);padding:5px 9px;border-radius:9px;background:#f1f5f9;color:#64748b;border:1px solid transparent;text-decoration:line-through}
-.tramos label input:checked+span{background:#ffedd5;color:#9a3412;border-color:#fdba74;text-decoration:none}
+.tramos label span{display:inline-block;font:700 .76rem var(--texto);padding:6px 10px;border-radius:9px;background:#ecfdf5;color:#065f46;border:1px solid #a7f3d0}
+.tramos label span::before{content:'✓ '}
+.tramos label input:checked+span{background:#fee2e2;color:#991b1b;border-color:#fca5a5}
+.tramos label input:checked+span::before{content:'✕ '}
+.tramos .modo{display:flex;gap:6px;width:100%;margin-bottom:2px}
+.tramos .modo button{font:700 .74rem var(--texto);padding:6px 10px;border-radius:9px;border:1px solid #cbd5e1;background:#fff;color:#334155;cursor:pointer}
+.tramos .leyenda{width:100%;font:600 .7rem var(--texto);color:#64748b}
 .tramos .dia-c{font:700 .72rem var(--texto);color:#9a3412;width:100%}
 .vacio{padding:18px;text-align:center;color:var(--muted);font-weight:700}
 </style>
@@ -336,15 +341,20 @@ function pintarDia() {
       return `<div class="per ${on ? 'falta' : ''}" data-p="${p.id}" data-busca="${esc(norm(p.nombre + ' ' + sub))}" tabindex="0" role="switch" aria-checked="${on}">
         <span class="badge-f">FALTA</span>
         <div class="top"><span class="av">${esc(iniciales(nom))}</span><div><div class="nom">${esc(nom)}</div><div class="sub">${esc(sub)}</div></div><span class="sw" aria-hidden="true"></span></div>
-        <div class="tramos ${on ? '' : 'oculto'}"><span class="dia-c">Tramos en que falta:</span>${TR_CLASE().map(i => `<label><input type="checkbox" data-ti="${i}" ${!on || faltan[p.id].includes(i) ? 'checked' : ''}><span>${D.tramos[i].split('-')[0]}</span></label>`).join('')}</div></div>`;
+        <div class="tramos ${on ? '' : 'oculto'}"><span class="dia-c">¿Cuándo falta?</span><div class="modo"><button type="button" data-modo="todo">Toda la jornada</button><button type="button" data-modo="horas">Solo unas horas</button></div><span class="leyenda">Toca las horas: <b style="color:#991b1b">✕ rojo = falta</b> · <b style="color:#065f46">✓ verde = está</b></span>${TR_CLASE().map(i => `<label><input type="checkbox" data-ti="${i}" ${!on || faltan[p.id].includes(i) ? 'checked' : ''}><span>${D.tramos[i].split('-')[0]}</span></label>`).join('')}</div></div>`;
     }).join('')}</div></div>`).join('') || '<p class="vacio">No hay personal. Añádelo en «Horarios y cuadrante».</p>';
   document.querySelectorAll('.per').forEach(c => {
     const alternar = () => { const on = !c.classList.contains('falta'); c.classList.toggle('falta', on); c.setAttribute('aria-checked', on); c.querySelector('.tramos').classList.toggle('oculto', !on); contar(); };
     c.addEventListener('click', e => { if (e.target.closest('.tramos')) return; alternar(); });
     c.addEventListener('keydown', e => { if ((e.key === ' ' || e.key === 'Enter') && e.target === c) { e.preventDefault(); alternar(); } });
   });
+  document.querySelectorAll('.tramos [data-modo]').forEach(b => b.onclick = () => {
+    const todo = b.dataset.modo === 'todo';
+    b.closest('.tramos').querySelectorAll('[data-ti]').forEach(x => x.checked = todo);
+    if (!todo) toast('Ahora toca las horas en que falta.');
+  });
   $('#buscaPer').oninput = filtrar; filtrar(); contar();
-  try { if (localStorage.getItem('sust-nov') !== '7') { localStorage.setItem('sust-nov', '7'); toast('✨ Novedad: horarios de Víctor (miércoles 12:30 Dirección), Encarna y María actualizados.', 6000); } } catch (e) { }
+  try { if (localStorage.getItem('sust-nov') !== '8') { localStorage.setItem('sust-nov', '8'); toast('✨ Novedad: horas de ausencia más claras: ✕ rojo = falta, ✓ verde = está; y botón «Solo unas horas».', 6000); } } catch (e) { }
   $('#estadoDia').textContent = guardado ? '✅ Este día ya está guardado (por ' + (guardado.por || '') + '). Si lo vuelves a guardar, se sustituye.' : '';
   if (guardado) { propuesta = guardado.asignaciones || []; pintarResultado(); } else $('#cardRes').classList.add('oculto');
 }
@@ -422,6 +432,8 @@ function candidatos(dia, ti, faltanEn, usados, grupo, cuentas, pref) {
 $('#btnCalcular').onclick = () => {
   const f = $('#fecha').value, dia = letraDia(f);
   if (!dia) return toast('Elige un día de lunes a viernes.');
+  const sinHoras = [...document.querySelectorAll('.per.falta')].filter(c => !c.querySelector('[data-ti]:checked')).map(c => nombre(c.dataset.p));
+  if (sinHoras.length) return toast('Marca las horas en que falta: ' + sinHoras.join(', '), 4500);
   const aus = ausenciasMarcadas();
   if (!aus.length) return toast('Marca al menos a una persona que falte.');
   const cuentas = cuentasCurso(cursoDe(f), f);
