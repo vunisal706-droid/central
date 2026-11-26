@@ -168,7 +168,7 @@ tr:nth-child(odd) td{background:#FAFCFE}
           <button class="btn" id="btnPdfDesc">⬇️ Descargar PDF</button>
           <button class="btn" onclick="print()">🖨️ Imprimir</button>
         </div>
-        <p class="small muted noprint" style="margin-top:8px">Orden de sustituciones: <span id="ordenTxt"></span>. Si hay 2 o más bajas, Infantil cubre Infantil y Primaria cubre Primaria (si en un tramo no hay nadie de la misma etapa, se propone a otra persona). Si en el grupo que se queda sin maestro hay refuerzo puntual en ese tramo, lo cubre esa persona. Entre personas del mismo paso se propone a quien menos sustituciones lleva este curso.</p>
+        <p class="small muted noprint" style="margin-top:8px">Orden de sustituciones: <span id="ordenTxt"></span>. Siempre se respeta el orden. Si hay 2 o más bajas, entre las personas a las que les toca, las tutoras de Infantil van a Infantil y el resto a Primaria. Si en el grupo que se queda sin maestro hay refuerzo puntual en ese tramo, lo cubre esa persona. Entre personas del mismo paso se propone a quien menos sustituciones lleva este curso.</p>
       </div>
     </section>
 
@@ -377,7 +377,7 @@ function pintarDia() {
     if (!todo) toast('Ahora toca las horas en que falta.');
   });
   $('#buscaPer').oninput = filtrar; filtrar(); contar();
-  try { if (localStorage.getItem('sust-nov') !== '15') { localStorage.setItem('sust-nov', '15'); toast('✨ Novedad: corregido el orden: el PT en Infantil ya no se adelanta a planes ni a refuerzo sistemático.', 6000); } } catch (e) { }
+  try { if (localStorage.getItem('sust-nov') !== '16') { localStorage.setItem('sust-nov', '16'); toast('✨ Novedad: siempre se respeta el orden; con 2 bajas, a quien le toca y es de Infantil va a Infantil.', 6000); } } catch (e) { }
   $('#estadoDia').textContent = guardado ? '✅ Este día ya está guardado (por ' + (guardado.por || '') + '). Si lo vuelves a guardar, se sustituye.' : '';
   if (guardado) { propuesta = guardado.asignaciones || []; pintarResultado(); } else $('#cardRes').classList.add('oculto');
 }
@@ -457,8 +457,7 @@ function candidatos(dia, ti, faltanEn, usados, grupo, cuentas, pref) {
   items.forEach(it => { if (vistos.has(it.p)) return; vistos.add(it.p); out.push(it); });
   const tut = tutorDe(grupo);
   const pos = new Map(out.map((it, i) => [it, i]));   // orden de la casilla del cuadrante
-  const eg = etapaGrupo(grupo), mismaEtapa = it => porEtapa && etapaItem(it) === eg ? 1 : 0;
-  return out.sort((a, b) => ((b.p === tut) - (a.p === tut)) || ((b.p === pref) - (a.p === pref)) || (mismaEtapa(b) - mismaEtapa(a)) || (a.cat === 'r55' && b.cat === 'r55' ? (cuentasR[a.p] || 0) - (cuentasR[b.p] || 0) : 0)   // R55: se alterna, primero quien menos ha sustituido
+  return out.sort((a, b) => ((b.p === tut) - (a.p === tut)) || ((b.p === pref) - (a.p === pref)) || (a.cat === 'r55' && b.cat === 'r55' ? (cuentasR[a.p] || 0) - (cuentasR[b.p] || 0) : 0)   // R55: se alterna, primero quien menos ha sustituido
     || pos.get(a) - pos.get(b)
     || (esDeGrupo(b.t, grupo) - esDeGrupo(a.t, grupo))
     || (cuentas[a.p] || 0) - (cuentas[b.p] || 0)
@@ -496,15 +495,22 @@ $('#btnCalcular').onclick = () => {
       const it = (D.cuadrante[dia + ti] || []).find(i => i.cat === 'puntual' && !faltanEn.has(i.p) && !reservados.has(i.p) && !prefUsados.has(i.p) && esDeGrupo(i.t, n.grupo));
       if (it && !(reservados.has(tutorDe(n.grupo)))) { pref[n.grupo] = it.p; prefUsados.add(it.p); }
     });
-    necesidades.forEach(({ a, celda, grupo }) => {
+    necesidades.forEach(({ a, celda, grupo }, ni) => {
       const propio = tutorDe(grupo);
       const bloqueo = new Set([...usados, ...[...reservados].filter(t => t !== propio), ...[...prefUsados].filter(p => p !== pref[grupo])]);
       // Quien tiene «noInf» (Manolo) no va a Infantil si en ese tramo hay otro curso de Primaria que cubrir
       if (etapaGrupo(grupo) === 'inf' && necesidades.some(n => etapaGrupo(n.grupo) === 'pri'))
         D.personas.filter(p => p.noInf).forEach(p => bloqueo.add(p.id));
       const cand = candidatos(dia, ti, faltanEn, bloqueo, grupo, cuentas, pref[grupo]);
-      const s = cand[0] ? cand[0].p : '';
-      if (s) { usados.add(s); cuentas[s] = (cuentas[s] || 0) + 1; if (cand[0].cat === 'r55') cuentasR[s] = (cuentasR[s] || 0) + 1; }
+      // Siempre se respeta el orden. Con 2 o más bajas, entre las personas a las que ya les toca
+      // (tantas como grupos quedan por cubrir), las tutoras de Infantil van a Infantil y el resto a Primaria.
+      let elegido = cand[0];
+      if (porEtapa && elegido && elegido.p !== tutorDe(grupo) && elegido.p !== pref[grupo]) {
+        const turno = cand.slice(0, necesidades.length - ni);
+        elegido = turno.find(c => etapaItem(c) === etapaGrupo(grupo)) || elegido;
+      }
+      const s = elegido ? elegido.p : '';
+      if (s) { usados.add(s); cuentas[s] = (cuentas[s] || 0) + 1; if (elegido.cat === 'r55') cuentasR[s] = (cuentasR[s] || 0) + 1; }
       propuesta.push({ ti, grupo, ausente: a.p, texto: celda.t || '', sustituto: s });
     });
   });
