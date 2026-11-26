@@ -332,6 +332,13 @@ function normalizar() {
     });
     D.parches.push('paqui-r55'); cambio = true;
   }
+  if (!D.parches.includes('zts-antes-dir')) {   // ZTS (paso 8) va antes que Dirección, Jefatura y Secretaría (paso 9)
+    const i = D.orden.findIndex(o => o[0] === 'direccion');
+    if (!D.orden.some(o => o[0] === 'zts')) D.orden.splice(i < 0 ? D.orden.length : i, 0, ['zts', 'ZTS (Cristina y Miriam)']);
+    D.orden.forEach(o => { if (o[0] === 'direccion') o[1] = 'Dirección (Jefatura, Dirección y Secretaría)'; });
+    Object.values(D.cuadrante).forEach(c => (c || []).forEach(it => { if (it.cat === 'direccion' && /zts$/.test(it.p)) it.cat = 'zts'; }));
+    D.parches.push('zts-antes-dir'); cambio = true;
+  }
   if (cambio) db.ref('sustituciones/datos').set(D).catch(() => { });
 }
 const TR_CLASE = () => D.tramos.map((t, i) => i).filter(i => i !== 5);   // sin recreo
@@ -377,7 +384,7 @@ function pintarDia() {
     if (!todo) toast('Ahora toca las horas en que falta.');
   });
   $('#buscaPer').oninput = filtrar; filtrar(); contar();
-  try { if (localStorage.getItem('sust-nov') !== '16') { localStorage.setItem('sust-nov', '16'); toast('✨ Novedad: siempre se respeta el orden; con 2 bajas, a quien le toca y es de Infantil va a Infantil.', 6000); } } catch (e) { }
+  try { if (localStorage.getItem('sust-nov') !== '17') { localStorage.setItem('sust-nov', '17'); toast('✨ Novedad: ZTS va antes que Dirección, Jefatura y Secretaría.', 6000); } } catch (e) { }
   $('#estadoDia').textContent = guardado ? '✅ Este día ya está guardado (por ' + (guardado.por || '') + '). Si lo vuelves a guardar, se sustituye.' : '';
   if (guardado) { propuesta = guardado.asignaciones || []; pintarResultado(); } else $('#cardRes').classList.add('oculto');
 }
@@ -458,6 +465,7 @@ function candidatos(dia, ti, faltanEn, usados, grupo, cuentas, pref) {
   const tut = tutorDe(grupo);
   const pos = new Map(out.map((it, i) => [it, i]));   // orden de la casilla del cuadrante
   return out.sort((a, b) => ((b.p === tut) - (a.p === tut)) || ((b.p === pref) - (a.p === pref)) || (a.cat === 'r55' && b.cat === 'r55' ? (cuentasR[a.p] || 0) - (cuentasR[b.p] || 0) : 0)   // R55: se alterna, primero quien menos ha sustituido
+    || ((a.cat === 'direccion') - (b.cat === 'direccion'))   // Dirección, Jefatura y Secretaría siempre al final
     || pos.get(a) - pos.get(b)
     || (esDeGrupo(b.t, grupo) - esDeGrupo(a.t, grupo))
     || (cuentas[a.p] || 0) - (cuentas[b.p] || 0)
