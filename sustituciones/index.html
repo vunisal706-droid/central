@@ -322,6 +322,16 @@ function normalizar() {
     ['J1', 'J2'].forEach(k => { (D.horarios.magda = D.horarios.magda || {})[k] = { t: 'ALTERNATIVA 5º', c: true, g: '5º' }; });
     D.parches.push('estela-alter-5'); cambio = true;
   }
+  if (!D.parches.includes('paqui-r55')) {   // Paqui R55: jueves 12:30-14:00 y viernes 12:30-13:00
+    const ORD = ['puntual', 'planes', 'ciclo', 'sistematico', 'pt', 'al', 'r55', 'direccion'];
+    ['J6', 'J7', 'V6'].forEach(k => {
+      const c = D.cuadrante[k] = D.cuadrante[k] || [];
+      if (c.some(i => i.p === 'paqui')) return;
+      let pos = c.findIndex(i => ORD.indexOf(i.cat) > 6); if (pos < 0) pos = c.length;
+      c.splice(pos, 0, { p: 'paqui', t: 'Paqui R55', cat: 'r55' });
+    });
+    D.parches.push('paqui-r55'); cambio = true;
+  }
   if (cambio) db.ref('sustituciones/datos').set(D).catch(() => { });
 }
 const TR_CLASE = () => D.tramos.map((t, i) => i).filter(i => i !== 5);   // sin recreo
@@ -367,7 +377,7 @@ function pintarDia() {
     if (!todo) toast('Ahora toca las horas en que falta.');
   });
   $('#buscaPer').oninput = filtrar; filtrar(); contar();
-  try { if (localStorage.getItem('sust-nov') !== '12') { localStorage.setItem('sust-nov', '12'); toast('✨ Novedad: horarios revisados con Séneca (Estela: Alternativa de 5º los jueves).', 6000); } } catch (e) { }
+  try { if (localStorage.getItem('sust-nov') !== '13') { localStorage.setItem('sust-nov', '13'); toast('✨ Novedad: Paqui con R55 el jueves de 12:30 a 14:00 y el viernes de 12:30 a 13:00.', 6000); } } catch (e) { }
   $('#estadoDia').textContent = guardado ? '✅ Este día ya está guardado (por ' + (guardado.por || '') + '). Si lo vuelves a guardar, se sustituye.' : '';
   if (guardado) { propuesta = guardado.asignaciones || []; pintarResultado(); } else $('#cardRes').classList.add('oculto');
 }
