@@ -186,6 +186,7 @@ tr:nth-child(odd) td{background:#FAFCFE}
       <div class="card">
         <h2>Cuadrante de sustituciones (quién está disponible en cada tramo)</h2>
         <p class="small muted">Cada persona lleva el paso del orden en el que entra. Cámbialo si no es correcto.</p>
+        <div class="fila" style="margin-bottom:10px"><button class="btn pri" id="btnPdfCuadrante">🖨️ Cuadrante en PDF</button><span class="small muted">Para colgar en la sala de profesorado (A4 apaisado).</span></div>
         <div style="overflow-x:auto"><table class="hgrid" id="cuTabla"></table></div>
       </div>
       <div class="card">
@@ -386,7 +387,7 @@ function pintarDia() {
     if (!todo) toast('Ahora toca las horas en que falta.');
   });
   $('#buscaPer').oninput = filtrar; filtrar(); contar();
-  try { if (localStorage.getItem('sust-nov') !== '20') { localStorage.setItem('sust-nov', '20'); toast('✨ Novedad: PDF en tabla: hora, curso, quién falta, quién cubre y asignatura.', 6000); } } catch (e) { }
+  try { if (localStorage.getItem('sust-nov') !== '21') { localStorage.setItem('sust-nov', '21'); toast('✨ Novedad: «Cuadrante en PDF» en la pestaña de datos, para colgar en la sala de profesorado.', 6000); } } catch (e) { }
   $('#estadoDia').textContent = guardado ? '✅ Este día ya está guardado (por ' + (guardado.por || '') + '). Si lo vuelves a guardar, se sustituye.' : '';
   if (guardado) { propuesta = guardado.asignaciones || []; pintarResultado(); } else $('#cardRes').classList.add('oculto');
 }
@@ -660,7 +661,78 @@ async function pdfDia(soloDescargar) {
   pdf.download(nombre); toast('PDF descargado.');
 }
 $('#btnPdf').onclick = () => pdfDia(false).catch(e => { console.error(e); toast('No se pudo crear el PDF. Revisa la conexión.'); });
+$('#btnPdfCuadrante').onclick = () => pdfCuadrante().catch(e => { console.error(e); toast('No se pudo crear el PDF. Revisa la conexión.'); });
 $('#btnPdfDesc').onclick = () => pdfDia(true).catch(e => { console.error(e); toast('No se pudo crear el PDF. Revisa la conexión.'); });
+
+
+/* ---------- PDF del cuadrante de sustituciones (A4 apaisado) ---------- */
+const CAT_COL = { puntual: '#0f766e', planes: '#2563eb', ciclo: '#7c3aed', sistematico: '#c026d3', pt: '#ea580c', al: '#b45309', r55: '#4d7c0f', zts: '#0e7490', direccion: '#475569', tea: '#475569' };
+const NOM_CU = { cristina_inf5: 'Cristina I5', cris_zts: 'Cristina ZTS', noelia_tea: 'Noelia TEA', noelia_inf4: 'Noelia I4', magda: 'Estela' };
+function nomCu(pid) { if (NOM_CU[pid]) return NOM_CU[pid]; const p = D.personas.find(x => x.id === pid); return p ? partes(p)[0] : pid; }
+function detalleCu(it) {
+  let t = String(it.t || '').replace(/^\S+\s*/, '').replace(/^(ZTS|TEA)\s+/i, '');
+  if (it.p === 'noelia_inf4') t = t.replace(/^Inf\s+/i, '');
+  const M = [[/^C\.?\s?C\.?$/i, 'Coord. ciclo'], [/^C\.?\s?BILIN\w*/i, 'Coord. bilingüe'], [/^C\.?\s?STEAM/i, 'STEAM'], [/^C\.?\s?TDE/i, 'TDE'], [/^C\.?\s?BIBLI\w*/i, 'Biblioteca'], [/^PA$/i, 'PA (Apoyo Familias)'],
+    [/^R\s?55$/i, 'R55'], [/^conv$/i, 'Aula convivencia'], [/^Alter$/i, 'Alternativa'], [/^ref\s+/i, ''], [/\bEF\b/, 'E. Física'], [/\bCM\b/, 'C. Medio'], [/\bIng\b/i, 'Inglés'], [/^\(?Ingl[eé]s\)?$/i, 'Inglés en su clase'], [/^inf ingl[eé]s$/i, 'Inglés en su clase'], [/^inf\s+(\d)/i, 'Inf. $1 años'], [/^PT inf (\d)/i, 'PT Inf. $1 años']];
+  M.forEach(([re, n]) => { t = t.replace(re, n); });
+  return t.trim();
+}
+async function pdfCuadrante() {
+  toast('Preparando el cuadrante…');
+  await pdfmakeListo();
+  const img = await logoData();
+  const C = { azul: '#1e2a78', azul2: '#3b46b5', claro: '#f3f5fd', linea: '#d9ddf3', texto: '#1f2433', gris: '#6b7180', oro: '#c47a0a' };
+  const dias = ['L', 'M', 'X', 'J', 'V'], hoy = new Date(), curso = cursoDe(hoyISO());
+  const sinBordes = { hLineWidth: () => 0, vLineWidth: () => 0, paddingLeft: () => 0, paddingRight: () => 0, paddingTop: () => 0, paddingBottom: () => 0 };
+  const pasos = D.orden.map((o, i) => ({ id: o[0], n: i + 1, txt: o[1].replace(/\s*\(.*\)\s*$/, '') }));
+  const pasoDe = cat => (pasos.find(p => p.id === cat) || { n: '·' }).n;
+  // Cabecera: logo + título + franja de fecha
+  const content = [];
+  content.push({ table: { widths: [img ? 44 : 0, '*', 180], body: [[
+    img ? { image: img, width: 44 } : { text: '' },
+    { stack: [
+      { text: 'Cuadrante de disponibilidad', fontSize: 19, bold: true, color: C.azul, margin: [0, 2, 0, 0] },
+      { text: 'Profesorado disponible para sustituir en cada tramo, en el orden en que se sustituye', fontSize: 9.5, color: C.azul2 }], margin: [12, 1, 0, 0] },
+    { stack: [{ text: 'CEIP CAPITULACIONES · SANTA FE', fontSize: 7, bold: true, color: '#c9d0f5', alignment: 'right', characterSpacing: 1 }, { text: 'CURSO ' + curso, fontSize: 9.5, bold: true, color: '#fff', alignment: 'right', margin: [0, 1, 0, 0] }, { text: `Actualizado el ${hoy.getDate()} de ${MESES[hoy.getMonth()]} de ${hoy.getFullYear()}`, fontSize: 8, color: '#dfe3ff', alignment: 'right', margin: [0, 2, 0, 0] }],
+      fillColor: C.azul, margin: [10, 5, 10, 5] }]] }, layout: sinBordes });
+  content.push({ table: { widths: ['*'], body: [[{ text: ' ', fontSize: 1.5, lineHeight: 1 }]] }, layout: { ...sinBordes, fillColor: () => C.azul2 }, margin: [0, 4, 0, 5] });
+  // Leyenda del orden
+  const ley = pasos.map(p => ({ text: [{ text: ` ${p.n} `, bold: true, color: '#fff', background: CAT_COL[p.id] || C.gris, fontSize: 7.5 }, { text: ' ' + p.txt + '   ', fontSize: 7.5, color: C.texto }] }));
+  content.push({ columns: [{ width: '*', text: [{ text: 'ORDEN:  ', bold: true, fontSize: 7.5, color: C.azul, characterSpacing: .8 }].concat(ley.flatMap(l => l.text)), lineHeight: 1.2 },
+    { width: 'auto', text: [{ text: 'Nº = orden en el tramo · color = tipo     ', fontSize: 6.5, color: C.gris }, { text: 'Jefatura de Estudios · Dirección', bold: true, fontSize: 7.5, color: C.azul }] }], margin: [0, 0, 0, 4] });
+  // Tabla principal
+  const th = t => ({ text: t.toUpperCase(), bold: true, color: '#fff', fontSize: 8.5, alignment: 'center', characterSpacing: 1, margin: [0, 2, 0, 2] });
+  const body = [[th('Hora')].concat(dias.map(d => th(DIAS_N[d])))], tipos = ['h'];
+  D.tramos.forEach((tr, ti) => {
+    const [ini, fin] = tr.split('-');
+    if (ti === 5) { body.push([{ colSpan: 6, text: [{ text: 'RECREO', bold: true, characterSpacing: 2 }, { text: `   ${ini} – ${fin}`, color: C.gris }], fontSize: 7.5, alignment: 'center', color: C.azul, margin: [0, 1, 0, 1] }, {}, {}, {}, {}, {}]); tipos.push('r'); return; }
+    const fila = [{ stack: [{ text: ini, bold: true, fontSize: 11, color: C.azul }, { text: fin, fontSize: 7.5, color: C.gris }], alignment: 'center', margin: [0, 2, 0, 0] }];
+    dias.forEach(d => {
+      const its = (D.cuadrante[d + ti] || []).filter(it => it.p);
+      fila.push({ stack: its.length ? its.map((it, j) => ({ text: [
+        { text: ` ${j + 1} `, bold: true, color: '#fff', background: CAT_COL[it.cat] || C.gris, fontSize: 6.2 },
+        { text: '  ' + nomCu(it.p), bold: true, fontSize: 7, color: C.texto },
+        { text: detalleCu(it) ? '  ' + detalleCu(it) : '', fontSize: 6.2, color: C.gris }], lineHeight: 1.0, noWrap: true })) : [{ text: '—', color: C.gris, alignment: 'center' }] });
+    });
+    body.push(fila); tipos.push(ti % 2 ? 'a' : 'b');
+  });
+  content.push({ table: { headerRows: 1, widths: [38, '*', '*', '*', '*', '*'], body, dontBreakRows: true }, layout: {
+    fillColor: (i, n, c) => tipos[i] === 'h' ? C.azul : tipos[i] === 'r' ? '#e8ebf8' : c === 0 ? '#eef0fb' : tipos[i] === 'a' ? C.claro : '#ffffff',
+    hLineWidth: (i, n) => i === 0 || i === n.table.body.length ? 0 : .6, hLineColor: () => C.linea,
+    vLineWidth: (i, n) => i === 0 || i === 6 ? 0 : .6, vLineColor: (i) => i === 1 ? C.azul2 : C.linea,
+    paddingTop: i => tipos[i] === 'r' ? .3 : 1.8, paddingBottom: i => tipos[i] === 'r' ? .3 : 1.8, paddingLeft: () => 5, paddingRight: () => 4 } });
+  // Reglas
+  const regla = (t, b) => ({ text: [{ text: '• ', color: C.azul2, bold: true }, { text: t, bold: true }, { text: ' ' + b, color: C.texto }], fontSize: 6.9, margin: [0, 0, 0, 1.5] });
+  content.push({ columns: [
+    { width: '*', stack: [regla('Tutor/a libre:', 'si está libre, se queda con su grupo.'), regla('Refuerzo en el grupo:', 'el refuerzo puntual de ese grupo va a ese grupo.')] },
+    { width: '*', stack: [regla('Dos o más bajas:', 'se respeta el orden; Infantil a Infantil si le toca.'), regla('Aula TEA:', 'Lorena (AL); si no está o es jueves, Víctor.')] },
+    { width: '*', stack: [regla('R55:', 'se alterna entre quienes la tienen.'), regla('Dirección:', 'sin administrativa, siempre queda alguien del ED.')] }],
+    columnGap: 12, margin: [0, 5, 0, 0] });
+  const doc = { pageSize: 'A4', pageOrientation: 'landscape', pageMargins: [26, 18, 26, 16], info: { title: 'Cuadrante de disponibilidad ' + curso, author: 'CEIP Capitulaciones' },
+    defaultStyle: { font: 'Roboto', fontSize: 8, lineHeight: 1.15, color: C.texto }, content };
+  pdfMake.createPdf(doc).download(`Cuadrante_disponibilidad_${curso.replace('/', '-')}_CEIP_Capitulaciones.pdf`);
+  toast('Cuadrante descargado.');
+}
 
 /* ---------- Registro ---------- */
 function pintarRegistro() {
