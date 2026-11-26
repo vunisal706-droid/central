@@ -281,6 +281,14 @@ function normalizar() {
   D.personas = D.personas || []; D.horarios = D.horarios || {}; D.cuadrante = D.cuadrante || {};
   D.tramos = D.tramos || ['9:00-10:00', '10:00-10:30', '10:30-11:00', '11:00-11:30', '11:30-12:00', '12:00-12:30', '12:30-13:00', '13:00-14:00'];
   D.orden = D.orden || [];
+  // Ajustes pedidos: «Cris» pasa a «Cristina ZTS» y Manolo no cubre Infantil si hay otro curso que cubrir
+  let cambio = false;
+  D.personas.forEach(p => {
+    if (p.id === 'cris_zts' && p.nombre !== 'Cristina (ZTS)') { p.nombre = 'Cristina (ZTS)'; cambio = true; }
+    if (p.id === 'manolo' && !p.noInf) { p.noInf = true; cambio = true; }
+  });
+  Object.values(D.cuadrante).forEach(v => (v || []).forEach(it => { const t = String(it.t || '').replace(/\bCris\b/g, 'Cristina ZTS'); if (t !== it.t) { it.t = t; cambio = true; } }));
+  if (cambio) db.ref('sustituciones/datos').set(D).catch(() => { });
 }
 const TR_CLASE = () => D.tramos.map((t, i) => i).filter(i => i !== 5);   // sin recreo
 const nombre = id => (D.personas.find(p => p.id === id) || { nombre: id }).nombre;
@@ -320,7 +328,7 @@ function pintarDia() {
     c.addEventListener('keydown', e => { if ((e.key === ' ' || e.key === 'Enter') && e.target === c) { e.preventDefault(); alternar(); } });
   });
   $('#buscaPer').oninput = filtrar; filtrar(); contar();
-  try { if (localStorage.getItem('sust-nov') !== '3') { localStorage.setItem('sust-nov', '3'); toast('✨ Novedad: con 2 o más bajas, Infantil cubre Infantil y Primaria cubre Primaria.', 6000); } } catch (e) { }
+  try { if (localStorage.getItem('sust-nov') !== '4') { localStorage.setItem('sust-nov', '4'); toast('✨ Novedad: Manolo ya no cubre Infantil si hay otro curso que cubrir, y «Cris» aparece como Cristina ZTS.', 6000); } } catch (e) { }
   $('#estadoDia').textContent = guardado ? '✅ Este día ya está guardado (por ' + (guardado.por || '') + '). Si lo vuelves a guardar, se sustituye.' : '';
   if (guardado) { propuesta = guardado.asignaciones || []; pintarResultado(); } else $('#cardRes').classList.add('oculto');
 }
@@ -412,10 +420,13 @@ $('#btnCalcular').onclick = () => {
     // Si el tutor o la tutora del grupo está libre en ese tramo, se queda con su grupo y no cubre otros
     const enCuadrante = new Set((D.cuadrante[dia + ti] || []).map(i => i.p));
     const reservados = new Set(necesidades.map(n => tutorDe(n.grupo)).filter(t => t && enCuadrante.has(t) && !faltanEn.has(t)));
-    necesidades.sort((x, y) => reservados.has(tutorDe(y.grupo)) - reservados.has(tutorDe(x.grupo)));
+    necesidades.sort((x, y) => (reservados.has(tutorDe(y.grupo)) - reservados.has(tutorDe(x.grupo))) || ((etapaGrupo(x.grupo) === 'inf') - (etapaGrupo(y.grupo) === 'inf')));
     necesidades.forEach(({ a, celda, grupo }) => {
       const propio = tutorDe(grupo);
       const bloqueo = new Set([...usados, ...[...reservados].filter(t => t !== propio)]);
+      // Quien tiene «noInf» (Manolo) no va a Infantil si en ese tramo hay otro curso de Primaria que cubrir
+      if (etapaGrupo(grupo) === 'inf' && necesidades.some(n => etapaGrupo(n.grupo) === 'pri'))
+        D.personas.filter(p => p.noInf).forEach(p => bloqueo.add(p.id));
       const cand = candidatos(dia, ti, faltanEn, bloqueo, grupo, cuentas);
       const s = cand[0] ? cand[0].p : '';
       if (s) { usados.add(s); cuentas[s] = (cuentas[s] || 0) + 1; }
