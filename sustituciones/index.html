@@ -701,7 +701,7 @@ async function pdfCuadrante() {
   // Leyenda del orden
   const ley = pasos.map(p => ({ text: [{ text: ` ${p.n} `, bold: true, color: '#fff', background: CAT_COL[p.id] || C.gris, fontSize: 7.5 }, { text: ' ' + p.txt + '   ', fontSize: 7.5, color: C.texto }] }));
   content.push({ columns: [{ width: '*', text: [{ text: 'ORDEN:  ', bold: true, fontSize: 7.5, color: C.azul, characterSpacing: .8 }].concat(ley.flatMap(l => l.text)), lineHeight: 1.2 },
-    { width: 'auto', text: [{ text: 'Nº = orden en el tramo · color = tipo     ', fontSize: 6.5, color: C.gris }, { text: 'Jefatura de Estudios · Dirección', bold: true, fontSize: 7.5, color: C.azul }] }], margin: [0, 0, 0, 4] });
+    { width: 'auto', text: [{ text: 'Nº = orden · color = tipo     ', fontSize: 6.5, color: C.gris }, { text: 'Jefatura de Estudios · Dirección', bold: true, fontSize: 7.5, color: C.azul }] }], margin: [0, 0, 0, 4] });
   // Tabla principal
   const th = t => ({ text: t.toUpperCase(), bold: true, color: '#fff', fontSize: 8.5, alignment: 'center', characterSpacing: 1, margin: [0, 2, 0, 2] });
   const body = [[th('Hora')].concat(dias.map(d => th(DIAS_N[d])))], tipos = ['h'];
@@ -710,9 +710,12 @@ async function pdfCuadrante() {
     if (ti === 5) { body.push([{ colSpan: 6, text: [{ text: 'RECREO', bold: true, characterSpacing: 2 }, { text: `   ${ini} – ${fin}`, color: C.gris }], fontSize: 7.5, alignment: 'center', color: C.azul, margin: [0, 1, 0, 1] }, {}, {}, {}, {}, {}]); tipos.push('r'); return; }
     const fila = [{ stack: [{ text: ini, bold: true, fontSize: 11, color: C.azul }, { text: fin, fontSize: 7.5, color: C.gris }], alignment: 'center', margin: [0, 2, 0, 0] }];
     dias.forEach(d => {
-      const its = (D.cuadrante[d + ti] || []).filter(it => it.p);
+      // Dirección (Jefatura, Secretaría y Director) van al mismo nivel: mismo número, Víctor el último
+      let its = (D.cuadrante[d + ti] || []).filter(it => it.p);
+      its = its.filter(it => it.cat !== 'direccion').concat(its.filter(it => it.cat === 'direccion').sort((a, b) => (a.p === 'victor') - (b.p === 'victor')));
+      let n = 0; const num = its.map((it, j) => (j && it.cat === 'direccion' && its[j - 1].cat === 'direccion') ? n : ++n);
       fila.push({ stack: its.length ? its.map((it, j) => ({ text: [
-        { text: ` ${j + 1} `, bold: true, color: '#fff', background: CAT_COL[it.cat] || C.gris, fontSize: 6.2 },
+        { text: ` ${num[j]} `, bold: true, color: '#fff', background: CAT_COL[it.cat] || C.gris, fontSize: 6.2 },
         { text: '  ' + nomCu(it.p), bold: true, fontSize: 7, color: C.texto },
         { text: detalleCu(it) ? '  ' + detalleCu(it) : '', fontSize: 6.2, color: C.gris }], lineHeight: 1.0, noWrap: true })) : [{ text: '—', color: C.gris, alignment: 'center' }] });
     });
@@ -728,7 +731,7 @@ async function pdfCuadrante() {
   content.push({ columns: [
     { width: '*', stack: [regla('Tutor/a libre:', 'si está libre, se queda con su grupo.'), regla('Refuerzo en el grupo:', 'el refuerzo puntual de ese grupo va a ese grupo.')] },
     { width: '*', stack: [regla('Dos o más bajas:', 'se respeta el orden; Infantil a Infantil si le toca.'), regla('Aula TEA:', 'Lorena (AL); si no está o es jueves, Víctor.')] },
-    { width: '*', stack: [regla('R55:', 'se alterna entre quienes la tienen.'), regla('Dirección:', 'sin administrativa, siempre queda alguien del ED.')] }],
+    { width: '*', stack: [regla('R55:', 'se alterna entre quienes la tienen.'), regla('Dirección:', 'mismo nº, se alterna; sin administrativa, queda alguien.')] }],
     columnGap: 12, margin: [0, 5, 0, 0] });
   const doc = { pageSize: 'A4', pageOrientation: 'landscape', pageMargins: [26, 18, 26, 16], info: { title: 'Cuadrante de disponibilidad ' + curso, author: 'CEIP Capitulaciones' },
     defaultStyle: { font: 'Roboto', fontSize: 8, lineHeight: 1.15, color: C.texto }, content };
