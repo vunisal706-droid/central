@@ -386,7 +386,7 @@ function pintarDia() {
     if (!todo) toast('Ahora toca las horas en que falta.');
   });
   $('#buscaPer').oninput = filtrar; filtrar(); contar();
-  try { if (localStorage.getItem('sust-nov') !== '19') { localStorage.setItem('sust-nov', '19'); toast('✨ Novedad: PDF en tabla con la asignatura, y sin administrativa siempre queda alguien en Dirección.', 6000); } } catch (e) { }
+  try { if (localStorage.getItem('sust-nov') !== '20') { localStorage.setItem('sust-nov', '20'); toast('✨ Novedad: PDF en tabla: hora, curso, quién falta, quién cubre y asignatura.', 6000); } } catch (e) { }
   $('#estadoDia').textContent = guardado ? '✅ Este día ya está guardado (por ' + (guardado.por || '') + '). Si lo vuelves a guardar, se sustituye.' : '';
   if (guardado) { propuesta = guardado.asignaciones || []; pintarResultado(); } else $('#cardRes').classList.add('oculto');
 }
@@ -621,7 +621,7 @@ async function pdfDia(soloDescargar) {
   // Tabla de sustituciones (lo importante)
   const th = t => ({ text: t, bold: true, color: '#fff', fontSize: 10 });
   // Tabla: una fila por grupo; la hora solo en la primera fila de cada tramo y una línea gruesa entre tramos
-  const body = [[th('Hora'), th('Curso'), th('Asignatura'), th('Falta'), th('Lo cubre')]], fondo = [C.azul], corte = [false];
+  const body = [[th('Hora'), th('Curso'), th('Falta'), th('Lo cubre'), th('Asignatura')]], fondo = [C.azul], corte = [false];
   const orden = [...propuesta].sort((a, b) => a.ti - b.ti);
   let tPrev = -1, par = 0;
   orden.forEach(x => {
@@ -630,12 +630,12 @@ async function pdfDia(soloDescargar) {
     body.push([
       nuevo ? { text: [{ text: ini, bold: true, fontSize: 11.5, color: C.azul }, { text: '\n' + fin, fontSize: 8.5, color: C.gris }] } : { text: '' },
       { text: x.grupo, fontSize: 11, bold: true },
-      { text: asignaturaDe(x.texto, x.ausente), fontSize: 9.5 },
       { text: nomCorto(x.ausente), fontSize: 9.5, color: C.gris },
-      x.sustituto ? { text: nomCorto(x.sustituto), fontSize: 11.5, bold: true, color: C.verde } : { text: 'SIN CUBRIR', fontSize: 11, bold: true, color: C.rojo }]);
+      x.sustituto ? { text: nomCorto(x.sustituto), fontSize: 11.5, bold: true, color: C.verde } : { text: 'SIN CUBRIR', fontSize: 11, bold: true, color: C.rojo },
+      { text: asignaturaDe(x.texto, x.ausente), fontSize: 9.5 }]);
     fondo.push(par ? '#ffffff' : C.claro); corte.push(nuevo);
   });
-  content.push({ table: { headerRows: 1, widths: [44, 62, '*', 92, 110], body, dontBreakRows: true }, layout: {
+  content.push({ table: { headerRows: 1, widths: [44, 62, 92, 110, '*'], body, dontBreakRows: true }, layout: {
     fillColor: i => fondo[i],
     hLineWidth: (i, n) => i === 0 || i === n.table.body.length ? 0 : i === 1 ? 0 : corte[i] ? 1.6 : .4,
     hLineColor: i => corte[i] ? C.azul2 : C.linea,
