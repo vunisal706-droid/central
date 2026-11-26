@@ -384,7 +384,7 @@ function pintarDia() {
     if (!todo) toast('Ahora toca las horas en que falta.');
   });
   $('#buscaPer').oninput = filtrar; filtrar(); contar();
-  try { if (localStorage.getItem('sust-nov') !== '17') { localStorage.setItem('sust-nov', '17'); toast('✨ Novedad: ZTS va antes que Dirección, Jefatura y Secretaría.', 6000); } } catch (e) { }
+  try { if (localStorage.getItem('sust-nov') !== '18') { localStorage.setItem('sust-nov', '18'); toast('✨ Novedad: si falta Noelia (TEA), cubre Lorena; si no está Lorena (o es jueves), Víctor.', 6000); } } catch (e) { }
   $('#estadoDia').textContent = guardado ? '✅ Este día ya está guardado (por ' + (guardado.por || '') + '). Si lo vuelves a guardar, se sustituye.' : '';
   if (guardado) { propuesta = guardado.asignaciones || []; pintarResultado(); } else $('#cardRes').classList.add('oculto');
 }
@@ -496,7 +496,7 @@ $('#btnCalcular').onclick = () => {
     // Si el tutor o la tutora del grupo está libre en ese tramo, se queda con su grupo y no cubre otros
     const enCuadrante = new Set((D.cuadrante[dia + ti] || []).map(i => i.p));
     const reservados = new Set(necesidades.map(n => tutorDe(n.grupo)).filter(t => t && enCuadrante.has(t) && !faltanEn.has(t)));
-    necesidades.sort((x, y) => (reservados.has(tutorDe(y.grupo)) - reservados.has(tutorDe(x.grupo))) || ((etapaGrupo(x.grupo) === 'inf') - (etapaGrupo(y.grupo) === 'inf')));
+    necesidades.sort((x, y) => ((y.grupo === 'TEA') - (x.grupo === 'TEA')) || (reservados.has(tutorDe(y.grupo)) - reservados.has(tutorDe(x.grupo))) || ((etapaGrupo(x.grupo) === 'inf') - (etapaGrupo(y.grupo) === 'inf')));
     // Si en un grupo con ausencia hay refuerzo puntual en ese tramo, va esa persona a ese grupo
     const pref = {}, prefUsados = new Set();
     necesidades.forEach(n => {
@@ -516,6 +516,11 @@ $('#btnCalcular').onclick = () => {
       if (porEtapa && elegido && elegido.p !== tutorDe(grupo) && elegido.p !== pref[grupo]) {
         const turno = cand.slice(0, necesidades.length - ni);
         elegido = turno.find(c => etapaItem(c) === etapaGrupo(grupo)) || elegido;
+      }
+      // Aula TEA: la cubre Lorena (AL); si no está (falta o es jueves, que no viene), Víctor
+      if (grupo === 'TEA') {
+        const fijo = [dia !== 'J' ? 'lorena' : null, 'victor'].find(p => p && !faltanEn.has(p) && !usados.has(p));
+        if (fijo) elegido = { p: fijo, t: 'Aula TEA', cat: 'tea' };
       }
       const s = elegido ? elegido.p : '';
       if (s) { usados.add(s); cuentas[s] = (cuentas[s] || 0) + 1; if (elegido.cat === 'r55') cuentasR[s] = (cuentasR[s] || 0) + 1; }
