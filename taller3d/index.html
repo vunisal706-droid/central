@@ -236,7 +236,7 @@ let malla=null,cama=null;
 function dibujarCama(){if(cama)escena.remove(cama);const I=IMPRESORAS[$('#impresora').value];cama=new THREE.Group();
   const pl=new THREE.Mesh(new THREE.PlaneGeometry(I.x,I.y),new THREE.MeshStandardMaterial({color:0xf1f5f9}));pl.rotation.x=-Math.PI/2;pl.position.y=-.05;cama.add(pl);
   const gr=new THREE.GridHelper(Math.max(I.x,I.y),Math.max(I.x,I.y)/10,0xcbd5e1,0xe2e8f0);cama.add(gr);escena.add(cama);}
-function tam(){const r=lienzo.parentElement.getBoundingClientRect();ren.setSize(r.width,r.height,false);cam.aspect=r.width/r.height;cam.updateProjectionMatrix();}
+function tam(){const r=lienzo.parentElement.getBoundingClientRect();ren.setSize(r.width,r.height,false);cam.aspect=r.width/r.height;cam.updateProjectionMatrix();encuadrar();}
 new ResizeObserver(tam).observe(lienzo.parentElement);
 (function bucle(){ctl.update();ren.render(escena,cam);requestAnimationFrame(bucle);})();
 $('#impresora').onchange=()=>{dibujarCama();generar();try{localStorage.setItem('taller3d-imp',$('#impresora').value);}catch(e){}};
@@ -250,7 +250,10 @@ function generar(){if(!FONT)return;let geo;
   const I=IMPRESORAS[$('#impresora').value],cabe=s.x<=I.x&&s.y<=I.y&&s.z<=I.z;
   $('#medidas').className='medidas'+(cabe?'':' err');
   $('#medidas').textContent=`${s.x.toFixed(0)} × ${s.y.toFixed(0)} × ${s.z.toFixed(1).replace('.',',')} mm `+(cabe?'✓ Cabe en la impresora':'✗ No cabe: hazlo más pequeño');
-  if(!generar.vista||generar.vista!==tipo){generar.vista=tipo;const d=Math.max(s.x,s.y,40);cam.position.set(0,d*1.1,d*1.05);ctl.target.set(0,0,0);}}
+  ultimoTam=s;if(!generar.vista||generar.vista!==tipo){generar.vista=tipo;encuadrar();}}
+let ultimoTam=null;
+function encuadrar(){if(!ultimoTam)return;const s=ultimoTam,f=Math.tan(THREE.MathUtils.degToRad(cam.fov/2));
+  const d=Math.max(s.y/(2*f),s.x/(2*f*cam.aspect),30)*1.35;cam.position.set(0,d*.8,d*.6);ctl.target.set(0,0,0);ctl.update();}
 
 const exp=new STLExporter();
 function nombre(){const t=(P.texto||T[tipo].n).split('\n')[0];return (tipo+'_'+t).normalize('NFD').replace(/[̀-ͯ]/g,'').replace(/[^\w]+/g,'_').slice(0,40);}
