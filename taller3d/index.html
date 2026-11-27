@@ -72,9 +72,17 @@ main{display:grid;grid-template-columns:340px minmax(0,1fr);gap:16px;padding:0 2
   <section class="panel" aria-labelledby="tTit">
     <h2 id="tTit"></h2><p class="desc" id="tDesc"></p>
     <div id="campos"></div>
-    <div class="campo"><label>Color de la vista previa (el del filamento)</label><div class="colores" id="colores"></div></div>
+    <div class="campo"><label id="lCol1">Color de la vista previa (el del filamento)</label><div class="colores" id="colores"></div></div>
+    <div id="dosBox"><label class="check"><input type="checkbox" id="dos">Dos colores (base de un color y relieve de otro)</label>
+      <div class="campo" id="col2Box" style="display:none"><label>Color del relieve</label><div class="colores" id="colores2"></div></div></div>
     <button class="btn" id="bStl">⬇️ Descargar archivo STL</button>
     <button class="btn sec" id="bZip" style="display:none">🗜️ Descargar por separado (.zip)</button>
+    <div id="gcBox" style="display:none;margin-top:12px;padding:12px 14px;border:2px dashed var(--color-border);border-radius:12px">
+      <b>🎨 Cambio de color automático</b>
+      <ol style="margin:6px 0;padding-left:20px;font-size:.9rem"><li>Descarga el STL y lamínalo en Creality Print como siempre.</li><li>Guarda el archivo <b>.gcode</b> en el ordenador.</li><li>Súbelo aquí: la app añade la pausa en <b id="hPausa">3 mm</b>, justo donde empieza el relieve.</li><li>Envía el nuevo archivo a la impresora. Cuando se pare, cambia el filamento y pulsa Reanudar.</li></ol>
+      <div class="campo" style="margin-bottom:6px"><label for="gcCmd">Orden de pausa</label><select id="gcCmd"><option value="PAUSE">PAUSE (Creality K1 y otras con Klipper)</option><option value="M600">M600 (Bambu, Prusa, Marlin)</option></select></div>
+      <label class="btn sec" style="display:flex;align-items:center;justify-content:center;margin:0">⬆️ Subir el .gcode y añadir la pausa<input type="file" id="gcFile" accept=".gcode,.gco,.g" hidden></label>
+      <p class="nota" id="gcRes" style="display:none"></p></div>
     <ol class="pasos">
       <li>Abre el archivo en <b>Creality Print</b> (o en el programa de tu impresora).</li>
       <li>Elige la impresora y el filamento <b>PLA</b>.</li>
@@ -228,12 +236,24 @@ placa:{n:'Placa con nombre',i:'🏷️',d:'Etiqueta pequeña para mesas, perchas
 };
 
 /* ---------- Interfaz ---------- */
-let tipo='llavero',P={},color=COLORES[0],ultimaGeo=null;
+let tipo='llavero',P={},color=COLORES[0],color2='#eab308',dos=false,ultimaGeo=null;
+const SIN_RELIEVE=['regletas','tangram'];
+const alturaCorte=()=>tipo==='sello'?3:+P.grosor;
 $('#tipos').innerHTML=Object.entries(T).map(([k,v])=>`<button class="tipo" role="tab" data-k="${k}"><span aria-hidden="true">${v.i}</span>${v.n}</button>`).join('');
 $('#tipos').onclick=e=>{const b=e.target.closest('.tipo');if(b)elegir(b.dataset.k);};
 $('#colores').innerHTML=COLORES.map(c=>`<button style="background:${c}" data-c="${c}" aria-label="Color ${c}"></button>`).join('');
-$('#colores').onclick=e=>{const b=e.target.closest('button');if(!b)return;color=b.dataset.c;marcarColor();if(malla)malla.material.color.set(color);};
-function marcarColor(){document.querySelectorAll('#colores button').forEach(b=>b.classList.toggle('on',b.dataset.c===color));}
+$('#colores').onclick=e=>{const b=e.target.closest('button');if(!b)return;color=b.dataset.c;marcarColor();pintar();};
+$('#colores2').innerHTML=COLORES.map(c=>`<button style="background:${c}" data-c="${c}" aria-label="Color ${c}"></button>`).join('');
+$('#colores2').onclick=e=>{const b=e.target.closest('button');if(!b)return;color2=b.dataset.c;marcarColor();pintar();};
+$('#dos').onchange=e=>{dos=e.target.checked;actDos();pintar();};
+function actDos(){const ok=!SIN_RELIEVE.includes(tipo);$('#dosBox').style.display=ok?'block':'none';const on=ok&&dos;$('#col2Box').style.display=on?'block':'none';$('#gcBox').style.display=on?'block':'none';$('#lCol1').textContent=on?'Color de la base':'Color de la vista previa (el del filamento)';if(on)$('#hPausa').textContent=String(alturaCorte()).replace('.',',')+' mm';}
+function marcarColor(){document.querySelectorAll('#colores button').forEach(b=>b.classList.toggle('on',b.dataset.c===color));document.querySelectorAll('#colores2 button').forEach(b=>b.classList.toggle('on',b.dataset.c===color2));}
+/* Colorea por caras: lo que está por encima de la base va con el segundo color */
+function pintar(){if(!malla)return;const g=malla.geometry,on=dos&&!SIN_RELIEVE.includes(tipo);
+  if(!on){malla.material.vertexColors=false;malla.material.color.set(color);malla.material.needsUpdate=true;return;}
+  const p=g.attributes.position,n=p.count,col=new Float32Array(n*3),c1=new THREE.Color(color),c2=new THREE.Color(color2),h=alturaCorte()+.001;
+  for(let i=0;i<n;i+=3){const z=(p.getZ(i)+p.getZ(i+1)+p.getZ(i+2))/3,c=z>h?c2:c1;for(let k=0;k<3;k++){col[(i+k)*3]=c.r;col[(i+k)*3+1]=c.g;col[(i+k)*3+2]=c.b;}}
+  g.setAttribute('color',new THREE.BufferAttribute(col,3));malla.material.vertexColors=true;malla.material.color.set('#ffffff');malla.material.needsUpdate=true;}
 const esc=s=>String(s).replace(/[&<>"]/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c]));
 function elegir(k){tipo=k;const t=T[k];P={};
   document.querySelectorAll('.tipo').forEach(b=>{b.classList.toggle('on',b.dataset.k===k);b.setAttribute('aria-selected',b.dataset.k===k);});
@@ -245,11 +265,12 @@ function elegir(k){tipo=k;const t=T[k];P={};
     if(tp==='check')return `<label class="check"><input type="checkbox" id="f_${id}" ${def?'checked':''}>${lab}</label>`;
     return `<div class="campo"><label for="f_${id}">${lab} <span class="val" id="v_${id}">${String(def).replace('.',',')}</span></label><input type="range" id="f_${id}" min="${a}" max="${b}" step="${st}" value="${def}"></div>`;}).join('')
     +(k==='regletas'?'<p class="nota">Colores habituales: 1 blanco, 2 rojo, 3 verde claro, 4 rosa, 5 amarillo, 6 verde oscuro, 7 negro, 8 marrón, 9 azul, 10 naranja.</p>':'')
-    +(k==='heroes'?`<p class="nota">Para dos colores: en Creality Print añade una <b>pausa a ${String(P.grosor).replace('.',',')} mm</b> de altura y cambia el filamento cuando se pare.</p>`:'')+(k==='sello'?'<p class="nota">El mango sale aparte: pégalo detrás de la placa con pegamento fuerte.</p>':'');
+    +(k==='sello'?'<p class="nota">El mango sale aparte: pégalo detrás de la placa con pegamento fuerte.</p>':'');
   t.c.forEach(([id,,tp])=>{const el=$('#f_'+id);el.addEventListener('input',()=>{P[id]=tp==='check'?el.checked:tp==='range'?+el.value:el.value;if(tp==='range')$('#v_'+id).textContent=String(el.value).replace('.',',');programar();});});
   try{localStorage.setItem('taller3d-tipo',k);}catch(e){}
+  actDos();
   generar();}
-let tm;function programar(){clearTimeout(tm);tm=setTimeout(generar,180);}
+let tm;function programar(){clearTimeout(tm);tm=setTimeout(()=>{generar();actDos();},180);}
 
 /* ---------- Visor 3D ---------- */
 const lienzo=$('#lienzo'),ren=new THREE.WebGLRenderer({canvas:lienzo,antialias:true,alpha:true});ren.setPixelRatio(Math.min(devicePixelRatio,2));
@@ -270,7 +291,7 @@ function generar(){if(!FONT)return;let geo;
   geo.computeBoundingBox();const b=geo.boundingBox;geo.translate(-(b.min.x+b.max.x)/2,-(b.min.y+b.max.y)/2,-b.min.z);geo.computeBoundingBox();geo.computeVertexNormals();
   ultimaGeo=geo;const s=geo.boundingBox.getSize(new THREE.Vector3());
   if(malla){escena.remove(malla);malla.geometry.dispose();}
-  malla=new THREE.Mesh(geo,new THREE.MeshStandardMaterial({color,roughness:.55,metalness:.05}));malla.rotation.x=-Math.PI/2;escena.add(malla);
+  malla=new THREE.Mesh(geo,new THREE.MeshStandardMaterial({color,roughness:.55,metalness:.05}));malla.rotation.x=-Math.PI/2;escena.add(malla);pintar();
   const I=IMPRESORAS[$('#impresora').value],cabe=s.x<=I.x&&s.y<=I.y&&s.z<=I.z;
   $('#medidas').className='medidas'+(cabe?'':' err');
   $('#medidas').textContent=`${s.x.toFixed(0)} × ${s.y.toFixed(0)} × ${s.z.toFixed(1).replace('.',',')} mm `+(cabe?'✓ Cabe en la impresora':'✗ No cabe: hazlo más pequeño');
@@ -288,10 +309,26 @@ $('#bZip').onclick=async()=>{const t=T[tipo];if(!t.piezas)return;const zip=new J
   t.piezas(P).forEach(([n,g])=>{g.computeBoundingBox();const b=g.boundingBox;g.translate(-(b.min.x+b.max.x)/2,-(b.min.y+b.max.y)/2,-b.min.z);zip.file(n+'.stl',stl(g));});
   bajar(await zip.generateAsync({type:'blob'}),nombre()+'.zip');toast('✓ Archivo .zip descargado');};
 
+/* ---------- Pausa para cambio de color en el G-code ---------- */
+function anadirPausa(txt,h,cmd){const L=txt.split(/\r?\n/);let ins=-1,z=0;
+  /* 1) Laminadores con comentarios ;Z: (Creality Print, Orca, Prusa, Bambu) */
+  for(let i=0;i<L.length;i++){const m=L[i].match(/^;\s*Z\s*:\s*([\d.]+)/);if(m&&+m[1]>h+.001){ins=i;for(let j=i-1;j>=Math.max(0,i-4);j--)if(/^;\s*LAYER_CHANGE/i.test(L[j]))ins=j;break;}}
+  /* 2) Si no hay comentarios: primera extrusión por encima de la altura */
+  if(ins<0){let zl=-1;for(let i=0;i<L.length;i++){const l=L[i].split(';')[0];if(!/^G[01]\s/.test(l))continue;const mz=l.match(/Z([\d.]+)/);if(mz){z=+mz[1];zl=i;}
+    if(/E[\d.]+/.test(l)&&/[XY]/.test(l)&&z>h+.001&&zl>=0){ins=zl;break;}}}
+  if(ins<0)return null;
+  L.splice(ins,0,';--- Taller 3D: cambio de color ---','M117 Cambia el filamento',cmd,';--- fin del cambio de color ---');return L.join('\n');}
+$('#gcFile').onchange=e=>{const f=e.target.files[0];if(!f)return;const r=new FileReader();
+  r.onload=()=>{const h=alturaCorte(),out=anadirPausa(r.result,h,$('#gcCmd').value),res=$('#gcRes');res.style.display='block';
+    if(!out){res.textContent='⚠️ No he encontrado la capa de '+String(h).replace('.',',')+' mm en ese archivo. ¿Es el G-code de esta misma pieza?';return;}
+    bajar(new Blob([out],{type:'text/plain'}),f.name.replace(/\.(gcode|gco|g)$/i,'')+'_2colores.gcode');
+    res.textContent='✓ Listo: pausa añadida en '+String(h).replace('.',',')+' mm. Haz primero una prueba con una pieza pequeña.';toast('✓ G-code con cambio de color descargado');};
+  r.readAsText(f);e.target.value='';};
+
 /* ---------- Arranque ---------- */
 try{const i=localStorage.getItem('taller3d-imp');if(i&&IMPRESORAS[i])$('#impresora').value=i;}catch(e){}
 dibujarCama();marcarColor();
-fetch('./fonts/fredoka.json').then(r=>r.json()).then(j=>{FONT=new FontLoader().parse(j);$('#cargando').remove();try{if(localStorage.getItem('taller3d-nov')!=='1'){localStorage.setItem('taller3d-nov','1');setTimeout(()=>toast('✨ Novedad: Medalla Héroes de cada día con la corona del cole'),800);}}catch(e){}
+fetch('./fonts/fredoka.json').then(r=>r.json()).then(j=>{FONT=new FontLoader().parse(j);$('#cargando').remove();try{if(localStorage.getItem('taller3d-nov')!=='2'){localStorage.setItem('taller3d-nov','2');setTimeout(()=>toast('✨ Novedad: vista en dos colores y pausa automática para cambiar el filamento'),800);}}catch(e){}
   let k='heroes';try{const g=localStorage.getItem('taller3d-tipo');if(g&&T[g])k=g;}catch(e){}elegir(k);})
  .catch(()=>{$('#cargando').textContent='No se ha podido cargar la letra. Recarga la página.';});
 }
