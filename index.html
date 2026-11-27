@@ -434,7 +434,7 @@ a.kpi{color:inherit;transition:box-shadow .15s ease}
     <h3 id="titNov">✨ Novedades de Capitoolappciones</h3>
     <p class="sub">Novedades:</p>
     <ul>
-      <li>🔄 Nueva herramienta <b>Sustituciones</b> para Jefatura y Dirección: propone quién cubre cada grupo según el orden del centro.</li>
+      <li>🖨️ Nueva herramienta <b>Taller 3D</b>: crea archivos para la impresora 3D del cole (medalla Héroes de cada día, llaveros, carteles, regletas…).</li>
     </ul>
     <div class="botones"><button class="btn prim" id="btnNovOk">Entendido</button></div>
   </div>
@@ -467,6 +467,7 @@ const I = {
   mural:'<rect x="3" y="4" width="18" height="16" rx="1.5"/><path d="M9 4v16M15 4v16M3 12h18"/><path d="m6 17 2.5-3 2 2 2.5-3.5 3 4.5"/>',
   formacion:'<path d="M22 10 12 5 2 10l10 5 10-5z"/><path d="M6 12v5c3 2 9 2 12 0v-5"/><path d="M22 10v6"/>',
   horario:'<rect x="3.5" y="4.5" width="17" height="16" rx="2"/><path d="M3.5 9.5h17M9 9.5v11M14.5 9.5v11M3.5 15h17"/><path d="M8 2.5v4M16 2.5v4"/>',
+  impresora3d:'<path d="M4 4h16v3H4z"/><path d="M5 7v13h14V7"/><path d="M12 7v4"/><path d="M10 11h4l-1 2h-2z"/><path d="M8 18h8l-1-3H9z"/>',
   chev:'<path d="m9 6 6 6-6 6"/>'
 };
 const svg = (k, cls='ico') => `<svg class="${cls}" viewBox="0 0 24 24" aria-hidden="true">${I[k]}</svg>`;
@@ -509,6 +510,8 @@ const APPS = [
    desc:'Web de la formación «IA en el cole»: crea herramientas para tu centro con inteligencia artificial'},
   {id:'mural', nom:'Mural Gigante', corto:'Mural', ic:'mural', cat:'pedagogico', url:'https://vunisal706-droid.github.io/central/mural/',
    desc:'Trocea un PDF o una foto en varios folios solapados para imprimir un mural gigante'},
+  {id:'taller3d', nom:'Taller 3D', corto:'Taller 3D', ic:'impresora3d', cat:'pedagogico', url:'https://vunisal706-droid.github.io/central/taller3d/',
+   desc:'Crea archivos para la impresora 3D: medalla Héroes de cada día, llaveros, carteles, regletas, letras, sellos y más'},
   {id:'parte', nom:'Parte de Convivencia', corto:'Parte de convivencia', ic:'parte', cat:'alumnado', url:'https://vunisal706-droid.github.io/parteconvivencia/',
    desc:'Registro y gestión de incidencias de convivencia escolar'},
   {id:'aulapt', nom:'Aula PT', corto:'Aula PT', ic:'aulapt', cat:'alumnado', url:'https://vunisal706-droid.github.io/aulapt/index.html#home',
@@ -893,7 +896,7 @@ document.getElementById('campana').onclick = ()=>{
 document.getElementById('tablon').addEventListener('click', e=>{ if (e.target.closest('a')) marcarVistos(); });
 
 /* ---------- Novedades (una sola vez por dispositivo) ---------- */
-const NOV = 'capi-novedades-seneca-v26';
+const NOV = 'capi-novedades-seneca-v27';
 const veloNov = document.getElementById('veloNov');
 if(!ls.get(NOV,false)) setTimeout(()=>veloNov.classList.add('abierto'), 500);
 document.getElementById('btnNovOk').onclick = ()=>{ ls.set(NOV,true); veloNov.classList.remove('abierto'); };
