@@ -135,7 +135,31 @@ function textoAjustado(txt,maxW,maxH,opts){const t=texto(txt,10,opts);const k=Ma
 function unir(geos){return mergeGeometries(geos.map(g=>g.index?g.toNonIndexed():g).map(g=>{['uv','uv1'].forEach(a=>g.deleteAttribute&&g.attributes[a]&&g.deleteAttribute(a));return g;}));}
 
 /* ---------- Tipos de objeto ---------- */
+/* Logo del cole (solo la corona), trazado desde LOGO.jpg */
+const CORONA=[{"o":[[378.0,258.0],[376.0,258.0],[371.0,243.0],[360.0,220.0],[358.0,218.0],[353.0,208.0],[338.0,187.0],[312.0,160.0],[295.0,147.0],[293.0,147.0],[271.0,168.0],[251.0,195.0],[235.0,226.0],[234.0,231.0],[228.0,245.0],[228.0,248.0],[223.0,263.0],[223.0,267.0],[223.0,132.0],[229.0,130.0],[236.0,122.0],[237.0,119.0],[237.0,110.0],[234.0,103.0],[228.0,98.0],[223.0,96.0],[214.0,96.0],[208.0,99.0],[203.0,104.0],[200.0,112.0],[200.0,117.0],[202.0,123.0],[210.0,131.0],[213.0,132.0],[213.0,260.0],[211.0,250.0],[202.0,225.0],[187.0,196.0],[169.0,171.0],[162.0,163.0],[145.0,147.0],[143.0,147.0],[138.0,150.0],[122.0,163.0],[109.0,176.0],[94.0,194.0],[79.0,217.0],[69.0,237.0],[69.0,239.0],[63.0,252.0],[61.0,260.0],[59.0,260.0],[73.0,125.0],[77.0,125.0],[82.0,123.0],[89.0,116.0],[91.0,111.0],[91.0,102.0],[88.0,96.0],[83.0,91.0],[75.0,88.0],[77.0,64.0],[78.0,63.0],[78.0,54.0],[79.0,53.0],[79.0,43.0],[80.0,42.0],[80.0,34.0],[81.0,33.0],[74.0,30.0],[70.0,30.0],[61.0,27.0],[44.0,24.0],[44.0,22.0],[134.0,31.0],[134.0,36.0],[132.0,43.0],[132.0,51.0],[131.0,52.0],[131.0,64.0],[130.0,65.0],[131.0,100.0],[132.0,101.0],[132.0,107.0],[133.0,108.0],[133.0,113.0],[134.0,114.0],[136.0,126.0],[142.0,143.0],[144.0,145.0],[149.0,138.0],[149.0,136.0],[156.0,121.0],[158.0,112.0],[160.0,108.0],[160.0,104.0],[161.0,103.0],[161.0,99.0],[163.0,93.0],[164.0,80.0],[165.0,79.0],[165.0,67.0],[166.0,66.0],[165.0,33.0],[181.0,33.0],[182.0,34.0],[255.0,34.0],[256.0,33.0],[272.0,33.0],[272.0,74.0],[273.0,75.0],[273.0,83.0],[274.0,84.0],[275.0,96.0],[283.0,125.0],[291.0,142.0],[294.0,145.0],[299.0,134.0],[300.0,128.0],[302.0,124.0],[304.0,112.0],[305.0,111.0],[306.0,96.0],[307.0,95.0],[307.0,59.0],[306.0,58.0],[306.0,48.0],[305.0,47.0],[305.0,41.0],[304.0,40.0],[303.0,31.0],[393.0,22.0],[393.0,24.0],[390.0,24.0],[381.0,27.0],[377.0,27.0],[368.0,30.0],[364.0,30.0],[357.0,33.0],[358.0,48.0],[359.0,49.0],[359.0,58.0],[360.0,59.0],[360.0,68.0],[361.0,69.0],[361.0,78.0],[362.0,79.0],[362.0,88.0],[356.0,90.0],[349.0,97.0],[346.0,104.0],[347.0,113.0],[350.0,118.0],[354.0,122.0],[360.0,125.0],[364.0,125.0],[365.0,126.0],[365.0,134.0],[366.0,135.0],[366.0,144.0],[367.0,145.0],[367.0,154.0],[368.0,155.0],[368.0,164.0],[369.0,165.0],[369.0,174.0],[370.0,175.0],[370.0,184.0],[371.0,185.0],[371.0,193.0],[372.0,194.0],[372.0,203.0],[373.0,204.0],[373.0,213.0],[374.0,214.0],[374.0,222.0],[375.0,223.0],[375.0,232.0],[376.0,233.0],[376.0,242.0],[377.0,243.0]],"h":[]}];
+function corona(ancho){const pts=CORONA.flatMap(c=>c.o);let a=1e9,b=1e9,c=-1e9,d=-1e9;pts.forEach(p=>{a=Math.min(a,p[0]);c=Math.max(c,p[0]);b=Math.min(b,p[1]);d=Math.max(d,p[1]);});
+  const k=ancho/(c-a),cx=(a+c)/2,cy=(b+d)/2,f=p=>V((p[0]-cx)*k,(p[1]-cy)*k);
+  return {h:(d-b)*k,shapes:CORONA.map(o=>{const s=new THREE.Shape(o.o.map(f));s.holes=o.h.map(h=>new THREE.Path(h.map(f)));return s;})};}
+/* Texto en arco: arriba (se lee por fuera) o abajo (se lee por dentro) */
+function textoArco(txt,size,r,abajo){const res=FONT.data.resolution,sc=size/res,chars=[...txt];
+  const anchos=chars.map(ch=>((FONT.data.glyphs[ch]||FONT.data.glyphs['?']).ha||res*.5)*sc*1.05),T=anchos.reduce((x,y)=>x+y,0);let cum=0,out=[];
+  chars.forEach((ch,i)=>{const w=anchos[i],m=(cum+w/2)/r;cum+=w;if(ch===' ')return;
+    const a=abajo?-Math.PI/2-T/(2*r)+m:Math.PI/2+T/(2*r)-m,rot=abajo?a+Math.PI/2:a-Math.PI/2,co=Math.cos(rot),si=Math.sin(rot);
+    const sh=FONT.generateShapes(ch,size),bb=bbox(sh),cx=(bb.minX+bb.maxX)/2;
+    sh.forEach(z=>out.push(transformar(z,(x,y)=>{const X=x-cx,Y=abajo?y-size*.72:y;return [X*co-Y*si+r*Math.cos(a),X*si+Y*co+r*Math.sin(a)];})));});
+  return {shapes:out,ang:T/r};}
 const T={
+heroes:{n:'Medalla Héroes',i:'🦸',d:'Medalla del proyecto «Héroes de cada día» con la corona del logo del cole y el texto alrededor.',
+ c:[['texto','Texto de arriba','text','HÉROES DE CADA DÍA'],['abajo','Texto de abajo (opcional)','text',''],['diam','Diámetro (mm)','range',60,45,90,1],['letra','Tamaño de letra (mm)','range',5,3,9,.5],['grosor','Grosor de la base (mm)','range',3,2,5,.5],['relieve','Altura del relieve (mm)','range',1.2,.6,3,.2],['estrellas','Estrellas a los lados','check',true]],
+ g(p){const R=p.diam/2,s=p.letra,out=[];
+  const base=circ(R);out.push(ext(base,p.grosor));
+  const tab=circ(5.5,0,R+3);tab.holes.push(agujero(2.3,0,R+3.2));out.push(ext(tab,p.grosor));
+  const aro=circ(R);aro.holes.push(agujero(R-1.8,0,0));out.push(ext(aro,p.relieve,p.grosor));
+  const rt=R-3-s*.95,ta=textoArco(String(p.texto||'').toUpperCase(),s,rt,false);if(ta.shapes.length)out.push(ext(ta.shapes,p.relieve,p.grosor));
+  let ab=null;if(p.abajo){ab=textoArco(p.abajo,s*.85,R-3,true);out.push(ext(ab.shapes,p.relieve,p.grosor));}
+  const rc=rt-2.2,cr=corona(rc*(p.abajo?1.45:1.7)),dy=p.abajo?rc*.12:-rc*.16;out.push(ext(cr.shapes.map(z=>mover(z,0,dy)),p.relieve,p.grosor));
+  if(p.estrellas&&!p.abajo){const ang=Math.max(ta.ang/2+.22,.0),rr=rt+s*.45;[Math.PI/2+ang,Math.PI/2-ang].forEach(a=>{out.push(ext(mover(estrella(s*.75,s*.32),rr*Math.cos(a),rr*Math.sin(a)),p.relieve,p.grosor));});}
+  return out;}},
 llavero:{n:'Llavero',i:'🔑',d:'Llavero con nombre en relieve y agujero para la anilla.',
  c:[['texto','Texto','text','Capitulaciones'],['letra','Tamaño de letra (mm)','range',10,6,16,1],['grosor','Grosor de la base (mm)','range',3,2,5,.5],['relieve','Altura del texto (mm)','range',1.2,.6,3,.2],['contorno','Forma','select','redonda',[['redonda','Rectángulo redondeado'],['pastilla','Pastilla']]]],
  g(p){const t=texto(p.texto,p.letra),m=4,anilla=10,w=t.w+m*2+anilla,h=t.h+m*2,r=p.contorno==='pastilla'?h/2:4;
@@ -221,7 +245,7 @@ function elegir(k){tipo=k;const t=T[k];P={};
     if(tp==='check')return `<label class="check"><input type="checkbox" id="f_${id}" ${def?'checked':''}>${lab}</label>`;
     return `<div class="campo"><label for="f_${id}">${lab} <span class="val" id="v_${id}">${String(def).replace('.',',')}</span></label><input type="range" id="f_${id}" min="${a}" max="${b}" step="${st}" value="${def}"></div>`;}).join('')
     +(k==='regletas'?'<p class="nota">Colores habituales: 1 blanco, 2 rojo, 3 verde claro, 4 rosa, 5 amarillo, 6 verde oscuro, 7 negro, 8 marrón, 9 azul, 10 naranja.</p>':'')
-    +(k==='sello'?'<p class="nota">El mango sale aparte: pégalo detrás de la placa con pegamento fuerte.</p>':'');
+    +(k==='heroes'?`<p class="nota">Para dos colores: en Creality Print añade una <b>pausa a ${String(P.grosor).replace('.',',')} mm</b> de altura y cambia el filamento cuando se pare.</p>`:'')+(k==='sello'?'<p class="nota">El mango sale aparte: pégalo detrás de la placa con pegamento fuerte.</p>':'');
   t.c.forEach(([id,,tp])=>{const el=$('#f_'+id);el.addEventListener('input',()=>{P[id]=tp==='check'?el.checked:tp==='range'?+el.value:el.value;if(tp==='range')$('#v_'+id).textContent=String(el.value).replace('.',',');programar();});});
   try{localStorage.setItem('taller3d-tipo',k);}catch(e){}
   generar();}
@@ -267,8 +291,8 @@ $('#bZip').onclick=async()=>{const t=T[tipo];if(!t.piezas)return;const zip=new J
 /* ---------- Arranque ---------- */
 try{const i=localStorage.getItem('taller3d-imp');if(i&&IMPRESORAS[i])$('#impresora').value=i;}catch(e){}
 dibujarCama();marcarColor();
-fetch('./fonts/fredoka.json').then(r=>r.json()).then(j=>{FONT=new FontLoader().parse(j);$('#cargando').remove();
-  let k='llavero';try{const g=localStorage.getItem('taller3d-tipo');if(g&&T[g])k=g;}catch(e){}elegir(k);})
+fetch('./fonts/fredoka.json').then(r=>r.json()).then(j=>{FONT=new FontLoader().parse(j);$('#cargando').remove();try{if(localStorage.getItem('taller3d-nov')!=='1'){localStorage.setItem('taller3d-nov','1');setTimeout(()=>toast('✨ Novedad: Medalla Héroes de cada día con la corona del cole'),800);}}catch(e){}
+  let k='heroes';try{const g=localStorage.getItem('taller3d-tipo');if(g&&T[g])k=g;}catch(e){}elegir(k);})
  .catch(()=>{$('#cargando').textContent='No se ha podido cargar la letra. Recarga la página.';});
 }
 </script>
