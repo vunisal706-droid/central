@@ -151,31 +151,34 @@ p.secd{color:var(--sec);margin:0 0 14px;font-size:.95rem}
 const UNIDADES=[
  {id:'u1',t:'¡Sastipén! Las personas',d:'Saluda y nombra a la gente',ico:'👋',col:'#16a34a',
   w:[['sastipén','¡salud! (saludo)','👋'],['chavó','niño, chico','👦'],['chaví','niña, chica','👧'],['churumbel','niño pequeño','👶'],['calé','gitano','🧑'],['calí','gitana','👩'],['gachó','hombre no gitano','🧔'],['gachí','mujer no gitana','👱‍♀️'],['menda','yo','🙋']],
-  f:[['¡Sastipén, chavó!','¡Hola, chico!'],['La chaví es calí','La niña es gitana'],['Menda es calé','Yo soy gitano'],['El churumbel y la chaví','El niño pequeño y la niña']]},
+  f:[['¡Sastipén, chavó!','¡Hola, chico!'],['La chaví es calí','La niña es gitana'],['Menda es calé','Yo soy gitano'],['El churumbel y la chaví','El niño pequeño y la niña'],['¿Qué pasa, gachó?','¿Qué pasa, hombre?']]},
  {id:'u2',t:'La familia y la casa',d:'Tu gente y tu hogar',ico:'🏠',col:'#2563eb',
   w:[['bato','padre','👨'],['dai','madre','👩'],['quer','casa','🏠'],['chuquel','perro','🐕'],['gras','caballo','🐴']],
-  f:[['Mi bato y mi dai','Mi padre y mi madre'],['El chuquel está en el quer','El perro está en la casa'],['Mi bato tiene un gras','Mi padre tiene un caballo']]},
+  f:[['Mi bato y mi dai','Mi padre y mi madre'],['El chuquel está en el quer','El perro está en la casa'],['Mi bato tiene un gras','Mi padre tiene un caballo'],['Me voy a mi quer','Me voy a mi casa'],['Mi dai me camela mucho','Mi madre me quiere mucho']]},
  {id:'u3',t:'¡A jalar!',d:'Comer y beber',ico:'🍞',col:'#dc2626',
   w:[['jalar','comer','🍽️'],['jamar','comer','🥄'],['manró','pan','🍞'],['pañí','agua','💧'],['diñar','dar','🤲']],
-  f:[['El chavó jala manró','El niño come pan'],['Díñame pañí','Dame agua'],['Vamos a jamar','Vamos a comer']]},
+  f:[['El chavó jala manró','El niño come pan'],['Díñame pañí','Dame agua'],['Vamos a jamar','Vamos a comer'],['¿Has jalado ya?','¿Has comido ya?'],['Tengo ganas de jalar','Tengo ganas de comer']]},
  {id:'u4',t:'Lo que hacemos',d:'Acciones de cada día',ico:'🏃',col:'#7c3aed',
   w:[['currar','trabajar','🔨'],['sobar','dormir','😴'],['najarse','irse','🏃'],['chanelar','saber, entender','💡'],['diquelar','mirar','👀'],['naquerar','hablar','🗣️'],['camelar','querer','❤️']],
-  f:[['Mi bato curra mucho','Mi padre trabaja mucho'],['Me najo a mi quer','Me voy a mi casa'],['¿Chanelas caló?','¿Sabes caló?'],['Diquela al chuquel','Mira al perro'],['El churumbel soba','El niño pequeño duerme']]},
+  f:[['Mi bato curra mucho','Mi padre trabaja mucho'],['Me najo a mi quer','Me voy a mi casa'],['¿Chanelas caló?','¿Sabes caló?'],['Diquela al chuquel','Mira al perro'],['El churumbel soba','El niño pequeño duerme'],['No chanelo nada','No entiendo nada'],['Me voy a sobar','Me voy a dormir'],['¡Diquela eso!','¡Mira eso!']]},
  {id:'u5',t:'El cuerpo',d:'De la cabeza a los pies',ico:'🙆',col:'#0891b2',
   w:[['jeró','cabeza','🙆'],['sacais','ojos','👁️'],['pinreles','pies','🦶'],['mui','boca','👄']],
-  f:[['Me duelen los pinreles','Me duelen los pies'],['Tiene unos sacais bonitos','Tiene unos ojos bonitos']]},
+  f:[['Me duelen los pinreles','Me duelen los pies'],['Tiene unos sacais bonitos','Tiene unos ojos bonitos'],['¡Achanta la mui!','¡Cierra la boca!']]},
  {id:'u6',t:'Lo que sentimos',d:'Cosas y sentimientos',ico:'⭐',col:'#ea580c',
   w:[['parné','dinero','💰'],['chachipé','verdad','✅'],['chungo','malo','👎'],['chipén','estupendo','⭐'],['jindama','miedo','😨'],['lacha','vergüenza','😳'],['bají','suerte','🍀']],
-  f:[['Eso es chachipé','Eso es verdad'],['¡Qué chipén!','¡Qué estupendo!'],['Menda no tiene jindama','Yo no tengo miedo'],['¡Mucha bají!','¡Mucha suerte!']]},
+  f:[['Eso es chachipé','Eso es verdad'],['¡Qué chipén!','¡Qué estupendo!'],['Menda no tiene jindama','Yo no tengo miedo'],['¡Mucha bají!','¡Mucha suerte!'],['Estoy sin parné','No tengo dinero'],['¡Qué lacha!','¡Qué vergüenza!'],['Esto está muy chungo','Esto está muy difícil'],['Es la pura chachipé','Es la pura verdad']]},
  {id:'u7',t:'Los números',d:'Uno, dos y tres',ico:'🔢',col:'#0d9488',
   w:[['yeque','uno','1️⃣'],['dui','dos','2️⃣'],['trin','tres','3️⃣']],
   f:[['Tengo trin chuqueles','Tengo tres perros'],['Dui chavós y yeque chaví','Dos niños y una niña']]},
  {id:'u8',t:'Palabras que ya usas',d:'El castellano está lleno de caló',ico:'🎁',col:'#db2777',especial:true,
   w:[['chaval','chico (del caló «chavó»)','👦'],['currar','trabajar','🔨'],['chungo','malo, difícil','👎'],['canguelo','miedo','😨'],['parné','dinero','💰'],['pirarse','irse','🏃'],['menda','yo (mi persona)','🙋'],['camelar','querer, convencer','❤️']],
-  f:[]}
+  f:[]},
+ {id:'u9',t:'Frases de cada día',d:'Expresiones que se oyen en la calle',ico:'💬',col:'#b45309',expr:true,
+  w:[['me las piro','me voy'],['¡qué chachi!','¡qué bien!'],['achanta la mui','cállate'],['estoy sin parné','no tengo dinero'],['¡qué lacha!','¡qué vergüenza!'],['no chanelo','no entiendo'],['me voy a sobar','me voy a dormir'],['¡qué bají!','¡qué suerte!'],['¡qué jindama!','¡qué miedo!'],['es la pura chachipé','es la pura verdad']],
+  f:[['Me las piro a mi quer','Me voy a mi casa'],['¡Qué chachi, chaval!','¡Qué bien, chico!'],['Estoy sin parné','No tengo dinero'],['No chanelo nada','No entiendo nada'],['Achanta la mui, gachó','Cállate, hombre'],['¡Qué bají has tenido!','¡Qué suerte has tenido!'],['Me voy a sobar un rato','Me voy a dormir un rato'],['Eso es la pura chachipé','Eso es la pura verdad']]}
 ];
 const NO_CALO=['mesa','ventana','libro','camino','flor','árbol','silla','campo','montaña','zapato','pelota','cuaderno'];
-const LECC=['Vocabulario','Escucha y práctica','Repaso y frases'],EJ=10;
+const LECC=['Vocabulario','Práctica','Frases'],EJ=10;
 
 const IC={
  audio:'<svg class="i" viewBox="0 0 24 24"><path d="M11 5 6 9H3v6h3l5 4z"/><path d="M15.5 8.5a5 5 0 0 1 0 7M18.5 5.5a9 9 0 0 1 0 13"/></svg>',
@@ -199,7 +202,7 @@ const esc=s=>String(s).replace(/[&<>"]/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;',
 const mezclar=a=>{a=[...a];for(let i=a.length-1;i>0;i--){const j=Math.floor(Math.random()*(i+1));[a[i],a[j]]=[a[j],a[i]];}return a;};
 const azar=a=>a[Math.floor(Math.random()*a.length)];
 const norm=s=>String(s).toLowerCase().normalize('NFD').replace(/[̀-ͯ]/g,'').replace(/[¡!¿?.,«»]/g,'').replace(/\s+/g,' ').trim();
-const TODAS=UNIDADES.flatMap(u=>u.w.map(w=>({c:w[0],e:w[1]})));
+const TODAS=UNIDADES.filter(u=>!u.expr).flatMap(u=>u.w.map(w=>({c:w[0],e:w[1]}))),EXPR=UNIDADES.filter(u=>u.expr).flatMap(u=>u.w.map(w=>({c:w[0],e:w[1]}))),FRASES=UNIDADES.flatMap(u=>u.f);
 
 /* ---------- Inicio ---------- */
 function siguiente(){for(let u=0;u<UNIDADES.length;u++)for(let l=0;l<LECC.length;l++)if(!S.hechas[UNIDADES[u].id+'-'+l])return {u,l};return null;}
@@ -214,13 +217,13 @@ function pintarInicio(){if(S.ultimo&&S.ultimo!==hoy()&&S.ultimo!==ayer())S.racha
    ${sig?`<p style="margin:18px 0 0"><button class="btn blanco" id="bSeguir">${IC.play}${hechas?'Continuar':'Empezar'}</button></p>`:''}</div>
    <div class="dia"><div class="eti">Palabra del día</div><div class="pal">${esc(dia.c)}<button id="bDia" aria-label="Escuchar la palabra del día">${IC.audio}</button></div><div class="sig">${esc(dia.e)}</div></div></section>
   <div class="aviso">${IC.info}<span>Vocabulario de caló documentado en diccionarios y <b>pendiente de revisión</b> por la comunidad gitana. Si conoces otra forma de decirlo, cuéntaselo a tu maestro o maestra.</span></div>
-  <h2 class="sec">Unidades del curso</h2><p class="secd">Cada unidad tiene tres lecciones. Se desbloquean en orden.</p><div class="unidades">`;
+  <h2 class="sec">Unidades del curso</h2><p class="secd">Cada unidad tiene tres lecciones. Empieza por la que quieras.</p><div class="unidades">`;
   let abierta=true;
-  UNIDADES.forEach((u,ui)=>{const n=LECC.filter((_,l)=>S.hechas[u.id+'-'+l]).length,bloq=!abierta&&n===0;
+  UNIDADES.forEach((u,ui)=>{const n=LECC.filter((_,l)=>S.hechas[u.id+'-'+l]).length,bloq=false;
     h+=`<article class="uni ${n===LECC.length?'hecha':''} ${bloq?'bloq':''}"><div class="top"><div class="num">${n===LECC.length?IC.check:ui+1}</div><div><h3>${esc(u.t)}</h3><div class="d">${esc(u.d)} · ${u.w.length} palabras</div></div></div>
      <div class="upb" aria-label="${n} de ${LECC.length} lecciones"><i style="width:${n/LECC.length*100}%"></i></div><div class="lecs">`;
     LECC.forEach((nom,l)=>{const id=u.id+'-'+l,hecha=S.hechas[id],act=sig&&sig.u===ui&&sig.l===l,ok=hecha||act;
-      h+=`<button class="lec ${hecha?'hecha':''} ${act?'actual':''}" data-u="${ui}" data-l="${l}" ${ok?'':'disabled'}>${l+1}. ${nom}<span class="est">${hecha?IC.check:act?IC.play:IC.lock}</span></button>`;});
+      h+=`<button class="lec ${hecha?'hecha':''} ${act?'actual':''}" data-u="${ui}" data-l="${l}" ${l+1}. ${nom}<span class="est">${hecha?IC.check:IC.play}</span></button>`;});
     h+='</div></article>';if(n<LECC.length)abierta=false;});
   h+=`</div><p class="pie">¿Chanelas? · Curso de caló del CEIP Capitulaciones (Santa Fe) · Para conocer y respetar la cultura gitana</p>`;
   $('#inicio').innerHTML=h;
@@ -235,9 +238,9 @@ let AC;function son(t){try{AC=AC||new (window.AudioContext||window.webkitAudioCo
 /* ---------- Lección ---------- */
 let L=null,estado='responder',comprobar=null;
 function empezar(ui,l){const u=UNIDADES[ui],pal=u.w.map(w=>({c:w[0],e:w[1]})),cola=[];
-  if(l===0)pal.forEach(p=>{if(!S.vistas[p.c]){cola.push({t:'nueva',p});cola.push({t:u.especial?'origen':azar(['significado','escucha']),p});}});
-  const tipos=u.especial?['origen','origen','significado','acalo','pares']:l===0?['significado','significado','acalo','escucha','pares']:l===1?['acalo','escucha','pares','frase','significado','escribir']:['escribir','frase','escucha','acalo','pares','frase'];
-  while(cola.filter(x=>x.t!=='nueva').length<EJ){const t=azar(tipos);if(t==='frase'&&!u.f.length)continue;cola.push({t,p:azar(pal)});}
+  if(l===0)pal.forEach(p=>{if(!S.vistas[p.c]){cola.push({t:'nueva',p});cola.push({t:u.especial?'origen':azar(['significado','acalo']),p});}});
+  const tipos=u.especial?['origen','origen','significado','acalo','pares']:l===0?['significado','significado','acalo','pares','frase']:l===1?['acalo','pares','frase','fraseSig','significado','escribir']:['frase','fraseSig','frase','fraseSig','escribir','pares'];
+  while(cola.filter(x=>x.t!=='nueva').length<EJ){const t=azar(tipos);if((t==='frase'||t==='fraseSig')&&!u.f.length)continue;cola.push({t,p:azar(pal)});}
   L={ui,l,u,pal,cola,i:0,vidas:5,errores:0,base:cola.length};
   $('#leccion').classList.add('on');document.body.style.overflow='hidden';paso();}
 function salir(){$('#leccion').classList.remove('on');document.body.style.overflow='';try{speechSynthesis.cancel();}catch(e){}L=null;pintarInicio();}
@@ -248,7 +251,7 @@ function pintarVidas(){$('#vidas').innerHTML=IC.corazon+`<span>${L.vidas}</span>
 function paso(){const ej=L.cola[L.i];estado='responder';comprobar=null;
   $('#progreso').style.width=(L.i/L.cola.length*100)+'%';pintarVidas();
   $('#pie').className='lpie';$('#feedback').innerHTML='';const b=$('#bComprobar');b.textContent='Comprobar';b.disabled=true;b.className='btn';
-  ({nueva:eNueva,significado:eSig,acalo:eACalo,escucha:eEscucha,pares:ePares,frase:eFrase,escribir:eEscribir,origen:eOrigen})[ej.t](ej);}
+  ({nueva:eNueva,significado:eSig,acalo:eACalo,fraseSig:eFraseSig,pares:ePares,frase:eFrase,escribir:eEscribir,origen:eOrigen})[ej.t](ej);}
 function listo(fn){comprobar=fn;$('#bComprobar').disabled=false;}
 $('#bComprobar').onclick=()=>{if(estado==='responder'&&comprobar)comprobar();
   else if(estado==='continuar'){L.i++;if(L.vidas<=0)return sinVidas();if(L.i>=L.cola.length)return fin();paso();}
@@ -260,7 +263,7 @@ function resultado(bien,sol,extra){estado='continuar';$('#pie').className='lpie 
     const ej=L.cola[L.i];if(L.cola.length<L.base+6)L.cola.push({...ej});}
   const b=$('#bComprobar');b.textContent='Continuar';b.disabled=false;b.className='btn'+(bien?'':' rojo');b.focus();}
 const cab=(tipo,txt)=>`<div class="tipo">${tipo}</div><div class="consigna">${txt}</div>`;
-function opciones(p,n=4){const v=new Set([p.c,p.e]),o=[];for(const x of mezclar(TODAS)){if(v.has(x.c)||v.has(x.e))continue;v.add(x.c);v.add(x.e);o.push(x);if(o.length>=n-1)break;}return mezclar([p,...o]);}
+function opciones(p,n=4){const v=new Set([p.c,p.e]),o=[];for(const x of mezclar(L&&L.u.expr?EXPR:TODAS)){if(v.has(x.c)||v.has(x.e))continue;v.add(x.c);v.add(x.e);o.push(x);if(o.length>=n-1)break;}return mezclar([p,...o]);}
 const botones=(op,campo)=>`<div class="opciones">${op.map((o,k)=>`<button class="opc" data-k="${k}"><span class="k">${k+1}</span>${esc(o[campo])}</button>`).join('')}</div>`;
 function elegir(op,fn){const cont=$('#ejercicio').querySelector('.opciones');const sel=k=>{if(estado!=='responder')return;cont.querySelectorAll('.opc').forEach((x,j)=>x.classList.toggle('sel',j===k));fn(k);};
   cont.onclick=e=>{const b=e.target.closest('.opc');if(b)sel(+b.dataset.k);};
@@ -274,8 +277,6 @@ function eNueva({p}){$('#ejercicio').innerHTML=`${cab('Palabra nueva','Aprende e
 function eSig({p}){const op=opciones(p);$('#ejercicio').innerHTML=`${cab('Vocabulario','¿Qué significa esta palabra?')}<div class="pregunta"><div class="palabra">${esc(p.c)}</div><button class="audio" id="aud" aria-label="Escuchar">${IC.audio}</button></div>${botones(op,'e')}`;
   $('#aud').onclick=()=>hablar(p.c);hablar(p.c);tipoOpc(op,p,'e',`${p.c} = ${p.e}`);}
 function eACalo({p}){const op=opciones(p);$('#ejercicio').innerHTML=`${cab('Vocabulario',`¿Cómo se dice <u>${esc(p.e)}</u> en caló?`)}${botones(op,'c')}`;tipoOpc(op,p,'c',`${p.e} = ${p.c}`);}
-function eEscucha({p}){const op=opciones(p,3);$('#ejercicio').innerHTML=`${cab('Comprensión oral','Escucha y elige la palabra que oyes')}<div class="pregunta" style="justify-content:center"><button class="audio grande" id="aud" aria-label="Escuchar otra vez">${IC.audio}</button></div>${botones(op,'c')}`;
-  $('#aud').onclick=()=>hablar(p.c);setTimeout(()=>hablar(p.c),250);tipoOpc(op,p,'e',`${p.c} (${p.e})`);}
 function eEscribir({p}){$('#ejercicio').innerHTML=`${cab('Escritura',`Escribe en caló: <u>${esc(p.e)}</u>`)}<label for="esc" class="tipo" style="display:block;margin-bottom:6px;color:var(--sec)">Tu respuesta</label><input id="esc" class="escribir" autocomplete="off" autocapitalize="off" spellcheck="false">`;
   const i=$('#esc');i.focus();i.oninput=()=>{if(i.value.trim())listo(()=>{const bien=norm(i.value)===norm(p.c);resultado(bien,p.c,bien&&i.value.trim()!==p.c?`Se escribe: ${p.c}`:'');});else{comprobar=null;$('#bComprobar').disabled=true;}};
   i.onkeydown=e=>{if(e.key==='Enter'&&comprobar&&estado==='responder'){e.preventDefault();comprobar();}};}
@@ -286,7 +287,7 @@ function ePares(){const ps=mezclar(L.pal).slice(0,Math.min(4,L.pal.length)),iz=m
     if(a.dataset.v===b.dataset.v){[a,b].forEach(x=>{x.classList.remove('sel');x.classList.add('ok');setTimeout(()=>x.classList.add('hecho'),220);});son('ok');n++;a=null;if(n===ps.length)setTimeout(()=>resultado(true,''),300);}
     else{const a2=a;[a2,b].forEach(x=>{x.classList.add('mal');setTimeout(()=>x.classList.remove('mal','sel'),380);});son('mal');a=null;}};}
 function eFrase(){const [cal,cas]=azar(L.u.f),haciaCas=Math.random()<.5,sol=haciaCas?cas:cal,ver=haciaCas?cal:cas,solW=sol.split(' ');
-  const extra=mezclar(L.pal.map(p=>haciaCas?p.e.split(/[ ,(]/)[0]:p.c)).filter(x=>x&&!solW.map(norm).includes(norm(x))).slice(0,3),fichas=mezclar([...solW,...extra]),el=[];
+  const extra=mezclar(L.pal.flatMap(p=>(haciaCas?p.e.split(/[ ,(]/)[0]:p.c).split(' '))).filter(x=>x&&!solW.map(norm).includes(norm(x))).slice(0,3),fichas=mezclar([...solW,...extra]),el=[];
   $('#ejercicio').innerHTML=`${cab('Frases',haciaCas?'Traduce al castellano':'Traduce al caló')}<div class="pregunta"><div class="palabra" style="font-size:1.25rem">${esc(ver)}</div>${haciaCas?`<button class="audio" id="aud" aria-label="Escuchar">${IC.audio}</button>`:''}</div>
    <div class="zona" id="zona" aria-label="Tu frase"></div><div class="banco" id="banco">${fichas.map((f,k)=>`<button class="ficha" data-k="${k}">${esc(f)}</button>`).join('')}</div>`;
   if(haciaCas){$('#aud').onclick=()=>hablar(cal);hablar(cal);}
@@ -294,6 +295,9 @@ function eFrase(){const [cal,cas]=azar(L.u.f),haciaCas=Math.random()<.5,sol=haci
     if(el.length)listo(()=>resultado(norm(el.map(k=>fichas[k]).join(' '))===norm(sol),sol));else{comprobar=null;$('#bComprobar').disabled=true;}};
   $('#banco').onclick=e=>{const b=e.target.closest('.ficha');if(!b||estado!=='responder')return;el.push(+b.dataset.k);if(!haciaCas)hablar(fichas[+b.dataset.k]);pinta();};
   $('#zona').onclick=e=>{const b=e.target.closest('.ficha');if(!b||estado!=='responder')return;el.splice(+b.dataset.j,1);pinta();};}
+function eFraseSig(){const [cal,cas]=azar(L.u.f),otras=mezclar(FRASES.filter(f=>norm(f[1])!==norm(cas))).slice(0,3),op=mezclar([{c:cal,e:cas},...otras.map(f=>({c:f[0],e:f[1]}))]);
+  $('#ejercicio').innerHTML=`${cab('Frases','¿Qué significa esta frase?')}<div class="pregunta"><div class="palabra" style="font-size:1.25rem">${esc(cal)}</div><button class="audio" id="aud" aria-label="Escuchar">${IC.audio}</button></div>${botones(op,'e')}`;
+  $('#aud').onclick=()=>hablar(cal);hablar(cal);let s=null;elegir(op,k=>{s=k;listo(()=>{const ok=op.findIndex(o=>o.c===cal),bien=s===ok;marcar(s,ok,bien);resultado(bien,`${cal} = ${cas}`);});});}
 function eOrigen({p}){const op=mezclar([{c:p.c},...mezclar(NO_CALO).slice(0,2).map(c=>({c}))]);
   $('#ejercicio').innerHTML=`${cab('El caló en el castellano','¿Cuál de estas palabras viene del caló?')}${botones(op,'c')}`;
   let s=null;elegir(op,k=>{s=k;listo(()=>{const ok=op.findIndex(o=>o.c===p.c),bien=s===ok;marcar(s,ok,bien);resultado(bien,`«${p.c}» viene del caló: ${p.e}`,bien?`«${p.c}» significa ${p.e}`:'');});});}
@@ -310,6 +314,9 @@ function sinVidas(){$('#ejercicio').innerHTML=`<div class="fin"><div class="sell
 
 try{speechSynthesis.getVoices();}catch(e){}
 pintarInicio();
+try{if(localStorage.getItem('chanelas-nov')!=='1'){localStorage.setItem('chanelas-nov','1');const d=document.createElement('div');d.setAttribute('role','dialog');d.style.cssText='position:fixed;inset:0;background:rgba(15,23,42,.35);display:flex;align-items:center;justify-content:center;z-index:99;padding:20px';
+  d.innerHTML='<div style="background:#fff;border-radius:16px;padding:24px;max-width:380px;box-shadow:0 12px 32px rgba(0,0,0,.18)"><div class="tipo">Novedad</div><p style="margin:8px 0 18px">Todas las unidades están abiertas, hay una unidad nueva de <b>frases de cada día</b> y más frases en cada unidad.</p><button class="btn" style="width:100%">Entendido</button></div>';
+  d.onclick=e=>{if(e.target===d||e.target.tagName==='BUTTON')d.remove();};document.body.appendChild(d);}}catch(e){}
 }
 </script>
 </body>
