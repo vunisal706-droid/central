@@ -1,4 +1,4 @@
-const CACHE_NAME = 'capitoolsapp-v3-b2611272025';
+const CACHE_NAME = 'capitoolsapp-v3-b2611272029';
 const urlsToCache = [
   './index.html',
   './manifest.json',
