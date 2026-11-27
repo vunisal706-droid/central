@@ -186,7 +186,7 @@ let L=null;
 function empezar(ui,l){const u=UNIDADES[ui];const cola=[];
   const palabras=u.w.map(w=>({c:w[0],e:w[1],i:w[2]}));
   // Palabras nuevas: se presentan antes de preguntarlas
-  if(l===0)palabras.forEach(p=>{if(!S.vistas[p.c])cola.push({tipo:'nueva',p});});
+  if(l===0)palabras.forEach(p=>{if(!S.vistas[p.c]){cola.push({tipo:'nueva',p});cola.push({tipo:u.especial?'origen':azar(['significado','escucha']),p});}});
   const tipos=u.especial?['origen','origen','significado','acalo','origen','pares']:
     l===0?['significado','significado','acalo','escucha','pares']:l===1?['acalo','escucha','pares','frase','significado','escribir']:['escribir','frase','escucha','acalo','pares','frase'];
   while(cola.filter(x=>x.tipo!=='nueva').length<EJ_POR_LECCION){const t=azar(tipos);if(t==='frase'&&!u.f.length)continue;cola.push({tipo:t,p:azar(palabras)});}
