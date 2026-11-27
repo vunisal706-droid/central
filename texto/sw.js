@@ -1,4 +1,4 @@
-const CACHE = 'capitexto-shell-v3-b2611271844';
+const CACHE = 'capitexto-shell-v3-b2611271846';
 const SHELL = [
   './',
   './index.html',
