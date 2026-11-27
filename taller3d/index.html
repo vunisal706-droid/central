@@ -253,7 +253,7 @@ function generar(){if(!FONT)return;let geo;
   ultimoTam=s;if(!generar.vista||generar.vista!==tipo){generar.vista=tipo;encuadrar();}}
 let ultimoTam=null;
 function encuadrar(){if(!ultimoTam)return;const s=ultimoTam,f=Math.tan(THREE.MathUtils.degToRad(cam.fov/2));
-  const d=Math.max(s.y/(2*f),s.x/(2*f*cam.aspect),30)*1.35;cam.position.set(0,d*.8,d*.6);ctl.target.set(0,0,0);ctl.update();}
+  const d=Math.max(s.y/(2*f),s.x/(2*f*cam.aspect),30)*1.7;cam.position.set(0,d*.8,d*.6);ctl.target.set(0,0,0);ctl.update();}
 
 const exp=new STLExporter();
 function nombre(){const t=(P.texto||T[tipo].n).split('\n')[0];return (tipo+'_'+t).normalize('NFD').replace(/[̀-ͯ]/g,'').replace(/[^\w]+/g,'_').slice(0,40);}
