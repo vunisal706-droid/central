@@ -70,6 +70,7 @@ th,td{border-bottom:1px solid var(--linea);padding:10px 12px;text-align:left;ver
 tr:last-child td{border-bottom:0}
 th{background:var(--noche);color:#fff;font:700 .82rem var(--texto);letter-spacing:.02em}
 tr:nth-child(odd) td{background:#FAFCFE}
+.recreo-box{margin-top:14px;padding:12px;border:1.5px dashed #f59e0b;background:#fffbeb;border-radius:12px;display:flex;flex-direction:column;gap:6px}.recreo-box input{width:100%}
 .aviso{background:#FDECEE;border:1px solid #F7C6CC;color:#A12534;border-radius:10px;padding:8px 10px;font-size:.86rem}
 .okmsg{background:#E3FAFA;border:1px solid #A5EDED;color:#035e66;border-radius:10px;padding:10px 12px;font-size:.9rem}
 .chip{display:inline-block;border-radius:999px;padding:4px 12px;font:700 .8rem var(--texto);background:var(--turquesa-claro);color:#005A63;border:1px solid #A5EDED}
@@ -163,6 +164,11 @@ tr:nth-child(odd) td{background:#FAFCFE}
       <div class="card oculto" id="cardRes">
         <h2>2. Propuesta (puedes cambiar a quien quieras)</h2>
         <div id="resultado"></div>
+        <div class="recreo-box">
+          <label for="recreoTxt"><b>🛝 Recreo</b> <span class="small muted" id="recreoHora"></span></label>
+          <input type="text" id="recreoTxt" placeholder="¿Quién sustituye en el recreo? Ej.: Manolo cubre a Silvia en el patio de Primaria">
+          <span class="small muted">Escríbelo a mano: los turnos de recreo no vienen en los horarios del Drive. Sale en el PDF.</span>
+        </div>
         <div class="fila noprint" style="margin-top:14px">
           <button class="btn ok" id="btnGuardar">💾 Guardar el día</button>
           <button class="btn pri" id="btnPdf">📤 Compartir PDF (WhatsApp)</button>
@@ -238,7 +244,8 @@ const toast = (m, ms = 2600) => { const t = $('#toast'); t.textContent = m; t.st
 
 let D = null;           // datos: personas, horarios, cuadrante, orden, tramos
 let DIASG = {};         // días guardados
-let propuesta = [];     // [{ti, grupo, ausente, texto, sustituto}]
+let propuesta = [];
+const recreoVal = () => ($('#recreoTxt') ? $('#recreoTxt').value.trim() : '');     // [{ti, grupo, ausente, texto, sustituto}]
 let yo = '';
 
 /* ---------- Acceso ---------- */
@@ -387,8 +394,9 @@ function pintarDia() {
     if (!todo) toast('Ahora toca las horas en que falta.');
   });
   $('#buscaPer').oninput = filtrar; filtrar(); contar();
-  try { if (localStorage.getItem('sust-nov') !== '22') { localStorage.setItem('sust-nov', '22'); toast('✨ Novedad: el PDF de sustituciones ahora usa toda la hoja, con letra grande, y siempre cabe en una cara.', 6000); } } catch (e) { }
+  try { if (localStorage.getItem('sust-nov') !== '23') { localStorage.setItem('sust-nov', '23'); toast('✨ Novedad: en la propuesta hay un hueco para escribir quién sustituye en el recreo. Sale en el PDF.', 6000); } } catch (e) { }
   $('#estadoDia').textContent = guardado ? '✅ Este día ya está guardado (por ' + (guardado.por || '') + '). Si lo vuelves a guardar, se sustituye.' : '';
+  $('#recreoTxt').value = guardado ? guardado.recreo || '' : '';
   if (guardado) { propuesta = guardado.asignaciones || []; pintarResultado(); } else $('#cardRes').classList.add('oculto');
 }
 const AREAS = [
@@ -565,6 +573,7 @@ $('#btnCalcular').onclick = () => {
 function pintarResultado() {
   const f = $('#fecha').value, dia = letraDia(f);
   $('#cardRes').classList.remove('oculto');
+  $('#recreoHora').textContent = D.tramos[5] ? '(' + D.tramos[5].replace('-', ' – ') + ')' : '';
   $('#ordenTxt').textContent = D.orden.map((o, i) => (i + 1) + 'º ' + o[1]).join(' · ');
   if (!propuesta.length) { $('#resultado').innerHTML = '<p class="okmsg">No hay grupos que cubrir.</p>'; return; }
   const aus = ausenciasMarcadas();
@@ -584,7 +593,7 @@ function pintarResultado() {
 }
 $('#btnGuardar').onclick = async () => {
   const f = $('#fecha').value;
-  const d = { ausencias: ausenciasMarcadas(), asignaciones: propuesta, por: yo, ts: Date.now() };
+  const d = { ausencias: ausenciasMarcadas(), asignaciones: propuesta, recreo: recreoVal(), por: yo, ts: Date.now() };
   await db.ref('sustituciones/dias/' + f).set(d); DIASG[f] = d;
   $('#estadoDia').textContent = '✅ Día guardado.'; pintarRegistro(); toast('Día guardado');
 };
@@ -600,7 +609,7 @@ function logoData() { return fetch('../podcast/LOGO.jpg').then(r => r.ok ? r.blo
 const MESES = ['enero', 'febrero', 'marzo', 'abril', 'mayo', 'junio', 'julio', 'agosto', 'septiembre', 'octubre', 'noviembre', 'diciembre'];
 async function pdfDia(soloDescargar) {
   const f = $('#fecha').value, dia = letraDia(f);
-  if (!propuesta.length) return toast('Primero pulsa «Proponer sustituciones».');
+  if (!propuesta.length && !recreoVal()) return toast('Primero pulsa «Proponer sustituciones».');
   toast('Preparando el PDF…');
   await pdfmakeListo();
   const img = await logoData();
@@ -627,8 +636,16 @@ async function pdfDia(soloDescargar) {
       layout: { ...sinBordes, fillColor: () => C.rojoClaro, vLineWidth: i => i === 0 ? 3 : 0, vLineColor: () => C.rojo }, margin: [0, 0, 0, 9 * kc] });
     const th = t => ({ text: t, bold: true, color: '#fff', fontSize: z(10) });
     const body = [[th('Hora'), th('Curso'), th('Falta'), th('Lo cubre'), th('Asignatura')]], fondo = [C.azul], corte = [false];
-    let tPrev = -1, par = 0;
+    let tPrev = -1, par = 0, recreoPuesto = !recreoVal();
+    const filaRecreo = () => {
+      recreoPuesto = true; par ^= 1;
+      const [ini, fin] = (D.tramos[5] || '12:00-12:30').split('-');
+      body.push([{ text: [{ text: ini, bold: true, fontSize: z(11.5), color: C.oro }, { text: '\n' + fin, fontSize: z(8.5), color: C.gris }] },
+        { colSpan: 4, text: [{ text: 'RECREO   ', bold: true, color: C.oro, fontSize: z(11) }, { text: recreoVal(), bold: true, color: C.verde, fontSize: z(11.5) }] }, {}, {}, {}]);
+      fondo.push(C.oroClaro); corte.push(true); tPrev = 5;
+    };
     orden.forEach(x => {
+      if (!recreoPuesto && x.ti > 5) filaRecreo();
       const nuevo = x.ti !== tPrev; if (nuevo) { par ^= 1; tPrev = x.ti; }
       const [ini, fin] = D.tramos[x.ti].split('-');
       body.push([
@@ -639,6 +656,7 @@ async function pdfDia(soloDescargar) {
         { text: asignaturaDe(x.texto, x.ausente), fontSize: z(9.5) }]);
       fondo.push(par ? '#ffffff' : C.claro); corte.push(nuevo);
     });
+    if (!recreoPuesto) filaRecreo();
     content.push({ table: { headerRows: 1, widths: ['13%', '20%', '17%', '24%', '*'], body, dontBreakRows: true }, layout: {
       fillColor: i => fondo[i],
       hLineWidth: (i, n) => i === 0 || i === n.table.body.length ? 0 : i === 1 ? 0 : corte[i] ? 1.6 : .4,
