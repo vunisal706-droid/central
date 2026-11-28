@@ -180,7 +180,7 @@ tr:nth-child(odd) td{background:#FAFCFE}
     </section>
 
     <section id="t-registro" class="oculto">
-      <div class="card"><h2>Sustituciones hechas este curso</h2><div id="cuentas"></div></div>
+      <div class="card"><h2>Sustituciones hechas este curso</h2><p class="small muted">Se cuentan desde el lunes 30 de noviembre de 2026. Los días anteriores siguen guardados abajo, pero no cuentan.</p><div id="cuentas"></div></div>
       <div class="card"><h2>Días guardados</h2><div id="dias"></div></div>
     </section>
 
@@ -394,7 +394,7 @@ function pintarDia() {
     if (!todo) toast('Ahora toca las horas en que falta.');
   });
   $('#buscaPer').oninput = filtrar; filtrar(); contar();
-  try { if (localStorage.getItem('sust-nov') !== '23') { localStorage.setItem('sust-nov', '23'); toast('✨ Novedad: en la propuesta hay un hueco para escribir quién sustituye en el recreo. Sale en el PDF.', 6000); } } catch (e) { }
+  try { if (localStorage.getItem('sust-nov') !== '24') { localStorage.setItem('sust-nov', '24'); toast('✨ Novedad: hueco para escribir quién sustituye en el recreo, y contadores de sustituciones a cero desde el 30 de noviembre.', 6000); } } catch (e) { }
   $('#estadoDia').textContent = guardado ? '✅ Este día ya está guardado (por ' + (guardado.por || '') + '). Si lo vuelves a guardar, se sustituye.' : '';
   $('#recreoTxt').value = guardado ? guardado.recreo || '' : '';
   if (guardado) { propuesta = guardado.asignaciones || []; pintarResultado(); } else $('#cardRes').classList.add('oculto');
@@ -438,11 +438,13 @@ function contar() {
 function ausenciasMarcadas() {
   return [...document.querySelectorAll('.per.falta')].map(c => ({ p: c.dataset.p, tramos: [...c.querySelectorAll('[data-ti]:checked')].map(x => +x.dataset.ti) })).filter(a => a.tramos.length);
 }
+// Los contadores empiezan el 30/11/2026: los días anteriores eran casi todos pruebas (se conservan en el registro, pero no cuentan)
+const CUENTA_DESDE = '2026-11-30';
 // Control de R55: cuántas veces ha sustituido cada persona en su hora de R55 este curso
 function cuentasR55(curso, excluirFecha, cat = 'r55') {
   const c = {};
   Object.entries(DIASG).forEach(([f, d]) => {
-    if (f === excluirFecha || cursoDe(f) !== curso) return;
+    if (f === excluirFecha || cursoDe(f) !== curso || f < CUENTA_DESDE) return;
     const dia = letraDia(f);
     (d.asignaciones || []).forEach(a => { if (a.sustituto && (D.cuadrante[dia + a.ti] || []).some(i => i.p === a.sustituto && i.cat === cat)) c[a.sustituto] = (c[a.sustituto] || 0) + 1; });
   });
@@ -472,7 +474,7 @@ function asignaturaDe(texto, pid) {
 }
 function cuentasCurso(curso, excluirFecha) {
   const c = {};
-  Object.entries(DIASG).forEach(([f, d]) => { if (f === excluirFecha || cursoDe(f) !== curso) return; (d.asignaciones || []).forEach(a => { if (a.sustituto) c[a.sustituto] = (c[a.sustituto] || 0) + 1; }); });
+  Object.entries(DIASG).forEach(([f, d]) => { if (f === excluirFecha || cursoDe(f) !== curso || f < CUENTA_DESDE) return; (d.asignaciones || []).forEach(a => { if (a.sustituto) c[a.sustituto] = (c[a.sustituto] || 0) + 1; }); });
   return c;
 }
 const tutorDe = g => { const p = D.personas.find(x => x.tipo === 'tutor' && x.grupo && x.grupo === g); return p ? p.id : ''; };
